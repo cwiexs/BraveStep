@@ -1,38 +1,50 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("goalForm");
-  const result = document.getElementById("result");
-  const goalSelect = document.getElementById("goal");
-  const customGoalContainer = document.getElementById("customGoalContainer");
+@@ -1,11 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BraveStep</title>
+    <meta charset="UTF-8">
+    <title>BraveStep – Your First Step to Fitness</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Welcome to BraveStep!</h1>
+  <p>This will be your future fitness assistant 💪</p>
+    <div class="container">
+        <h1>Welcome to BraveStep!</h1>
+        <p>Create your personalized weekly workout plan based on your fitness goals.</p>
+        <form id="planForm">
+            <label>Age:<br>
+                <input type="number" name="age" required>
+            </label><br><br>
 
-  goalSelect.addEventListener("change", () => {
-    if (goalSelect.value === "other") {
-      customGoalContainer.style.display = "block";
-    } else {
-      customGoalContainer.style.display = "none";
-    }
-  });
+            <label>Gender:<br>
+                <select name="gender">
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </label><br><br>
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const age = document.getElementById("age").value;
-    const weight = document.getElementById("weight").value;
-    const goal = document.getElementById("goal").value;
-    const customGoal = document.getElementById("customGoal").value;
+            <label>Fitness Goal:<br>
+                <select name="goal">
+                    <option value="lose_weight">Lose Weight</option>
+                    <option value="build_muscle">Build Muscle</option>
+                    <option value="stay_fit">Stay Fit</option>
+                </select>
+            </label><br><br>
 
-    let finalGoal = goal === "other" ? customGoal : goal;
+            <label>Workout Days per Week:<br>
+                <input type="number" name="days" min="1" max="7" required>
+            </label><br><br>
 
-    const plan = `
-      <h2>Your Weekly Plan</h2>
-      <p><strong>Age:</strong> ${age}</p>
-      <p><strong>Weight:</strong> ${weight} kg</p>
-      <p><strong>Goal:</strong> ${finalGoal}</p>
-      <ul>
-        <li>Monday: Warm-up + Cardio + Stretching</li>
-        <li>Wednesday: Strength training + Core</li>
-        <li>Friday: Full-body workout + Mobility</li>
-      </ul>
-    `;
-    result.innerHTML = plan;
-    result.classList.remove("hidden");
-  });
-});
+            <button type="submit">Generate Plan</button>
+        </form>
+
+        <div id="result"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
