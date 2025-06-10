@@ -1,45 +1,41 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>BraveStep – Your First Step to Fitness</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BraveStep – Personal Plan</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-    <div class="container">
-        <h1>Welcome to BraveStep!</h1>
-        <p>Create your personalized weekly workout plan based on your fitness goals.</p>
-        <form id="planForm">
-            <label>Age:<br>
-                <input type="number" name="age" required>
-            </label><br><br>
+  <div class="container">
+    <h1>BraveStep – Personal Plan Generator</h1>
+    <form id="goalForm">
+      <label for="age">Age:</label>
+      <input type="number" id="age" name="age" required />
 
-            <label>Gender:<br>
-                <select name="gender">
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                </select>
-            </label><br><br>
+      <label for="weight">Weight (kg):</label>
+      <input type="number" id="weight" name="weight" required />
 
-            <label>Fitness Goal:<br>
-                <select name="goal">
-                    <option value="lose_weight">Lose Weight</option>
-                    <option value="build_muscle">Build Muscle</option>
-                    <option value="stay_fit">Stay Fit</option>
-                </select>
-            </label><br><br>
+      <label for="goal">Select your goal:</label>
+      <select id="goal" name="goal" required>
+        <option value="">--Choose--</option>
+        <option value="lose">Lose weight</option>
+        <option value="gain">Gain muscle</option>
+        <option value="maintain">Maintain health</option>
+        <option value="other">Other</option>
+      </select>
 
-            <label>Workout Days per Week:<br>
-                <input type="number" name="days" min="1" max="7" required>
-            </label><br><br>
+      <div id="customGoalContainer" style="display: none;">
+        <label for="customGoal">Your custom goal:</label>
+        <input type="text" id="customGoal" name="customGoal" />
+      </div>
 
-            <button type="submit">Generate Plan</button>
-        </form>
+      <button type="submit">Generate Plan</button>
+    </form>
 
-        <div id="result"></div>
-    </div>
+    <div id="result" class="hidden"></div>
+  </div>
 
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
