@@ -2,44 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>BraveStep - Weekly Plan Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BraveStep AI</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>BraveStep: Weekly Plan Generator</h1>
-
-    <form id="user-form">
-      <label for="age">Age:</label>
-      <input type="number" id="age" name="age" required>
-
-      <label for="weight">Weight (kg):</label>
-      <input type="number" id="weight" name="weight" required>
-
-      <label for="goal">Your Goal:</label>
-      <select id="goal" name="goal" required>
-        <option value="" disabled selected>Select your goal</option>
-        <option value="lose_weight">Lose Weight</option>
-        <option value="gain_muscle">Gain Muscle</option>
-        <option value="increase_stamina">Increase Stamina</option>
-        <option value="other">Other</option>
+    <h1>BraveStep: AI Sport Plan Generator</h1>
+    <form id="form">
+      <input type="number" id="age" placeholder="Age" required />
+      <input type="number" id="weight" placeholder="Weight (kg)" required />
+      <select id="gender">
+        <option value="male">Male</option>
+        <option value="female">Female</option>
       </select>
-
-      <div id="custom-goal-container" style="display: none;">
-        <label for="custom-goal">Enter your goal:</label>
-        <input type="text" id="custom-goal" name="custom-goal">
-      </div>
-
+      <input type="text" id="goals" placeholder="Your Goal (e.g. lose weight)" required />
+      <input type="number" id="days" placeholder="Days per week" required />
       <button type="submit">Generate Plan</button>
     </form>
-
-    <div id="plan-output" style="display: none;">
-      <h2>Your Weekly Plan:</h2>
-      <pre id="plan-text"></pre>
-    </div>
+    <pre id="result"></pre>
   </div>
-
-  <script src="script.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
