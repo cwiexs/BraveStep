@@ -2,39 +2,35 @@
 import { useState } from 'react';
 
 export default function Home() {
-  const [age, setAge] = useState('');
-  const [weight, setWeight] = useState('');
-  const [gender, setGender] = useState('male');
-  const [goals, setGoals] = useState('');
-  const [daysPerWeek, setDaysPerWeek] = useState('');
+  const [form, setForm] = useState({ age: '', weight: '', gender: '', goals: '', daysPerWeek: '' });
   const [plan, setPlan] = useState('');
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setPlan('Generating...');
-
     const res = await fetch('/api/generate-plan', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ age, weight, gender, goals, daysPerWeek }),
+      body: JSON.stringify(form),
     });
-
     const data = await res.json();
-    setPlan(data.plan || 'Error generating plan.');
+    setPlan(data.plan || 'Klaida generuojant planą.');
   };
 
   return (
     <div style={{ padding: 20 }}>
-      <h1>BraveStep - Workout Plan Generator</h1>
+      <h1>BraveStep plan generator</h1>
       <form onSubmit={handleSubmit}>
-        <input placeholder="Age" value={age} onChange={(e) => setAge(e.target.value)} /><br />
-        <input placeholder="Weight (kg)" value={weight} onChange={(e) => setWeight(e.target.value)} /><br />
-        <select value={gender} onChange={(e) => setGender(e.target.value)}>
-          <option value="male">Male</option>
-          <option value="female">Female</option>
-        </select><br />
-        <input placeholder="Your goals" value={goals} onChange={(e) => setGoals(e.target.value)} /><br />
-        <input placeholder="Days per week" value={daysPerWeek} onChange={(e) => setDaysPerWeek(e.target.value)} /><br />
+        {['age', 'weight', 'gender', 'goals', 'daysPerWeek'].map((field) => (
+          <div key={field}>
+            <label>{field}</label><br />
+            <input name={field} onChange={handleChange} required />
+            <br /><br />
+          </div>
+        ))}
         <button type="submit">Generate Plan</button>
       </form>
       <pre>{plan}</pre>
