@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const goal = document.getElementById("goal").value;
     const customGoal = document.getElementById("customGoal").value;
 
-    let finalGoal = goal === "other" ? customGoal : goal;
+    const finalGoal = goal === "other" ? customGoal : goal;
 
     const plan = `
       <h2>Your Weekly Plan</h2>
@@ -32,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
         <li>Friday: Full-body workout + Mobility</li>
       </ul>
     `;
+
     result.innerHTML = plan;
     result.classList.remove("hidden");
   });
