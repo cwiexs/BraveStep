@@ -1,27 +1,30 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BraveStep AI</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>BraveStep Plan Generator</title>
 </head>
 <body>
-  <div class="container">
-    <h1>BraveStep: AI Sport Plan Generator</h1>
-    <form id="form">
-      <input type="number" id="age" placeholder="Age" required />
-      <input type="number" id="weight" placeholder="Weight (kg)" required />
-      <select id="gender">
-        <option value="male">Male</option>
-        <option value="female">Female</option>
+  <h1>BraveStep Sporto Planas</h1>
+  <form id="planForm">
+    <label>Amžius: <input type="number" name="age" required></label><br>
+    <label>Svoris (kg): <input type="number" name="weight" required></label><br>
+    <label>Lytis: 
+      <select name="gender" required>
+        <option value="male">Vyras</option>
+        <option value="female">Moteris</option>
       </select>
-      <input type="text" id="goals" placeholder="Your Goal (e.g. lose weight)" required />
-      <input type="number" id="days" placeholder="Days per week" required />
-      <button type="submit">Generate Plan</button>
-    </form>
-    <pre id="result"></pre>
-  </div>
+    </label><br>
+    <label>Sporto tikslai: <input type="text" name="goals" required></label><br>
+    <label>Sporto kartų per savaitę: <input type="number" name="daysPerWeek" required></label><br>
+    <button type="submit">Generate Plan</button>
+  </form>
+
+  <h2>Gautas planas:</h2>
+  <pre id="output"></pre>
+
   <script src="main.js"></script>
 </body>
 </html>
