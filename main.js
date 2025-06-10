@@ -8,7 +8,7 @@ document.getElementById('form').addEventListener('submit', async (e) => {
     daysPerWeek: document.getElementById('days').value
   };
 
-  const res = await fetch('https://bravestep.vercel.app/api/generate-plan', {
+  const res = await fetch('https://brave-step.vercel.app//api/generate-plan', {
 
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
