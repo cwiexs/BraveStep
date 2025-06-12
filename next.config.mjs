@@ -1,8 +1,8 @@
-import path from 'path';
-export default {
-  experimental: { appDir: true },
-  webpack(config) {
-    config.resolve.alias['@'] = path.resolve(__dirname);
-    return config;
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  experimental: {
+    appDir: true
   }
 };
+
+export default nextConfig;
