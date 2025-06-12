@@ -1,5 +1,5 @@
 // app/layout.tsx
-import './globals.css'; // jei CSS nėra – gali ištrinti šią eilutę
+ // jei CSS nėra – gali ištrinti šią eilutę
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
