@@ -1,38 +1,35 @@
 {
   "compilerOptions": {
+    /* ───────────────── Target / moduliai ───────────────── */
     "target": "es2020",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "es2020"
-    ],
-    "allowJs": false,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
     "module": "esnext",
     "moduleResolution": "bundler",
+
+    /* ───────────────── Language features ───────────────── */
+    "lib": ["dom", "dom.iterable", "es2020"],
+    "jsx": "preserve",
+    "allowJs": false,
     "resolveJsonModule": true,
+
+    /* ───────────────── Type Safety ───────────────── */
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "esModuleInterop": true,
     "isolatedModules": true,
-    "jsx": "preserve"
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
-  {
-  "compilerOptions": {
-    // ... tai, kas jau yra ...
-    "baseUrl": ".",           // <-- nauja eilutė
-    "paths": {                // <-- naujas blokas
+    "noEmit": true,
+    "incremental": true,
+
+    /* ───────────────── Alias’ai (@/…) ───────────────── */
+    "baseUrl": ".",
+    "paths": {
       "@/*": ["./*"]
     }
-  }
-}
+  },
 
+  /* Kurie failai turi būti tikrinami */
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+
+  /* Kurių ignoruoti */
+  "exclude": ["node_modules"]
 }
