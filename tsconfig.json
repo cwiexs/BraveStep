@@ -1,35 +1,20 @@
 {
   "compilerOptions": {
-    /* ───────────────── Target / moduliai ───────────────── */
     "target": "es2020",
     "module": "esnext",
     "moduleResolution": "bundler",
-
-    /* ───────────────── Language features ───────────────── */
-    "lib": ["dom", "dom.iterable", "es2020"],
-    "jsx": "preserve",
-    "allowJs": false,
-    "resolveJsonModule": true,
-
-    /* ───────────────── Type Safety ───────────────── */
     "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
     "noEmit": true,
-    "incremental": true,
+    "skipLibCheck": true,
 
-    /* ───────────────── Alias’ai (@/…) ───────────────── */
+    /*  Absoliutūs keliai  */
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"]
+      "@/components/*": ["components/*"],
+      "@/lib/*": ["lib/*"],
+      "@/styles/*": ["styles/*"]
     }
   },
-
-  /* Kurie failai turi būti tikrinami */
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
-
-  /* Kurių ignoruoti */
   "exclude": ["node_modules"]
 }
