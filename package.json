@@ -1,15 +1,30 @@
 {
-  "name": "clean-test",
-  "version": "0.0.1",
-  "private": true,
+  "name": "ai-sports-planner",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "AI powered sports training plan generator",
+  "main": "server.js",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start"
+    "start": "node server.js",
+    "dev": "nodemon server.js"
   },
   "dependencies": {
-    "next": "14.1.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  }
+    "better-sqlite3": "^9.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.19.2",
+    "openai": "^4.30.1",
+    "stripe": "^14.26.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  },
+  "keywords": [
+    "sports",
+    "ai",
+    "plans",
+    "express"
+  ],
+  "author": "",
+  "license": "MIT"
 }
