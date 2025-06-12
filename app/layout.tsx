@@ -1,5 +1,3 @@
-// app/layout.tsx
- // jei CSS nėra – gali ištrinti šią eilutę
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
@@ -7,11 +5,7 @@ export const metadata: Metadata = {
   description: 'Minimalus Next 14 API demo',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body>{children}</body>
