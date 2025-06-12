@@ -25,4 +25,14 @@
   "exclude": [
     "node_modules"
   ]
+  {
+  "compilerOptions": {
+    // ... tai, kas jau yra ...
+    "baseUrl": ".",           // <-- nauja eilutė
+    "paths": {                // <-- naujas blokas
+      "@/*": ["./*"]
+    }
+  }
+}
+
 }
