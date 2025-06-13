@@ -1,13 +1,12 @@
 {
-  "name": "ai-sports-neon",
-  "version": "1.0.0",
+  "name": "bravestep",
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "dev": "vercel dev",
     "start": "vercel start"
   },
   "dependencies": {
-    "openai": "^4.30.1",
-    "pg": "^9.7.6"
+    "openai": "^4.30.1"
   }
 }
