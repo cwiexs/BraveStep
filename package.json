@@ -1,21 +1,15 @@
 {
   "name": "bravestep",
-  "version": "0.2.0",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "prisma": "prisma"
+    "start": "next start"
   },
   "dependencies": {
-    "next": "14.2.3",
-    "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "next-auth": "^4.24.6",
-    "@auth/prisma-adapter": "^1.0.7",
-    "prisma": "^5.12.0",
-    "@prisma/client": "^5.12.0",
-    "openai": "^4.30.1",
-    "swr": "^2.2.0"
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0"
   }
 }
