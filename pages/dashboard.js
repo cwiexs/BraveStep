@@ -4,7 +4,10 @@ import useSWR from "swr";
 const fetcher = (url) => fetch(url).then((r) => r.json());
 
 export default function Dashboard() {
-  const { data: session, status } = useSession();
+  // Saugus variantas: priskirk numatytą reikšmę, jei useSession() grąžina undefined
+  const sessionData = useSession?.();
+  const session = sessionData?.data;
+  const status = sessionData?.status || "loading";
   const { data, error } = useSWR(session ? "/api/my-plans" : null, fetcher);
 
   if (status === "loading") return <div>Kraunasi...</div>;
