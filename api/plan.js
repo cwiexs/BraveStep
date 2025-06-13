@@ -1,36 +1,27 @@
-import { Configuration, OpenAIApi } from 'openai';
+import OpenAI from "openai";
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.status(405).json({ error: 'Leidžiamas tik POST' });
-    return;
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Leidžiamas tik POST" });
   }
 
-  // 👇 Pridedame JSON body parserį
-  let body = req.body;
-  if (!body) {
-    try {
-      body = JSON.parse(await new Promise(resolve => {
-        let data = '';
-        req.on('data', chunk => data += chunk);
-        req.on('end', () => resolve(data));
-      }));
-    } catch {
-      body = {};
-    }
+  let body = {};
+  try {
+    body = typeof req.body === "object" && req.body
+      ? req.body
+      : JSON.parse(await getRawBody(req));
+  } catch (err) {
+    return res.status(400).json({ error: "Blogas JSON" });
   }
 
-  const { age, gender, fitnessLevel, goal, daysPerWeek } = body || {};
+  const { age, gender, fitnessLevel, goal, daysPerWeek } = body;
 
   if (!age || !goal || !daysPerWeek) {
-    res.status(400).json({ error: 'Trūksta laukų' });
-    return;
+    return res.status(400).json({ error: "Trūksta laukų" });
   }
 
   try {
-    const openai = new OpenAIApi(
-      new Configuration({ apiKey: process.env.OPENAI_API_KEY })
-    );
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
     const prompt = `
 Esi profesionalus sporto treneris. Sukurk ${daysPerWeek}-dienių per savaitę treniruočių planą 
@@ -38,16 +29,24 @@ ${age}-mečiui ${gender}, fitneso lygis: ${fitnessLevel}, tikslas: ${goal}.
 Kiekvienai dienai nurodyk apšilimą, pagrindinius pratimus ir tempimo pratimus.
 Pabaigoje pateik trumpą mitybos rekomendaciją. Atsakyk lietuviškai.`;
 
-    const completion = await openai.createChatCompletion({
-      model: 'gpt-4o',
-      messages: [{ role: 'user', content: prompt }],
-      temperature: 0.7
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.7,
     });
 
-    const plan = completion.data.choices[0].message.content.trim();
-    res.status(200).json({ plan });
+    const plan = completion.choices[0].message.content.trim();
+    return res.status(200).json({ plan });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'OpenAI klaida' });
+    return res.status(500).json({ error: "OpenAI klaida", details: String(err) });
   }
+}
+
+function getRawBody(req) {
+  return new Promise((resolve) => {
+    let data = "";
+    req.on("data", (chunk) => (data += chunk));
+    req.on("end", () => resolve(data));
+  });
 }
