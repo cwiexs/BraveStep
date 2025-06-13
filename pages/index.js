@@ -1,7 +1,9 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 
 export default function Home() {
-  const { data: session } = useSession();
+  // Saugus variantas: priskirk numatytą reikšmę, jei useSession() grąžina undefined
+  const sessionData = useSession?.();
+  const session = sessionData?.data;
 
   return (
     <main style={{ fontFamily: "sans-serif", padding: 32 }}>
