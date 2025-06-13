@@ -1,14 +1,26 @@
 import { Configuration, OpenAIApi } from 'openai';
 
-
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Leidžiamas tik POST' });
     return;
   }
 
-  const { age, gender, fitnessLevel, goal, daysPerWeek } = req.body || {};
+  // 👇 Pridedame JSON body parserį
+  let body = req.body;
+  if (!body) {
+    try {
+      body = JSON.parse(await new Promise(resolve => {
+        let data = '';
+        req.on('data', chunk => data += chunk);
+        req.on('end', () => resolve(data));
+      }));
+    } catch {
+      body = {};
+    }
+  }
+
+  const { age, gender, fitnessLevel, goal, daysPerWeek } = body || {};
 
   if (!age || !goal || !daysPerWeek) {
     res.status(400).json({ error: 'Trūksta laukų' });
