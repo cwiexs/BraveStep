@@ -1,11 +1,7 @@
 import NextAuth from 'next-auth';
 import FacebookProvider from 'next-auth/providers/facebook';
 import { PostgresAdapter } from '@next-auth/postgres-adapter';
-import { createPool } from '@neondatabase/serverless';
-
-const pool = createPool({
-  connectionString: process.env.DATABASE_URL,
-});
+import { pool } from '../../../lib/db';
 
 export default NextAuth({
   adapter: PostgresAdapter(pool),

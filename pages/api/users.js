@@ -3,11 +3,10 @@ import { query } from '../../lib/db';
 
 export default async function handler(req, res) {
   try {
-    // Atrenkame svarbiausius laukus
     const result = await query(
       `SELECT id, name, email, created_at
        FROM users
-       ORDER BY created_at DESC`
+       ORDER BY created_at DESC;`
     );
     res.status(200).json(result.rows);
   } catch (error) {
