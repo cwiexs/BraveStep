@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import FacebookProvider from 'next-auth/providers/facebook';
-import { PostgresAdapter } from '@next-auth/postgres-adapter';
+import PostgresAdapter from '@auth/pg-adapter';
 import { pool } from '../../../lib/db';
 
 export default NextAuth({
