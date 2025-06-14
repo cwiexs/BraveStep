@@ -30,5 +30,5 @@ export default NextAuth({
       return token;
     },
   },
-  debug: true,  // Debug režimas log'ins veikimo duomenis
+  debug: true,  // Debug režimas log'ins veikimo duomeni
 });
