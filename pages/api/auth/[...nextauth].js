@@ -1,36 +1,53 @@
 // pages/api/auth/[...nextauth].js
 import NextAuth from 'next-auth';
 import FacebookProvider from 'next-auth/providers/facebook';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import PostgresAdapter from '@auth/pg-adapter';
-import { pool } from '../../../lib/db';
+import { pool, query } from '../../../lib/db';
+import bcrypt from 'bcryptjs';
 
 export default NextAuth({
   adapter: PostgresAdapter(pool),
   providers: [
+    CredentialsProvider({
+      name: 'Email',
+      credentials: {
+        email: { label: 'Email', type: 'text' },
+        password: { label: 'Password', type: 'password' }
+      },
+      async authorize(credentials) {
+        const res = await query(
+          'SELECT id, name, email, password FROM users WHERE email = $1',
+          [credentials.email]
+        );
+        const user = res.rows[0];
+        if (user && await bcrypt.compare(credentials.password, user.password)) {
+          return { id: user.id, name: user.name, email: user.email };
+        }
+        return null;
+      }
+    }),
     FacebookProvider({
-      // Pridedame reikiamus leidimus
       authorization: { params: { scope: 'email,public_profile' } },
       clientId: process.env.FACEBOOK_CLIENT_ID,
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
     }),
   ],
-  secret: process.env.NEXTAUTH_SECRET,
-  session: {
-    strategy: 'jwt',
+  pages: {
+    signIn: '/auth/signin',
+    signUp: '/auth/signup'
   },
+  session: { strategy: 'jwt' },
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
     async session({ session, token }) {
-      // Įtraukiame vartotojo ID į seansą
       session.user.id = token.sub;
       return session;
     },
-    async jwt({ token, user, account }) {
-      // Įrašome access token, kai tik vartotojas autentifikuojasi
-      if (account && user) {
-        token.accessToken = account.access_token;
-      }
+    async jwt({ token, user }) {
+      if (user) token.sub = user.id;
       return token;
-    },
+    }
   },
-  debug: true,  // Debug režimas log'ins veikimo duomenis
+  debug: true
 });
