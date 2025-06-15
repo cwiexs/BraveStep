@@ -2,18 +2,18 @@
 import NextAuth from 'next-auth';
 import FacebookProvider from 'next-auth/providers/facebook';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { PostgresAdapter } from '@auth/pg-adapter';
+import PostgresAdapter from '@auth/pg-adapter';       // ← default import
 import { pool, query } from '../../../lib/db';
 import bcrypt from 'bcryptjs';
 
 export default NextAuth({
-  adapter: PostgresAdapter(pool),
+  adapter: PostgresAdapter(pool),                    // ← be gražiųjų skliaustų
 
   providers: [
     CredentialsProvider({
       name: 'El. paštas',
       credentials: {
-        email: { label: 'El. paštas', type: 'email', placeholder: 'vart@elis.lt' },
+        email: { label: 'El. paštas', type: 'email' },
         password: { label: 'Slaptažodis', type: 'password' },
       },
       async authorize(credentials) {
@@ -37,11 +37,10 @@ export default NextAuth({
     }),
   ],
 
-  // Custom puslapiai
   pages: {
-    signIn: '/auth/signin',      // prisijungimo forma
-    error: '/auth/signin',       // rodome tą pačią formą su ?error=
-    newUser: '/auth/signup',     // nauji vartotojai nukreipiami čia
+    signIn: '/auth/signin',
+    error: '/auth/signin',
+    newUser: '/auth/signup',
   },
 
   session: {
