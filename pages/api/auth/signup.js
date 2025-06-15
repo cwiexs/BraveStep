@@ -1,35 +1,78 @@
-// pages/api/auth/signup.js
-import { query } from '../../../lib/db';
-import bcrypt from 'bcryptjs';
-import { v4 as uuidv4 } from 'uuid';
+// pages/auth/signup.js
+import { useState } from 'react';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    res.setHeader('Allow', 'POST');
-    return res.status(405).json({ error: 'Tik POST metodas leidžiamas' });
-  }
+export default function SignUp() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const router = useRouter();
 
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(400).json({ error: 'Reikalingas el. paštas ir slaptažodis' });
-  }
+  const handleSubmit = async e => {
+    e.preventDefault();
+    setError('');
 
-  try {
-    const hashed = await bcrypt.hash(password, 10);
-    const id = uuidv4();
-    await query(
-      'INSERT INTO users (id, name, email, password) VALUES ($1, $2, $3, $4)',
-      [id, email.split('@')[0], email, hashed]
-    );
-    return res.status(201).json({ message: 'Paskyra sukurta sėkmingai', id });
-  } catch (error) {
-    // 23505 – duplicate key violation
-    if (error.code === '23505') {
-      return res
-        .status(409)
-        .json({ error: 'Vartotojas su tokiu el. paštu jau egzistuoja' });
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 201) {
+      // Viskas gerai – perkeliam į sign-in puslapį
+      router.push('/auth/signin');
+    } else {
+      // Klaida – parodome vartotojo žinutę
+      setError(data.error || 'Įvyko klaida, bandykite dar kartą');
     }
-    console.error(error);
-    return res.status(500).json({ error: 'Serverio klaida' });
-  }
+  };
+
+  return (
+    <>
+      <Head>
+        <title>Sukurti paskyrą | BraveStep</title>
+      </Head>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="w-full max-w-md bg-white p-6 rounded shadow">
+          <h1 className="text-2xl font-bold mb-4">Sukurti paskyrą</h1>
+          {error && (
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+              {error}
+            </div>
+          )}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block mb-1">El. paštas</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Slaptažodis</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            >
+              Kurti paskyrą
+            </button>
+          </form>
+        </div>
+      </div>
+    </>
+  );
 }
