@@ -4,6 +4,15 @@ import { getProviders, signIn } from 'next-auth/react';
 import { useState } from 'react';
 
 export default function SignIn({ providers }) {
+  // Guard – jeigu providers nėra, rodome loading
+  if (!providers) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Įkraunama…</p>
+      </div>
+    );
+  }
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -16,11 +25,8 @@ export default function SignIn({ providers }) {
       email,
       password,
     });
-    if (res.error) {
-      setError(res.error);
-    } else {
-      window.location.href = '/';
-    }
+    if (res.error) setError(res.error);
+    else window.location.href = '/';
   };
 
   return (
@@ -35,7 +41,7 @@ export default function SignIn({ providers }) {
             </div>
           )}
 
-          {/* Credentials Provider */}
+          {/* Credentials */}
           {providers.credentials && (
             <form onSubmit={handleCredentials} className="space-y-4 mb-6">
               <div>
@@ -67,7 +73,7 @@ export default function SignIn({ providers }) {
             </form>
           )}
 
-          {/* OAuth Providers */}
+          {/* Facebook */}
           {providers.facebook && (
             <button
               onClick={() => signIn('facebook')}
@@ -89,7 +95,7 @@ export default function SignIn({ providers }) {
   );
 }
 
-export async function getServerSideProps() {
+export async function getServerSideProps(context) {
   const providers = await getProviders();
-  return { props: { providers } };
+  return { props: { providers: providers ?? null } };
 }
