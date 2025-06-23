@@ -39,7 +39,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAF6EF]">
+    <div className="min-h-screen w-full bg-[#E6F4EA]"> {/* Šviesiai žalias fonas! */}
       <Head>
         <title>BraveStep</title>
       </Head>
@@ -186,15 +186,7 @@ export default function Home() {
       </div>
     </div>
   );
-  return (
-    <div className="min-h-screen w-full bg-[#E6F4EA]"> {/* Šviesiai žalias fonas! */}
-      <Head>...</Head>
-      {/* Viduje tavo kortelė */}
-      <div className="max-w-5xl mx-auto rounded-3xl shadow-lg bg-white p-6 md:p-12 mt-8 mb-8">
-         {/* ... turinys */}
-      </div>
-    </div>
-  );
+  
 }
 
 export async function getStaticProps({ locale }) {
