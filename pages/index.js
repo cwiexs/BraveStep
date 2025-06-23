@@ -16,10 +16,13 @@ export default function Home() {
 
   return (
     <>
+      <Head>
+        <title>BraveStep</title>
+      </Head>
       {/* NAVBAR */}
       <nav className="w-full bg-white shadow-sm py-4">
         <div className="container mx-auto flex justify-between items-center px-6">
-          <div className="font-bold text-xl tracking-wide">BraveStep</div>
+          {/* <div className="font-bold text-xl tracking-wide">BraveStep</div> */}
           <ul className="flex gap-8">
             <li><Link href="/"><span className="hover:text-blue-700">Home</span></Link></li>
             <li><Link href="#"><span className="hover:text-blue-700">Workouts</span></Link></li>
