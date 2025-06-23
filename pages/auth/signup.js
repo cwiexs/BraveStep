@@ -1,92 +1,76 @@
-import { useState } from "react";
-import Link from "next/link";
+// pages/auth/signup.js
+import { useState } from 'react';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
 
 export default function SignUp() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const router = useRouter();
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async e => {
     e.preventDefault();
-    setError("");
-    setSuccess(false);
+    setError('');
 
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+
+    if (res.status === 201) {
+      router.push('/auth/signin');
+    } else {
+      setError(data.error || 'Įvyko klaida');
     }
-
-    // TODO: Handle sign up logic (call API, etc.)
-    setSuccess(true);
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center items-center bg-gray-50">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8">
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div>
-            <label htmlFor="email" className="block mb-1 font-medium">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              className="w-full border rounded-lg px-4 py-2"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-            />
-          </div>
-          <div>
-            <label htmlFor="password" className="block mb-1 font-medium">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              className="w-full border rounded-lg px-4 py-2"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-            />
-          </div>
-          <div>
-            <label htmlFor="confirmPassword" className="block mb-1 font-medium">
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              className="w-full border rounded-lg px-4 py-2"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-            />
-          </div>
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-          {success && (
-            <p className="text-green-600 text-sm">Account created successfully!</p>
+    <>
+      <Head>
+        <title>Sukurti paskyrą | BraveStep</title>
+      </Head>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
+        <div className="w-full max-w-md bg-white p-6 rounded shadow">
+          <h1 className="text-2xl font-bold mb-4">Sukurti paskyrą</h1>
+          {error && (
+            <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+              {error}
+            </div>
           )}
-          <button
-            type="submit"
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg mt-4"
-          >
-            Sign Up
-          </button>
-        </form>
-        <p className="mt-4 text-center">
-          Already have an account?{" "}
-          <Link href="/auth/signin" className="text-blue-600 hover:underline">
-            Sign in
-          </Link>
-        </p>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block mb-1">El. paštas</label>
+              <input
+                type="email"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <div>
+              <label className="block mb-1">Slaptažodis</label>
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                className="w-full px-3 py-2 border rounded"
+              />
+            </div>
+            <button
+              type="submit"
+              className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
+            >
+              Kurti paskyrą
+            </button>
+          </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
