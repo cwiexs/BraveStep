@@ -56,7 +56,7 @@ export default function Home() {
               <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
             </ul>
             {/* Kalbos pasirinkimo dropdown */}
-            <div className="relative" ref={langRef}>
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
                 className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1"
