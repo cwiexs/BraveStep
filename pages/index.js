@@ -4,14 +4,26 @@ import { useSession, signIn, signOut } from 'next-auth/react';
 import Image from 'next/image';
 import { useState } from 'react'; // svarbus importas hamburger meniu
 
+// i18n importai
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { useRouter } from 'next/router';
+
 export default function Home() {
+  const { t } = useTranslation('common');
   const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const router = useRouter();
+
+  // Kalbos keitimas
+  const changeLanguage = (lng) => {
+    router.push(router.pathname, router.asPath, { locale: lng });
+  };
 
   if (status === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <p>Įkeliam…</p>
+        <p>{t('loading')}</p>
       </div>
     );
   }
@@ -28,20 +40,25 @@ export default function Home() {
           <div className="flex items-center">
             {/* Meniu matomas tik kompiuteryje */}
             <ul className="hidden md:flex gap-8">
-              <li><Link href="/"><span className="hover:text-blue-700">Home</span></Link></li>
-              <li><Link href="#"><span className="hover:text-blue-700">Workouts</span></Link></li>
-              <li><Link href="#"><span className="hover:text-blue-700">Nutrition</span></Link></li>
-              <li><Link href="#"><span className="hover:text-blue-700">Health</span></Link></li>
+              <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
+              <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
+              <li><Link href="#"><span className="hover:text-blue-700">{t('menu.nutrition')}</span></Link></li>
+              <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
             </ul>
           </div>
-          {/* Dešinė: SignIn ir hamburger */}
+          {/* Dešinė: SignIn, kalbos pasirinkimas ir hamburger */}
           <div className="flex items-center gap-4">
+            {/* Kalbos pasirinkimas */}
+            <div className="flex gap-2 mr-2">
+              <button onClick={() => changeLanguage('en')} className={`px-2 ${router.locale === 'en' ? 'font-bold underline' : ''}`}>EN</button>
+              <button onClick={() => changeLanguage('lt')} className={`px-2 ${router.locale === 'lt' ? 'font-bold underline' : ''}`}>LT</button>
+            </div>
             {/* SignIn/SignOut matomas tik kompiuteryje */}
             <div className="hidden md:block">
               {session ? (
-                <button onClick={() => signOut()} className="hover:text-blue-700">Sign Out</button>
+                <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
               ) : (
-                <button onClick={() => signIn()} className="hover:text-blue-700">Sign In</button>
+                <button onClick={() => signIn()} className="hover:text-blue-700">{t('signIn')}</button>
               )}
             </div>
             {/* Hamburger meniu tik telefone */}
@@ -63,22 +80,27 @@ export default function Home() {
               aria-label="Close menu"
             >×</button>
             <ul className="flex flex-col gap-10 text-2xl font-semibold">
-              <li onClick={() => setMenuOpen(false)}><Link href="/">Home</Link></li>
-              <li onClick={() => setMenuOpen(false)}><Link href="#">Workouts</Link></li>
-              <li onClick={() => setMenuOpen(false)}><Link href="#">Nutrition</Link></li>
-              <li onClick={() => setMenuOpen(false)}><Link href="#">Health</Link></li>
+              <li onClick={() => setMenuOpen(false)}><Link href="/">{t('menu.home')}</Link></li>
+              <li onClick={() => setMenuOpen(false)}><Link href="#">{t('menu.workouts')}</Link></li>
+              <li onClick={() => setMenuOpen(false)}><Link href="#">{t('menu.nutrition')}</Link></li>
+              <li onClick={() => setMenuOpen(false)}><Link href="#">{t('menu.health')}</Link></li>
               <li>
                 {session ? (
                   <button
                     onClick={() => { setMenuOpen(false); signOut(); }}
                     className="hover:text-blue-700"
-                  >Sign Out</button>
+                  >{t('signOut')}</button>
                 ) : (
                   <button
                     onClick={() => { setMenuOpen(false); signIn(); }}
                     className="hover:text-blue-700"
-                  >Sign In</button>
+                  >{t('signIn')}</button>
                 )}
+              </li>
+              {/* Kalbos pasirinkimas mobiliajame */}
+              <li className="flex gap-2 justify-center">
+                <button onClick={() => { changeLanguage('en'); setMenuOpen(false); }} className={`px-2 ${router.locale === 'en' ? 'font-bold underline' : ''}`}>EN</button>
+                <button onClick={() => { changeLanguage('lt'); setMenuOpen(false); }} className={`px-2 ${router.locale === 'lt' ? 'font-bold underline' : ''}`}>LT</button>
               </li>
             </ul>
           </div>
@@ -88,18 +110,17 @@ export default function Home() {
       {/* HEADER */}
       <header className="container mx-auto flex flex-col md:flex-row items-center justify-between py-12 px-6">
         {/* Left side: Text */}
-<div className="flex-1 mb-10 md:mb-0 flex flex-col items-start md:items-center md:text-center">
-  <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-    Enhance Your<br />Well-Being
-  </h1>
-  <p className="text-gray-600 mb-7">
-    Achieve your health and fitness goals<br />
-    with personalized workout and nutrition plans.
-  </p>
-  <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-7 rounded-lg font-semibold text-lg shadow-md">
-    Get Started
-  </button>
-</div>
+        <div className="flex-1 mb-10 md:mb-0 flex flex-col items-start md:items-center md:text-center">
+          <h1 className="text-4xl sm:text-5xl font-bold mb-4">
+            {t('welcomeTitle')}
+          </h1>
+          <p className="text-gray-600 mb-7">
+            {t('welcomeSubtitle')}
+          </p>
+          <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-7 rounded-lg font-semibold text-lg shadow-md">
+            {t('getStarted')}
+          </button>
+        </div>
         {/* Right side: Illustration */}
         <div className="flex-1 flex justify-center ml-20">
           <Image
@@ -118,22 +139,31 @@ export default function Home() {
         {/* Feature 1 */}
         <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-2">
           <div className="text-4xl mb-4">🏋️‍♂️</div>
-          <h3 className="font-bold text-lg mb-2">Customized Workouts</h3>
-          <p className="text-gray-600 text-center">Find exercises tailored to your fitness level and objectives.</p>
+          <h3 className="font-bold text-lg mb-2">{t('features.workoutsTitle')}</h3>
+          <p className="text-gray-600 text-center">{t('features.workoutsText')}</p>
         </div>
         {/* Feature 2 */}
         <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-2">
           <div className="text-4xl mb-4">✅</div>
-          <h3 className="font-bold text-lg mb-2">Meal Planning</h3>
-          <p className="text-gray-600 text-center">Get personalized diet plans and nutritional guidance.</p>
+          <h3 className="font-bold text-lg mb-2">{t('features.mealTitle')}</h3>
+          <p className="text-gray-600 text-center">{t('features.mealText')}</p>
         </div>
         {/* Feature 3 */}
         <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-2">
           <div className="text-4xl mb-4">📊</div>
-          <h3 className="font-bold text-lg mb-2">Track Progress</h3>
-          <p className="text-gray-600 text-center">Monitor your achievements and stay motivated.</p>
+          <h3 className="font-bold text-lg mb-2">{t('features.trackTitle')}</h3>
+          <p className="text-gray-600 text-center">{t('features.trackText')}</p>
         </div>
       </section>
     </>
   );
+}
+
+// SSR i18n palaikymui
+export async function getStaticProps({ locale }) {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale, ['common'])),
+    },
+  };
 }

@@ -1,0 +1,22 @@
+{
+  "loading": "Loading…",
+  "signIn": "Sign In",
+  "signOut": "Sign Out",
+  "welcomeTitle": "Enhance Your\nWell-Being",
+  "welcomeSubtitle": "Achieve your health and fitness goals\nwith personalized workout and nutrition plans.",
+  "getStarted": "Get Started",
+  "menu": {
+    "home": "Home",
+    "workouts": "Workouts",
+    "nutrition": "Nutrition",
+    "health": "Health"
+  },
+  "features": {
+    "workoutsTitle": "Customized Workouts",
+    "workoutsText": "Find exercises tailored to your fitness level and objectives.",
+    "mealTitle": "Meal Planning",
+    "mealText": "Get personalized diet plans and nutritional guidance.",
+    "trackTitle": "Track Progress",
+    "trackText": "Monitor your achievements and stay motivated."
+  }
+}
