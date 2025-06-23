@@ -61,8 +61,8 @@ export default function Home() {
     <Image
       src="/hero.png"
       alt="Walking person"
-      width={400}
-      height={400}
+      width={300}
+      height={300}
       priority
       style={{ maxWidth: '100%', height: 'auto' }}
     />
