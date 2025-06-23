@@ -45,18 +45,18 @@ export default function Home() {
       </Head>
 
       {/* KNYGOS LAPO STILIUS */}
-<nav className="w-full flex justify-between items-center pb-8">
-  {/* KAIRĖ */}
-  <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
-    <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
-    <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
-    <li><Link href="#"><span className="hover:text-blue-700">{t('menu.nutrition')}</span></Link></li>
-    <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
-  </ul>
-  {/* DEŠINĖ */}
+      <div className="max-w-5xl mx-auto rounded-3xl shadow-lg bg-white p-6 md:p-12 mt-8 mb-8">
+        {/* NAVBAR */}
+       <nav className="w-full flex justify-between items-center pb-8">
   <div className="flex items-center gap-4">
-    {/* SignIn/SignOut */}
-    <div className="hidden md:block order-1">
+    <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
+      <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
+      <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
+      <li><Link href="#"><span className="hover:text-blue-700">{t('menu.nutrition')}</span></Link></li>
+      <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
+    </ul>
+    {/* SignIn/SignOut matomas tik kompiuteryje */}
+    <ul className="hidden md:flex gap-8 text-blue-700 font-medium">
       {session ? (
         <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
       ) : (
@@ -64,7 +64,7 @@ export default function Home() {
       )}
     </div>
     {/* Kalbos pasirinkimo dropdown */}
-    <div className="flex items-center gap-4 ml-4 order-2" ref={langRef}>
+    <div className="flex items-center gap-4 ml-4" ref={langRef}>
       <button
         onClick={() => setLangDropdownOpen(!langDropdownOpen)}
         className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1"
@@ -101,8 +101,6 @@ export default function Home() {
     </button>
   </div>
 </nav>
-
-
         {/* Mobile overlay meniu */}
         {menuOpen && (
           <div className="fixed inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center z-50 transition-all">
@@ -167,27 +165,27 @@ export default function Home() {
         {/* FEATURES */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-7 pb-4 px-2">
           {/* Feature 1 */}
-          <div className="bg-[#E6F4EA] border border-[#E7E7E7] rounded-xl shadow-sm flex flex-col items-center p-7 min-h-[200px]">
+          <div className="bg-[#F6F8F7] border border-[#E7E7E7] rounded-xl shadow-sm flex flex-col items-center p-7 min-h-[200px]">
             <div className="text-4xl mb-4 text-[#75BFA2]">✅</div>
             <h3 className="font-bold text-lg mb-2 text-blue-900">{t('features.workoutsTitle')}</h3>
             <p className="text-gray-600 text-center">{t('features.workoutsText')}</p>
           </div>
           {/* Feature 2 */}
-          <div className="bg-[#E6F4EA] border border-[#E7E7E7] rounded-xl shadow-sm flex flex-col items-center p-7 min-h-[200px]">
+          <div className="bg-[#F6F8F7] border border-[#E7E7E7] rounded-xl shadow-sm flex flex-col items-center p-7 min-h-[200px]">
             <div className="text-4xl mb-4 text-[#75BFA2]">🍏</div>
             <h3 className="font-bold text-lg mb-2 text-blue-900">{t('features.mealTitle')}</h3>
             <p className="text-gray-600 text-center">{t('features.mealText')}</p>
           </div>
           {/* Feature 3 */}
-          <div className="bg-[#E6F4EA] border border-[#E7E7E7] rounded-xl shadow-sm flex flex-col items-center p-7 min-h-[200px]">
+          <div className="bg-[#F6F8F7] border border-[#E7E7E7] rounded-xl shadow-sm flex flex-col items-center p-7 min-h-[200px]">
             <div className="text-4xl mb-4 text-[#75BFA2]">📊</div>
             <h3 className="font-bold text-lg mb-2 text-blue-900">{t('features.trackTitle')}</h3>
             <p className="text-gray-600 text-center">{t('features.trackText')}</p>
           </div>
         </section>
       </div>
-
-      );
+    </div>
+  );
   
 }
 
