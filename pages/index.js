@@ -23,7 +23,7 @@ export default function Home() {
       <nav className="w-full bg-white shadow-sm py-4">
   <div className="container mx-auto flex justify-between items-center px-6">
     {/* Kairė: meniu */}
-    <ul className="flex gap-8">
+    <ul className="flex flex-col md:flex-row gap-4 md:gap-8 items-center">
       <li><Link href="/"><span className="hover:text-blue-700">Home</span></Link></li>
       <li><Link href="#"><span className="hover:text-blue-700">Workouts</span></Link></li>
       <li><Link href="#"><span className="hover:text-blue-700">Nutrition</span></Link></li>
