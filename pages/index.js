@@ -41,33 +41,33 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* HEADER */}
-      <header className="container mx-auto flex flex-col md:flex-row items-center justify-between py-12 px-6">
-        {/* Left side: Text */}
-        <div className="flex-1 mb-10 md:mb-0 md:mr-8">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-            Enhance Your<br />Well-Being
-          </h1>
-          <p className="text-gray-600 mb-7">
-            Achieve your health and fitness goals<br />
-            with personalized workout and nutrition plans.
-          </p>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-7 rounded-lg font-semibold text-lg shadow-md">
-            Get Started
-          </button>
-        </div>
-        {/* Right side: Illustration */}
-          <div className="flex-1 flex justify-center">
-            <Image
-              src="/hero.png"
-              alt="Walking person"
-              width={400}
-              height={400}
-              priority
-              style={{ maxWidth: '100%', height: 'auto' }}
-            />
-          </div>
-      </header>
+{/* HEADER */}
+<header className="container mx-auto flex flex-col md:flex-row items-center justify-between py-12 px-6">
+  {/* Left side: Text */}
+  <div className="flex-1 mb-10 md:mb-0 md:mr-8">
+    <h1 className="text-4xl sm:text-5xl font-bold mb-4">
+      Enhance Your<br />Well-Being
+    </h1>
+    <p className="text-gray-600 mb-7">
+      Achieve your health and fitness goals<br />
+      with personalized workout and nutrition plans.
+    </p>
+    <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-7 rounded-lg font-semibold text-lg shadow-md">
+      Get Started
+    </button>
+  </div>
+  {/* Right side: Illustration */}
+  <div className="flex-1 flex justify-center">
+    <Image
+      src="/hero.png"
+      alt="Walking person"
+      width={400}
+      height={400}
+      priority
+      style={{ maxWidth: '100%', height: 'auto' }}
+    />
+  </div>
+</header>
 
       {/* FEATURES */}
       <section className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-7 pb-16 px-6">
