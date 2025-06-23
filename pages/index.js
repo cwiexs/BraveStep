@@ -21,25 +21,25 @@ export default function Home() {
       </Head>
       {/* NAVBAR */}
       <nav className="w-full bg-white shadow-sm py-4">
-        <div className="container mx-auto flex justify-between items-center px-6">
-          {/* <div className="font-bold text-xl tracking-wide">BraveStep</div> */}
-          <ul className="flex gap-8">
-            <li><Link href="/"><span className="hover:text-blue-700">Home</span></Link></li>
-            <li><Link href="#"><span className="hover:text-blue-700">Workouts</span></Link></li>
-            <li><Link href="#"><span className="hover:text-blue-700">Nutrition</span></Link></li>
-            <li><Link href="#"><span className="hover:text-blue-700">Health</span></Link></li>
-            {session ? (
-              <li>
-                <button onClick={() => signOut()} className="hover:text-blue-700">Sign Out</button>
-              </li>
-            ) : (
-              <li>
-                <button onClick={() => signIn()} className="hover:text-blue-700">Sign In</button>
-              </li>
-            )}
-          </ul>
-        </div>
-      </nav>
+  <div className="container mx-auto flex justify-between items-center px-6">
+    {/* Kairė: meniu */}
+    <ul className="flex gap-8">
+      <li><Link href="/"><span className="hover:text-blue-700">Home</span></Link></li>
+      <li><Link href="#"><span className="hover:text-blue-700">Workouts</span></Link></li>
+      <li><Link href="#"><span className="hover:text-blue-700">Nutrition</span></Link></li>
+      <li><Link href="#"><span className="hover:text-blue-700">Health</span></Link></li>
+    </ul>
+    {/* Dešinė: login/logout */}
+    <div>
+      {session ? (
+        <button onClick={() => signOut()} className="hover:text-blue-700">Sign Out</button>
+      ) : (
+        <button onClick={() => signIn()} className="hover:text-blue-700">Sign In</button>
+      )}
+    </div>
+  </div>
+</nav>
+
 
 {/* HEADER */}
 <header className="container mx-auto flex flex-col md:flex-row items-center justify-between py-12 px-6">
