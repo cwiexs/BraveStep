@@ -77,13 +77,13 @@ export default function Home() {
       {langDropdownOpen && (
         <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg z-10 border">
           <button
-            className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
+            className={`block w-full text-left px-2 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
             onClick={() => { changeLanguage('en'); setLangDropdownOpen(false); }}
           >
             EN
           </button>
           <button
-            className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
+            className={`block w-full text-left px-2 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
             onClick={() => { changeLanguage('lt'); setLangDropdownOpen(false); }}
           >
             LT
