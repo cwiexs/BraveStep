@@ -88,18 +88,18 @@ export default function Home() {
       {/* HEADER */}
       <header className="container mx-auto flex flex-col md:flex-row items-center justify-between py-12 px-6">
         {/* Left side: Text */}
-        <div className="flex-1 mb-10 md:mb-0 md:mr-48">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-            Enhance Your<br />Well-Being
-          </h1>
-          <p className="text-gray-600 mb-7">
-            Achieve your health and fitness goals<br />
-            with personalized workout and nutrition plans.
-          </p>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-7 rounded-lg font-semibold text-lg shadow-md">
-            Get Started
-          </button>
-        </div>
+<div className="flex-1 mb-10 md:mb-0 flex flex-col items-start md:items-center md:text-center">
+  <h1 className="text-4xl sm:text-5xl font-bold mb-4">
+    Enhance Your<br />Well-Being
+  </h1>
+  <p className="text-gray-600 mb-7">
+    Achieve your health and fitness goals<br />
+    with personalized workout and nutrition plans.
+  </p>
+  <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-7 rounded-lg font-semibold text-lg shadow-md">
+    Get Started
+  </button>
+</div>
         {/* Right side: Illustration */}
         <div className="flex-1 flex justify-center">
           <Image
