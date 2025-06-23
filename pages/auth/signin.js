@@ -83,4 +83,17 @@ export default function SignIn({ providers }) {
 
           <p className="mt-4 text-center">
             Don't have an account?{' '}
-            <a href="/auth/signup" className="text-blue-600 hover:
+            <a href="/auth/signup" className="text-blue-600 hover:underline">
+              Create an account
+            </a>
+          </p>
+        </div>
+      </div>
+    </>
+  );
+}
+
+export async function getServerSideProps(context) {
+  const providers = await getProviders();
+  return { props: { providers: providers ?? null } };
+}
