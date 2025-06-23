@@ -116,19 +116,19 @@ export default function Home() {
       {/* FEATURES */}
       <section className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-7 pb-16 px-6">
         {/* Feature 1 */}
-        <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-7">
+        <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-4">
           <div className="text-4xl mb-4">🏋️‍♂️</div>
           <h3 className="font-bold text-lg mb-2">Customized Workouts</h3>
           <p className="text-gray-600 text-center">Find exercises tailored to your fitness level and objectives.</p>
         </div>
         {/* Feature 2 */}
-        <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-7">
+        <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-4">
           <div className="text-4xl mb-4">✅</div>
           <h3 className="font-bold text-lg mb-2">Meal Planning</h3>
           <p className="text-gray-600 text-center">Get personalized diet plans and nutritional guidance.</p>
         </div>
         {/* Feature 3 */}
-        <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-7">
+        <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-4">
           <div className="text-4xl mb-4">📊</div>
           <h3 className="font-bold text-lg mb-2">Track Progress</h3>
           <p className="text-gray-600 text-center">Monitor your achievements and stay motivated.</p>
