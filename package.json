@@ -7,20 +7,19 @@
     "start": "next start"
   },
   "dependencies": {
+    "@auth/pg-adapter": "^1.9.1",
+    "@neondatabase/serverless": "^0.5.0",
+    "autoprefixer": "^10.1.1",
+    "bcryptjs": "^2.4.3",
+    "i18next": "^22.5.1",
     "next": "13.4.4",
+    "next-auth": "^4.22.1",
+    "next-i18next": "^13.3.0",
+    "pg": "^8.8.0",
+    "postcss": "^8.1.1",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "pg": "^8.8.0",
-    "@neondatabase/serverless": "^0.5.0",
-    "next-auth": "^4.22.1",
-    "@auth/pg-adapter": "^1.9.1",
-    "bcryptjs": "^2.4.3",
-    "uuid": "^9.0.0",
     "tailwindcss": "^3.1.1",
-    "postcss": "^8.1.1",
-    "autoprefixer": "^10.1.1",
-    "next-i18next": "^14.1.5",
-    "i18next": "^22.4.9"
-
+    "uuid": "^9.0.0"
   }
 }
