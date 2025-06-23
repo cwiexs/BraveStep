@@ -16,9 +16,9 @@
     "@auth/pg-adapter": "^1.9.1",
     "bcryptjs": "^2.4.3",
     "uuid": "^9.0.0",
-    "tailwindcss": "...",
-    "postcss": "...",
-    "autoprefixer": "..."
+    "tailwindcss": "^3.1.1",
+    "postcss": "^8.1.1",
+    "autoprefixer": "^10.1.1"
 
   }
 }
