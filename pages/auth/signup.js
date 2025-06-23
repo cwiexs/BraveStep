@@ -24,18 +24,18 @@ export default function SignUp() {
     if (res.status === 201) {
       router.push('/auth/signin');
     } else {
-      setError(data.error || 'Įvyko klaida');
+      setError(data.error || 'An error occurred');
     }
   };
 
   return (
     <>
       <Head>
-        <title>Sukurti paskyrą | BraveStep</title>
+        <title>Sign Up | BraveStep</title>
       </Head>
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
         <div className="w-full max-w-md bg-white p-6 rounded shadow">
-          <h1 className="text-2xl font-bold mb-4">Sukurti paskyrą</h1>
+          <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
           {error && (
             <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
               {error}
@@ -43,7 +43,7 @@ export default function SignUp() {
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block mb-1">El. paštas</label>
+              <label className="block mb-1">Email</label>
               <input
                 type="email"
                 value={email}
@@ -53,7 +53,7 @@ export default function SignUp() {
               />
             </div>
             <div>
-              <label className="block mb-1">Slaptažodis</label>
+              <label className="block mb-1">Password</label>
               <input
                 type="password"
                 value={password}
@@ -66,7 +66,7 @@ export default function SignUp() {
               type="submit"
               className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
             >
-              Kurti paskyrą
+              Create account
             </button>
           </form>
         </div>

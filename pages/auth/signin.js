@@ -4,11 +4,11 @@ import { getProviders, signIn } from 'next-auth/react';
 import { useState } from 'react';
 
 export default function SignIn({ providers }) {
-  // Guard – jeigu providers nėra, rodome loading
+  // Guard – if providers not loaded, show loading
   if (!providers) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p>Įkraunama…</p>
+        <p>Loading…</p>
       </div>
     );
   }
@@ -31,10 +31,10 @@ export default function SignIn({ providers }) {
 
   return (
     <>
-      <Head><title>Prisijungti | BraveStep</title></Head>
+      <Head><title>Sign In | BraveStep</title></Head>
       <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
         <div className="bg-white p-6 rounded shadow-md w-full max-w-md">
-          <h1 className="text-2xl font-bold mb-4">Prisijungti</h1>
+          <h1 className="text-2xl font-bold mb-4">Sign In</h1>
           {error && (
             <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
               {error}
@@ -45,7 +45,7 @@ export default function SignIn({ providers }) {
           {providers.credentials && (
             <form onSubmit={handleCredentials} className="space-y-4 mb-6">
               <div>
-                <label className="block mb-1">El. paštas</label>
+                <label className="block mb-1">Email</label>
                 <input
                   type="email"
                   value={email}
@@ -55,7 +55,7 @@ export default function SignIn({ providers }) {
                 />
               </div>
               <div>
-                <label className="block mb-1">Slaptažodis</label>
+                <label className="block mb-1">Password</label>
                 <input
                   type="password"
                   value={password}
@@ -68,7 +68,7 @@ export default function SignIn({ providers }) {
                 type="submit"
                 className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700"
               >
-                Prisijungti el. paštu
+                Sign in with email
               </button>
             </form>
           )}
@@ -79,14 +79,14 @@ export default function SignIn({ providers }) {
               onClick={() => signIn('facebook')}
               className="w-full py-2 bg-blue-700 text-white rounded hover:bg-blue-800"
             >
-              Prisijungti per Facebook
+              Sign in with Facebook
             </button>
           )}
 
           <p className="mt-4 text-center">
-            Neturi paskyros?{' '}
+            Don&apos;t have an account?{' '}
             <a href="/auth/signup" className="text-blue-600 hover:underline">
-              Sukurti paskyrą
+              Sign up
             </a>
           </p>
         </div>
