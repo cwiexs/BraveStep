@@ -56,7 +56,7 @@ export default function Home() {
       <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
     </ul>
     {/* SignIn/SignOut matomas tik kompiuteryje */}
-    <div className="hidden md:block ml-auto">
+    <div className="hidden md:block ">
       {session ? (
         <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
       ) : (
