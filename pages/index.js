@@ -70,7 +70,7 @@ export default function Home() {
         className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1"
       >
         {router.locale === 'en' ? 'EN' : 'LT'}
-        <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+        <svg className="w-2 h-2 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
