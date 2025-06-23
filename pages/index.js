@@ -48,7 +48,6 @@ export default function Home() {
       <div className="max-w-5xl mx-auto rounded-3xl shadow-lg bg-white p-6 md:p-12 mt-8 mb-8">
         {/* NAVBAR */}
         <nav className="w-full flex justify-between items-center pb-8">
-          <span className="font-bold text-2xl text-blue-900">BraveStep</span>
           <div className="flex items-center gap-4">
             <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
               <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
