@@ -39,7 +39,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#E6F4EA]"> {/* Šviesiai žalias fonas! */}
+    <div className="min-h-screen w-full "> {/* Šviesiai žalias fonas! */}
       <Head>
         <title>BraveStep</title>
       </Head>
