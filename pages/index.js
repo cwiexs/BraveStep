@@ -55,7 +55,7 @@ export default function Home() {
   </ul>
   {/* DEŠINĖ */}
   <div className="flex items-center gap-4">
-    {/* SignIn/SignOut matomas tik kompiuteryje */}
+    {/* SignIn/SignOut */}
     <div className="hidden md:block">
       {session ? (
         <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
@@ -102,16 +102,6 @@ export default function Home() {
   </div>
 </nav>
 
-    {/* Hamburger */}
-    <button
-      className="md:hidden focus:outline-none"
-      onClick={() => setMenuOpen(true)}
-      aria-label="Open menu"
-    >
-      <span className="text-3xl">☰</span>
-    </button>
-  </div>
-</nav>
         {/* Mobile overlay meniu */}
         {menuOpen && (
           <div className="fixed inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center z-50 transition-all">
