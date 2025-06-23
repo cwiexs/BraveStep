@@ -45,18 +45,18 @@ export default function Home() {
       </Head>
 
       {/* KNYGOS LAPO STILIUS */}
-      <div className="max-w-5xl mx-auto rounded-3xl shadow-lg bg-white p-6 md:p-12 mt-8 mb-8">
-        {/* NAVBAR */}
-       <nav className="w-full flex justify-between items-center pb-8">
+<nav className="w-full flex justify-between items-center pb-8">
+  {/* KAIRĖ */}
+  <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
+    <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
+    <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
+    <li><Link href="#"><span className="hover:text-blue-700">{t('menu.nutrition')}</span></Link></li>
+    <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
+  </ul>
+  {/* DEŠINĖ */}
   <div className="flex items-center gap-4">
-    <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
-      <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
-      <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
-      <li><Link href="#"><span className="hover:text-blue-700">{t('menu.nutrition')}</span></Link></li>
-      <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
-    </ul>
     {/* SignIn/SignOut matomas tik kompiuteryje */}
-    <ul className="hidden md:flex gap-8 text-blue-700 font-medium">
+    <div className="hidden md:block">
       {session ? (
         <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
       ) : (
@@ -91,6 +91,17 @@ export default function Home() {
         </div>
       )}
     </div>
+    {/* Hamburger */}
+    <button
+      className="md:hidden focus:outline-none"
+      onClick={() => setMenuOpen(true)}
+      aria-label="Open menu"
+    >
+      <span className="text-3xl">☰</span>
+    </button>
+  </div>
+</nav>
+
     {/* Hamburger */}
     <button
       className="md:hidden focus:outline-none"
