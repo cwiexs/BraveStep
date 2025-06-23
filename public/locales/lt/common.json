@@ -1,0 +1,22 @@
+{
+  "loading": "Įkeliam…",
+  "signIn": "Prisijungti",
+  "signOut": "Atsijungti",
+  "welcomeTitle": "Pagerink savo\nsavijautą",
+  "welcomeSubtitle": "Pasiek savo sveikatos ir sporto tikslus\nsu asmeniškai pritaikytais sporto ir mitybos planais.",
+  "getStarted": "Pradėti",
+  "menu": {
+    "home": "Pagrindinis",
+    "workouts": "Treniruotės",
+    "nutrition": "Mityba",
+    "health": "Sveikata"
+  },
+  "features": {
+    "workoutsTitle": "Individualios treniruotės",
+    "workoutsText": "Rask pratimus, pritaikytus tavo lygiui ir tikslams.",
+    "mealTitle": "Mitybos planavimas",
+    "mealText": "Gauk asmeninius mitybos planus ir rekomendacijas.",
+    "trackTitle": "Sek progresą",
+    "trackText": "Stebėk pasiekimus ir išlik motyvuotas."
+  }
+}
