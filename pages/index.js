@@ -2,7 +2,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import Image from 'next/image';
-import { useState } from 'react'; // svarbus importas hamburger meniu
+import { useState, useRef, useEffect } from 'react'; // dropdown ui
 
 // i18n importai
 import { useTranslation } from 'next-i18next';
@@ -13,12 +13,25 @@ export default function Home() {
   const { t } = useTranslation('common');
   const { data: session, status } = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const langRef = useRef();
   const router = useRouter();
 
   // Kalbos keitimas
   const changeLanguage = (lng) => {
     router.push(router.pathname, router.asPath, { locale: lng });
   };
+
+  // Užveria dropdown, kai paspaudi šalia
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (langRef.current && !langRef.current.contains(event.target)) {
+        setLangDropdownOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   if (status === 'loading') {
     return (
@@ -38,7 +51,6 @@ export default function Home() {
         <div className="container mx-auto flex justify-between items-center px-6">
           {/* Kairė: logotipas + meniu */}
           <div className="flex items-center">
-            {/* Meniu matomas tik kompiuteryje */}
             <ul className="hidden md:flex gap-8">
               <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
               <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
@@ -48,10 +60,33 @@ export default function Home() {
           </div>
           {/* Dešinė: SignIn, kalbos pasirinkimas ir hamburger */}
           <div className="flex items-center gap-4">
-            {/* Kalbos pasirinkimas */}
-            <div className="flex gap-2 mr-2">
-              <button onClick={() => changeLanguage('en')} className={`px-2 ${router.locale === 'en' ? 'font-bold underline' : ''}`}>EN</button>
-              <button onClick={() => changeLanguage('lt')} className={`px-2 ${router.locale === 'lt' ? 'font-bold underline' : ''}`}>LT</button>
+            {/* Kalbos pasirinkimo dropdown */}
+            <div className="relative" ref={langRef}>
+              <button
+                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+                className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1"
+              >
+                {router.locale === 'en' ? 'EN' : 'LT'}
+                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              {langDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg z-10 border">
+                  <button
+                    className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
+                    onClick={() => { changeLanguage('en'); setLangDropdownOpen(false); }}
+                  >
+                    EN
+                  </button>
+                  <button
+                    className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
+                    onClick={() => { changeLanguage('lt'); setLangDropdownOpen(false); }}
+                  >
+                    LT
+                  </button>
+                </div>
+              )}
             </div>
             {/* SignIn/SignOut matomas tik kompiuteryje */}
             <div className="hidden md:block">
