@@ -54,7 +54,7 @@ export default function Home() {
       <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
       <li><Link href="#"><span className="hover:text-blue-700">{t('menu.nutrition')}</span></Link></li>
       <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
-    </ul>
+    </ul></div>
     {/* SignIn/SignOut matomas tik kompiuteryje */}
     <div className="flex items-center gap-4 ml-auto">
       {session ? (
@@ -90,7 +90,7 @@ export default function Home() {
           </button>
         </div>
       )}
-    </div>
+    
     {/* Hamburger */}
     <button
       className="md:hidden focus:outline-none"
