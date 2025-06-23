@@ -56,7 +56,7 @@ export default function Home() {
   {/* DEŠINĖ */}
   <div className="flex items-center gap-4">
     {/* SignIn/SignOut */}
-    <div className="hidden md:block">
+    <div className="hidden md:block order-1">
       {session ? (
         <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
       ) : (
@@ -64,7 +64,7 @@ export default function Home() {
       )}
     </div>
     {/* Kalbos pasirinkimo dropdown */}
-    <div className="flex items-center gap-4 ml-4" ref={langRef}>
+    <div className="flex items-center gap-4 ml-4 order-2" ref={langRef}>
       <button
         onClick={() => setLangDropdownOpen(!langDropdownOpen)}
         className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1"
@@ -101,6 +101,7 @@ export default function Home() {
     </button>
   </div>
 </nav>
+
 
         {/* Mobile overlay meniu */}
         {menuOpen && (
