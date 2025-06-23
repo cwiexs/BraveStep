@@ -26,7 +26,6 @@ export default function Home() {
         <div className="container mx-auto flex justify-between items-center px-6">
           {/* Kairė: logotipas + meniu */}
           <div className="flex items-center">
-            <div className="font-bold text-xl tracking-wide mr-8">BraveStep</div>
             {/* Meniu matomas tik kompiuteryje */}
             <ul className="hidden md:flex gap-8">
               <li><Link href="/"><span className="hover:text-blue-700">Home</span></Link></li>
