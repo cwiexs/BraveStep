@@ -101,7 +101,7 @@ export default function Home() {
   </button>
 </div>
         {/* Right side: Illustration */}
-        <div className="flex-1 flex justify-center ml-10">
+        <div className="flex-1 flex justify-center ml-20">
           <Image
             src="/hero.png"
             alt="Walking person"
