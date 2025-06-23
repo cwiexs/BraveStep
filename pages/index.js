@@ -58,7 +58,25 @@ export default function Home() {
               <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
             </ul>
           </div>
-          {/* Dešinė: SignIn, kalbos pasirinkimas ir hamburger */}
+            {/* SignIn/SignOut matomas tik kompiuteryje */}
+            <div className="hidden md:block">
+              {session ? (
+                <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
+              ) : (
+                <button onClick={() => signIn()} className="hover:text-blue-700">{t('signIn')}</button>
+              )}
+            </div>
+            {/* Hamburger meniu tik telefone */}
+            <button
+              className="md:hidden focus:outline-none"
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+            >
+              <span className="text-3xl">☰</span>
+            </button>
+          </div>
+        </div>
+        {/* Dešinė: SignIn, kalbos pasirinkimas ir hamburger */}
           <div className="flex items-center gap-4">
             {/* Kalbos pasirinkimo dropdown */}
             <div className="relative" ref={langRef}>
@@ -88,24 +106,6 @@ export default function Home() {
                 </div>
               )}
             </div>
-            {/* SignIn/SignOut matomas tik kompiuteryje */}
-            <div className="hidden md:block">
-              {session ? (
-                <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
-              ) : (
-                <button onClick={() => signIn()} className="hover:text-blue-700">{t('signIn')}</button>
-              )}
-            </div>
-            {/* Hamburger meniu tik telefone */}
-            <button
-              className="md:hidden focus:outline-none"
-              onClick={() => setMenuOpen(true)}
-              aria-label="Open menu"
-            >
-              <span className="text-3xl">☰</span>
-            </button>
-          </div>
-        </div>
         {/* Mobile overlay meniu */}
         {menuOpen && (
           <div className="fixed inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center z-50 transition-all">
