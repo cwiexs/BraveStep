@@ -88,7 +88,7 @@ export default function Home() {
       {/* HEADER */}
       <header className="container mx-auto flex flex-col md:flex-row items-center justify-between py-12 px-6">
         {/* Left side: Text */}
-        <div className="flex-1 mb-10 md:mb-0" style={{ marginRight: '200px' }}>
+        <div className="flex-1 mb-10 md:mb-0" style={{ marginRight: '600px' }}>
           <h1 className="text-4xl sm:text-5xl font-bold mb-4">
             Enhance Your<br />Well-Being
           </h1>
