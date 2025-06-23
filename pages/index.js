@@ -16,9 +16,6 @@ export default function Home() {
 
   return (
     <>
-      <Head>
-        <title>BraveStep</title>
-      </Head>
       {/* NAVBAR */}
       <nav className="w-full bg-white shadow-sm py-4">
         <div className="container mx-auto flex justify-between items-center px-6">
