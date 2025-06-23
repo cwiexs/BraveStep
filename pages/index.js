@@ -2,9 +2,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useSession, signIn, signOut } from 'next-auth/react';
 import Image from 'next/image';
-import { useState, useRef, useEffect } from 'react'; // dropdown ui
+import { useState, useRef, useEffect } from 'react';
 
-// i18n importai
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useRouter } from 'next/router';
@@ -17,12 +16,10 @@ export default function Home() {
   const langRef = useRef();
   const router = useRouter();
 
-  // Kalbos keitimas
   const changeLanguage = (lng) => {
     router.push(router.pathname, router.asPath, { locale: lng });
   };
 
-  // Užveria dropdown, kai paspaudi šalia
   useEffect(() => {
     function handleClickOutside(event) {
       if (langRef.current && !langRef.current.contains(event.target)) {
@@ -42,24 +39,23 @@ export default function Home() {
   }
 
   return (
-    <>
+    <div className="min-h-screen bg-[#FAF6EF]">
       <Head>
         <title>BraveStep</title>
       </Head>
-      {/* NAVBAR */}
-      <nav className="w-full bg-white shadow-sm py-4">
-        <div className="container mx-auto flex justify-between items-center px-6">
-          {/* Kairė: logotipas + meniu */}
-          <div className="flex items-center">
-            <ul className="hidden md:flex gap-8">
+
+      {/* KNYGOS LAPO STILIUS */}
+      <div className="max-w-5xl mx-auto rounded-3xl shadow-lg bg-white p-6 md:p-12 mt-8 mb-8">
+        {/* NAVBAR */}
+        <nav className="w-full flex justify-between items-center pb-8">
+          <span className="font-bold text-2xl text-blue-900">BraveStep</span>
+          <div className="flex items-center gap-4">
+            <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
               <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
               <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
               <li><Link href="#"><span className="hover:text-blue-700">{t('menu.nutrition')}</span></Link></li>
               <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
             </ul>
-          </div>
-          {/* Dešinė: SignIn, kalbos pasirinkimas ir hamburger */}
-          <div className="flex items-center gap-4">
             {/* Kalbos pasirinkimo dropdown */}
             <div className="relative" ref={langRef}>
               <button
@@ -88,7 +84,6 @@ export default function Home() {
                 </div>
               )}
             </div>
-            {/* SignIn/SignOut matomas tik kompiuteryje */}
             <div className="hidden md:block">
               {session ? (
                 <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
@@ -96,7 +91,7 @@ export default function Home() {
                 <button onClick={() => signIn()} className="hover:text-blue-700">{t('signIn')}</button>
               )}
             </div>
-            {/* Hamburger meniu tik telefone */}
+            {/* Hamburger */}
             <button
               className="md:hidden focus:outline-none"
               onClick={() => setMenuOpen(true)}
@@ -105,7 +100,7 @@ export default function Home() {
               <span className="text-3xl">☰</span>
             </button>
           </div>
-        </div>
+        </nav>
         {/* Mobile overlay meniu */}
         {menuOpen && (
           <div className="fixed inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center z-50 transition-all">
@@ -132,7 +127,6 @@ export default function Home() {
                   >{t('signIn')}</button>
                 )}
               </li>
-              {/* Kalbos pasirinkimas mobiliajame */}
               <li className="flex gap-2 justify-center">
                 <button onClick={() => { changeLanguage('en'); setMenuOpen(false); }} className={`px-2 ${router.locale === 'en' ? 'font-bold underline' : ''}`}>EN</button>
                 <button onClick={() => { changeLanguage('lt'); setMenuOpen(false); }} className={`px-2 ${router.locale === 'lt' ? 'font-bold underline' : ''}`}>LT</button>
@@ -140,61 +134,60 @@ export default function Home() {
             </ul>
           </div>
         )}
-      </nav>
 
-      {/* HEADER */}
-      <header className="container mx-auto flex flex-col md:flex-row items-center justify-between py-12 px-6">
-        {/* Left side: Text */}
-        <div className="flex-1 mb-10 md:mb-0 flex flex-col items-start md:items-center md:text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-4">
-            {t('welcomeTitle')}
-          </h1>
-          <p className="text-gray-600 mb-7">
-            {t('welcomeSubtitle')}
-          </p>
-          <button className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-7 rounded-lg font-semibold text-lg shadow-md">
-            {t('getStarted')}
-          </button>
-        </div>
-        {/* Right side: Illustration */}
-        <div className="flex-1 flex justify-center ml-20">
-          <Image
-            src="/hero.png"
-            alt="Walking person"
-            width={300}
-            height={300}
-            priority
-            style={{ maxWidth: '100%', height: 'auto' }}
-          />
-        </div>
-      </header>
+        {/* HEADER */}
+        <header className="flex flex-col md:flex-row items-center justify-between py-8 px-2">
+          {/* Left side: Text */}
+          <div className="flex-1 mb-10 md:mb-0 flex flex-col items-start md:items-center md:text-left">
+            <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-blue-900">
+              {t('welcomeTitle')}
+            </h1>
+            <p className="text-gray-600 mb-7 text-lg">
+              {t('welcomeSubtitle')}
+            </p>
+            <button className="bg-[#245A6B] hover:bg-[#1a4351] text-white py-3 px-7 rounded-lg font-semibold text-lg shadow-md">
+              {t('getStarted')}
+            </button>
+          </div>
+          {/* Right side: Illustration */}
+          <div className="flex-1 flex justify-center">
+            <Image
+              src="/hero.png"
+              alt="Wellness person"
+              width={300}
+              height={300}
+              priority
+              style={{ maxWidth: '100%', height: 'auto' }}
+            />
+          </div>
+        </header>
 
-      {/* FEATURES */}
-      <section className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-7 pb-16 px-6">
-        {/* Feature 1 */}
-        <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-2">
-          <div className="text-4xl mb-4">🏋️‍♂️</div>
-          <h3 className="font-bold text-lg mb-2">{t('features.workoutsTitle')}</h3>
-          <p className="text-gray-600 text-center">{t('features.workoutsText')}</p>
-        </div>
-        {/* Feature 2 */}
-        <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-2">
-          <div className="text-4xl mb-4">✅</div>
-          <h3 className="font-bold text-lg mb-2">{t('features.mealTitle')}</h3>
-          <p className="text-gray-600 text-center">{t('features.mealText')}</p>
-        </div>
-        {/* Feature 3 */}
-        <div className="bg-white rounded-xl shadow-md flex flex-col items-center p-2">
-          <div className="text-4xl mb-4">📊</div>
-          <h3 className="font-bold text-lg mb-2">{t('features.trackTitle')}</h3>
-          <p className="text-gray-600 text-center">{t('features.trackText')}</p>
-        </div>
-      </section>
-    </>
+        {/* FEATURES */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-7 pb-4 px-2">
+          {/* Feature 1 */}
+          <div className="bg-[#F6F8F7] border border-[#E7E7E7] rounded-xl shadow-sm flex flex-col items-center p-7 min-h-[200px]">
+            <div className="text-4xl mb-4 text-[#75BFA2]">✅</div>
+            <h3 className="font-bold text-lg mb-2 text-blue-900">{t('features.workoutsTitle')}</h3>
+            <p className="text-gray-600 text-center">{t('features.workoutsText')}</p>
+          </div>
+          {/* Feature 2 */}
+          <div className="bg-[#F6F8F7] border border-[#E7E7E7] rounded-xl shadow-sm flex flex-col items-center p-7 min-h-[200px]">
+            <div className="text-4xl mb-4 text-[#75BFA2]">🍏</div>
+            <h3 className="font-bold text-lg mb-2 text-blue-900">{t('features.mealTitle')}</h3>
+            <p className="text-gray-600 text-center">{t('features.mealText')}</p>
+          </div>
+          {/* Feature 3 */}
+          <div className="bg-[#F6F8F7] border border-[#E7E7E7] rounded-xl shadow-sm flex flex-col items-center p-7 min-h-[200px]">
+            <div className="text-4xl mb-4 text-[#75BFA2]">📊</div>
+            <h3 className="font-bold text-lg mb-2 text-blue-900">{t('features.trackTitle')}</h3>
+            <p className="text-gray-600 text-center">{t('features.trackText')}</p>
+          </div>
+        </section>
+      </div>
+    </div>
   );
 }
 
-// SSR i18n palaikymui
 export async function getStaticProps({ locale }) {
   return {
     props: {
