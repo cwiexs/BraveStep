@@ -11,7 +11,6 @@ export default function SignIn() {
     e.preventDefault();
     setError("");
 
-    // Example signIn with credentials provider (adjust as needed)
     const res = await signIn("credentials", {
       redirect: false,
       email,
@@ -20,8 +19,6 @@ export default function SignIn() {
 
     if (res.error) {
       setError("Invalid credentials.");
-    } else {
-      // redirect or show success
     }
   };
 
