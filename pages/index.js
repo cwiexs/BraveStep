@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import Link from 'next/link';
 import { useSession, signIn, signOut } from 'next-auth/react';
+import Image from 'next/image';
 
 export default function Home() {
   const { data: session, status } = useSession();
@@ -56,10 +57,15 @@ export default function Home() {
           </button>
         </div>
         {/* Right side: Illustration */}
-        <div className="flex-1 flex justify-center">
-          {/* Galima vėliau įkelti SVG ar iliustraciją */}
-          <div className="w-60 h-60 bg-green-50 rounded-full flex items-center justify-center">
-            <span className="text-green-400 text-xl">Image</span>
+          <div className="flex-1 flex justify-center">
+            <Image
+              src="/hero.png"
+              alt="Walking person"
+              width={400}
+              height={400}
+              priority
+              style={{ maxWidth: '100%', height: 'auto' }}
+            />
           </div>
         </div>
       </header>
