@@ -47,59 +47,60 @@ export default function Home() {
       {/* KNYGOS LAPO STILIUS */}
       <div className="max-w-5xl mx-auto rounded-3xl shadow-lg bg-white p-6 md:p-12 mt-8 mb-8">
         {/* NAVBAR */}
-        <nav className="w-full flex justify-between items-center pb-8">
-          <div className="flex items-center gap-4">
-            <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
-              <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
-              <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
-              <li><Link href="#"><span className="hover:text-blue-700">{t('menu.nutrition')}</span></Link></li>
-              <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
-            </ul>
-            {/* Kalbos pasirinkimo dropdown */}
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1"
-              >
-                {router.locale === 'en' ? 'EN' : 'LT'}
-                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-              {langDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg z-10 border">
-                  <button
-                    className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
-                    onClick={() => { changeLanguage('en'); setLangDropdownOpen(false); }}
-                  >
-                    EN
-                  </button>
-                  <button
-                    className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
-                    onClick={() => { changeLanguage('lt'); setLangDropdownOpen(false); }}
-                  >
-                    LT
-                  </button>
-                </div>
-              )}
-            </div>
-            <div className="hidden md:block">
-              {session ? (
-                <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
-              ) : (
-                <button onClick={() => signIn()} className="hover:text-blue-700">{t('signIn')}</button>
-              )}
-            </div>
-            {/* Hamburger */}
-            <button
-              className="md:hidden focus:outline-none"
-              onClick={() => setMenuOpen(true)}
-              aria-label="Open menu"
-            >
-              <span className="text-3xl">☰</span>
-            </button>
-          </div>
-        </nav>
+       <nav className="w-full flex justify-between items-center pb-8">
+  <div className="flex items-center gap-4">
+    <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
+      <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
+      <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
+      <li><Link href="#"><span className="hover:text-blue-700">{t('menu.nutrition')}</span></Link></li>
+      <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
+    </ul>
+    {/* SignIn/SignOut matomas tik kompiuteryje */}
+    <div className="hidden md:block">
+      {session ? (
+        <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
+      ) : (
+        <button onClick={() => signIn()} className="hover:text-blue-700">{t('signIn')}</button>
+      )}
+    </div>
+    {/* Kalbos pasirinkimo dropdown */}
+    <div className="flex items-center gap-4 ml-4" ref={langRef}>
+      <button
+        onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+        className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1"
+      >
+        {router.locale === 'en' ? 'EN' : 'LT'}
+        <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {langDropdownOpen && (
+        <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg z-10 border">
+          <button
+            className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
+            onClick={() => { changeLanguage('en'); setLangDropdownOpen(false); }}
+          >
+            EN
+          </button>
+          <button
+            className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
+            onClick={() => { changeLanguage('lt'); setLangDropdownOpen(false); }}
+          >
+            LT
+          </button>
+        </div>
+      )}
+    </div>
+    {/* Hamburger */}
+    <button
+      className="md:hidden focus:outline-none"
+      onClick={() => setMenuOpen(true)}
+      aria-label="Open menu"
+    >
+      <span className="text-3xl">☰</span>
+    </button>
+  </div>
+</nav>
         {/* Mobile overlay meniu */}
         {menuOpen && (
           <div className="fixed inset-0 bg-white bg-opacity-95 flex flex-col items-center justify-center z-50 transition-all">
