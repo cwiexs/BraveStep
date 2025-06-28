@@ -43,7 +43,7 @@ export default function SignUp() {
         <title>Sign Up | BraveStep</title>
       </Head>
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-        <div className="w-full max-w-md bg-white p-6 rounded shadow">
+        <div className="w-full max-w-md p-6 rounded shadow">
           <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
           {error && (
             <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
