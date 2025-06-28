@@ -47,7 +47,7 @@ export default function Home() {
       {/* KNYGOS LAPO STILIUS */}
       <div className="max-w-5xl mx-auto rounded-3xl shadow-lg bg-white p-6 md:p-12 mt-8 mb-8">
          {/* KALBOS PASIRINKIMO DROPDOWN – VIRŠ SIGN IN, KORTELES KAMPE */}
-        <div className="absolute top-4 right-8 z-30">
+        <div className="absolute top-4 right-16 z-30">
           <div className="flex items-center" ref={langRef}>
             <button
               onClick={() => setLangDropdownOpen(!langDropdownOpen)}
