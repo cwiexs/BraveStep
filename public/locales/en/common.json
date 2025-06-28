@@ -23,6 +23,9 @@
   "signUpSuccess": "Account created successfully!",
   "loginAfterSignUpFailed": "Automatic sign-in failed.",
   "errorOccurred": "An error occurred. Please try again.",
+  "missingEmailOrPassword": "Email and password are required.",
+  "methodNotAllowed": "Method not allowed.",
+  "serverError": "Server error. Please try again later.",
   "features": {
     "workoutsTitle": "Personalized Workouts",
     "workoutsText": "Find exercises tailored to your level and goals.",

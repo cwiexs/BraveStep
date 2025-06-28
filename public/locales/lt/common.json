@@ -23,6 +23,9 @@
   "signUpSuccess": "Paskyra sėkmingai sukurta!",
   "loginAfterSignUpFailed": "Nepavyko automatiškai prisijungti.",
   "errorOccurred": "Įvyko klaida. Bandykite dar kartą.",
+  "missingEmailOrPassword": "Reikalingas el. paštas ir slaptažodis.",
+  "methodNotAllowed": "Šis veiksmas neleidžiamas.",
+  "serverError": "Serverio klaida. Bandykite vėliau.",
   "features": {
     "workoutsTitle": "Individualios treniruotės",
     "workoutsText": "Rask pratimus, pritaikytus tavo lygiui ir tikslams.",
