@@ -11,7 +11,7 @@ export default function Home() {
   const [view, setView] = useState('welcome'); // 'welcome' | 'login' | 'signup'
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen">
       <BookPageLayout>
         <Navbar
           onHome={() => setView('welcome')}
