@@ -2,9 +2,22 @@
   "loading": "Įkeliam…",
   "signIn": "Prisijungti",
   "signOut": "Atsijungti",
-  "welcomeTitle": "Pagerink savo\nsavijautą",
-  "welcomeSubtitle": "Pasiek savo sveikatos ir sporto tikslus\nsu asmeniškai pritaikytais sporto ir mitybos planais.",
-  "getStarted": "Pradėti",
+  "signup": "Registruotis",
+  "email": "El. paštas",
+  "password": "Slaptažodis",
+  "confirmPassword": "Pakartokite slaptažodį",
+  "createAccount": "Sukurti paskyrą",
+  "dontHaveAccount": "Neturite paskyros?",
+  "alreadyHaveAccount": "Jau turite paskyrą?",
+  "passwordsDoNotMatch": "Slaptažodžiai nesutampa",
+  "logout": "Atsijungti",
+  "home": "Pradžia",
+  "workouts": "Treniruotės",
+  "nutrition": "Mityba",
+  "health": "Sveikata",
+  "show": "Rodyti",
+  "hide": "Slėpti",
+  "userExists": "Vartotojas su tokiu el. paštu jau egzistuoja",
   "menu": {
     "home": "Pagrindinis",
     "workouts": "Treniruotės",
@@ -19,24 +32,4 @@
     "trackTitle": "Sek progresą",
     "trackText": "Stebėk pasiekimus ir išlik motyvuotas."
   }
-
-  {
-  "signup": "Registruotis",
-  "signin": "Prisijungti",
-  "email": "El. paštas",
-  "password": "Slaptažodis",
-  "confirmPassword": "Pakartokite slaptažodį",
-  "createAccount": "Sukurti paskyrą",
-  "dontHaveAccount": "Neturite paskyros?",
-  "alreadyHaveAccount": "Jau turite paskyrą?",
-  "passwordsDoNotMatch": "Slaptažodžiai nesutampa",
-  "logout": "Atsijungti",
-  "home": "Pradžia",
-  "workouts": "Treniruotės",
-  "nutrition": "Mityba",
-  "health": "Sveikata",
-  "show": "Rodyti",
-  "hide": "Slėpti"
-}
-
 }
