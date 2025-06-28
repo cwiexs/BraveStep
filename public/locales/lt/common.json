@@ -11,10 +11,12 @@
   "alreadyHaveAccount": "Jau turite paskyrą?",
   "passwordsDoNotMatch": "Slaptažodžiai nesutampa",
   "logout": "Atsijungti",
-  "home": "Pradžia",
-  "workouts": "Treniruotės",
-  "nutrition": "Mityba",
-  "health": "Sveikata",
+  "menu": {
+    "home": "Pradžia",
+    "workouts": "Treniruotės",
+    "nutrition": "Mityba",
+    "health": "Sveikata"
+  },
   "show": "Rodyti",
   "hide": "Slėpti",
   "userExists": "Vartotojas su tokiu el. paštu jau egzistuoja",

@@ -11,10 +11,12 @@
   "alreadyHaveAccount": "Already have an account?",
   "passwordsDoNotMatch": "Passwords do not match",
   "logout": "Log out",
-  "home": "Home",
-  "workouts": "Workouts",
-  "nutrition": "Nutrition",
-  "health": "Health",
+  "menu": {
+    "home": "Home",
+    "workouts": "Workouts",
+    "nutrition": "Nutrition",
+    "health": "Health"
+  },
   "show": "Show",
   "hide": "Hide",
   "userExists": "A user with this email already exists",
