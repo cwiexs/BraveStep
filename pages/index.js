@@ -45,7 +45,7 @@ export default function Home() {
       </Head>
 
       {/* KNYGOS LAPO STILIUS */}
-      <div className="max-w-5xl mx-auto rounded-3xl shadow-lg bg-white p-6 md:p-12 mt-8 mb-8">
+      <div className="max-w-5xl mx-auto rounded-3xl shadow-lg bg-white p-6 md:p-12 mt-8 mb-8 relative">
          {/* KALBOS PASIRINKIMO DROPDOWN – VIRŠ SIGN IN, KORTELES KAMPE */}
         <div className="absolute top-4 right-8 z-30">
           <div className="flex items-center" ref={langRef}>
@@ -94,33 +94,7 @@ export default function Home() {
         <button onClick={() => signIn()} className="hover:text-blue-700">{t('signIn')}</button>
       )}
     </div>
-    {/* Kalbos pasirinkimo dropdown */}
-    <div className="flex items-center gap-4" ref={langRef}>
-      <button
-        onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-        className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1"
-      >
-        {router.locale === 'en' ? 'EN' : 'LT'}
-        <svg className="w-2 h-2 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
-      {langDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg z-10 border">
-          <button
-            className={`block w-full text-left px-2 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
-            onClick={() => { changeLanguage('en'); setLangDropdownOpen(false); }}
-          >
-            EN
-          </button>
-          <button
-            className={`block w-full text-left px-2 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
-            onClick={() => { changeLanguage('lt'); setLangDropdownOpen(false); }}
-          >
-            LT
-          </button>
-        </div>
-      )}
+    
     
     {/* Hamburger */}
     <button
