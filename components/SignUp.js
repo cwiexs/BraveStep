@@ -29,7 +29,16 @@ export default function SignUp({ onClose, onSignIn }) {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.message || data.error || t('errorOccurred'));
+        // Čia pagautas error KODAS, o ne tekstas
+        if (data.error === "userExists") {
+          setError(t('userExists'));
+        } else if (data.error === "missingEmailOrPassword") {
+          setError(t('errorOccurred'));
+        } else if (data.error === "methodNotAllowed") {
+          setError(t('errorOccurred'));
+        } else {
+          setError(t('errorOccurred'));
+        }
         return;
       }
       setSuccess(t('signUpSuccess'));
@@ -42,7 +51,6 @@ export default function SignUp({ onClose, onSignIn }) {
       });
 
       if (loginRes && !loginRes.error) {
-        // 3. Uždaryti modalą ir atnaujinti puslapį, kad būtų matomas naujas prisijungimas
         if (onClose) onClose();
         window.location.reload();
       } else {
