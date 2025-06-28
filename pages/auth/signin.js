@@ -14,21 +14,20 @@ export default function SignIn() {
   const handleSubmit = async e => {
     e.preventDefault();
     setError('');
-    // ... taviškė sign in logika (pagal tavo projektą)
-    // čia gali būti prisijungimo fetch, formos validacija ir pan.
+    // Prisijungimo logika čia
   };
 
   return (
     <>
       <Head>
-        <title>{t('signin')} | BraveStep</title>
+        <title>{t('signIn')} | BraveStep</title>
       </Head>
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
         <div className="w-full max-w-md bg-white p-6 rounded shadow">
-          <h1 className="text-2xl font-bold mb-4">{t('signin')}</h1>
+          <h1 className="text-2xl font-bold mb-4">{t('signIn')}</h1>
           {error && (
             <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
-              {error}
+              {t(error) || error}
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -79,10 +78,10 @@ export default function SignIn() {
               type="submit"
               className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
             >
-              {t('signin')}
+              {t('signIn')}
             </button>
             <div className="text-sm text-center mt-2">
-              {t('dontHaveAccount')} <a href="/auth/signup" className="text-blue-600 hover:underline">{t('signup')}</a>
+              {t('dontHaveAccount')} <a href="/auth/signup" className="text-blue-600 hover:underline">{t('signUp')}</a>
             </div>
           </form>
         </div>
