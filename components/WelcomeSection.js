@@ -11,12 +11,6 @@ export default function WelcomeSection({ onSignIn, onSignUp }) {
         <p className="text-gray-600 mb-7 text-lg">{t('welcomeSubtitle')}</p>
         <div className="flex gap-4">
           <button
-            className="bg-[#245A6B] hover:bg-[#1a4351] text-white py-3 px-7 rounded-lg font-semibold text-lg shadow-md"
-            onClick={onSignIn}
-          >
-            {t('getStarted')}
-          </button>
-          <button
             className="border border-[#245A6B] text-[#245A6B] py-3 px-7 rounded-lg font-semibold text-lg shadow-md"
             onClick={onSignUp}
           >
