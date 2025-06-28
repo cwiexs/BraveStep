@@ -1,4 +1,3 @@
-// components/SignUp.js
 import { useState } from 'react';
 import { useTranslation } from 'next-i18next';
 import { signIn } from "next-auth/react";
@@ -44,7 +43,7 @@ export default function SignUp({ onClose, onSignIn }) {
 
       if (loginRes && !loginRes.error) {
         // 3. Uždaryti modalą ir atnaujinti puslapį, kad būtų matomas naujas prisijungimas
-        onClose && onClose();
+        if (onClose) onClose();
         window.location.reload();
       } else {
         setError(t('loginAfterSignUpFailed') || "Nepavyko prisijungti automatiškai.");
