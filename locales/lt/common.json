@@ -1,5 +1,19 @@
-{
-  "loading": "Įkeliam…",
+{ 
+  
+  
+  "menu": {
+    "home": "Pagrindinis",
+    "workouts": "Treniruotės",
+    "nutrition": "Mityba",
+    "health": "Sveikata"
+  },
+  "features": {
+    "workoutsTitle": "Individualios treniruotės",
+    "workoutsText": "Rask pratimus, pritaikytus tavo lygiui ir tikslams.",
+    "mealTitle": "Mitybos planavimas",
+    "mealText": "Gauk asmeninius mitybos planus ir rekomendacijas.",
+    "trackTitle": "Sek progresą",
+    "loading": "Įkeliam…",
   "signIn": "Prisijungti",
   "signOut": "Atsijungti",
   "signup": "Registruotis",
@@ -18,18 +32,6 @@
   "show": "Rodyti",
   "hide": "Slėpti",
   "userExists": "Vartotojas su tokiu el. paštu jau egzistuoja",
-  "menu": {
-    "home": "Pagrindinis",
-    "workouts": "Treniruotės",
-    "nutrition": "Mityba",
-    "health": "Sveikata"
-  },
-  "features": {
-    "workoutsTitle": "Individualios treniruotės",
-    "workoutsText": "Rask pratimus, pritaikytus tavo lygiui ir tikslams.",
-    "mealTitle": "Mitybos planavimas",
-    "mealText": "Gauk asmeninius mitybos planus ir rekomendacijas.",
-    "trackTitle": "Sek progresą",
     "trackText": "Stebėk pasiekimus ir išlik motyvuotas."
   }
 }
