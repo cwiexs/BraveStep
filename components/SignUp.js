@@ -10,16 +10,35 @@ export default function SignUp({ onClose, onSignIn }) {
   const [showPass, setShowPass] = useState(false);
   const [showPass2, setShowPass2] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
     if (password !== password2) {
       setError(t('passwordsDoNotMatch'));
       return;
     }
-    // Čia signup logika
-    alert(t('signUp') + ': ' + email);
-    onClose();
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || data.error || t('errorOccurred'));
+        return;
+      }
+      setSuccess(t('signUpSuccess'));
+      setTimeout(() => {
+        setSuccess('');
+        onClose();
+      }, 1500);
+    } catch (err) {
+      setError(t('errorOccurred'));
+    }
   };
 
   return (
@@ -71,6 +90,7 @@ export default function SignUp({ onClose, onSignIn }) {
           </button>
         </div>
         {error && <div className="text-red-600 text-xs">{error}</div>}
+        {success && <div className="text-green-600 text-xs">{success}</div>}
         <button type="submit" className="bg-blue-700 text-white rounded py-2">{t('signUp')}</button>
       </form>
       <div className="mt-4 text-sm">
