@@ -1,7 +1,7 @@
-// pages/auth/signup.js
 import { useState } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useTranslation } from 'next-i18next';
 
 export default function SignUp() {
   const [email, setEmail] = useState('');
@@ -11,6 +11,7 @@ export default function SignUp() {
   const [showPass, setShowPass] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const router = useRouter();
+  const { t } = useTranslation('common');
 
   const passwordsMatch = password === confirm;
 
@@ -18,7 +19,7 @@ export default function SignUp() {
     e.preventDefault();
     setError('');
     if (!passwordsMatch) {
-      setError('Passwords do not match');
+      setError('passwordsDoNotMatch');
       return;
     }
 
@@ -40,43 +41,43 @@ export default function SignUp() {
   return (
     <>
       <Head>
-        <title>Sign Up | BraveStep</title>
+        <title>{t('signup')} | BraveStep</title>
       </Head>
       <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
-        <div className="w-full max-w-md p-6 rounded shadow">
-          <h1 className="text-2xl font-bold mb-4">Sign Up</h1>
+        <div className="w-full max-w-md bg-white p-6 rounded shadow">
+          <h1 className="text-2xl font-bold mb-4">{t('signup')}</h1>
           {error && (
             <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
-              {error}
+              {t(error) || error}
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block mb-1">Email</label>
+              <label className="block mb-1">{t('email')}</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="w-full px-3 py-2 border rounded"
+                className="w-full px-3 py-2 border rounded bg-blue-50"
               />
             </div>
             <div>
-              <label className="block mb-1">Password</label>
+              <label className="block mb-1">{t('password')}</label>
               <div className="relative">
                 <input
                   type={showPass ? "text" : "password"}
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border rounded pr-10"
+                  className="w-full px-3 py-2 border rounded pr-10 bg-blue-50"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(v => !v)}
                   tabIndex={-1}
                   className="absolute right-2 top-2 text-gray-500"
-                  aria-label={showPass ? "Hide password" : "Show password"}
+                  aria-label={showPass ? t('hide') : t('show')}
                 >
                   {showPass ? (
                     // Akytė atvira
@@ -95,21 +96,21 @@ export default function SignUp() {
               </div>
             </div>
             <div>
-              <label className="block mb-1">Confirm Password</label>
+              <label className="block mb-1">{t('confirmPassword')}</label>
               <div className="relative">
                 <input
                   type={showConfirm ? "text" : "password"}
                   value={confirm}
                   onChange={e => setConfirm(e.target.value)}
                   required
-                  className="w-full px-3 py-2 border rounded pr-10"
+                  className="w-full px-3 py-2 border rounded pr-10 bg-blue-50"
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirm(v => !v)}
                   tabIndex={-1}
                   className="absolute right-2 top-2 text-gray-500"
-                  aria-label={showConfirm ? "Hide password" : "Show password"}
+                  aria-label={showConfirm ? t('hide') : t('show')}
                 >
                   {showConfirm ? (
                     // Akytė atvira
@@ -127,7 +128,7 @@ export default function SignUp() {
                 </button>
               </div>
               {confirm && !passwordsMatch && (
-                <p className="text-red-500 text-xs mt-1">Passwords do not match</p>
+                <p className="text-red-500 text-xs mt-1">{t('passwordsDoNotMatch')}</p>
               )}
             </div>
             <button
@@ -135,8 +136,11 @@ export default function SignUp() {
               className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition"
               disabled={!passwordsMatch}
             >
-              Create account
+              {t('createAccount')}
             </button>
+            <div className="text-sm text-center mt-2">
+              {t('alreadyHaveAccount')} <a href="/auth/signin" className="text-blue-600 hover:underline">{t('signin')}</a>
+            </div>
           </form>
         </div>
       </div>

@@ -19,4 +19,24 @@
     "trackTitle": "Track Progress",
     "trackText": "Monitor your achievements and stay motivated."
   }
+  
+  {
+  "signup": "Sign Up",
+  "signin": "Sign In",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "createAccount": "Create Account",
+  "dontHaveAccount": "Don't have an account?",
+  "alreadyHaveAccount": "Already have an account?",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "logout": "Sign Out",
+  "home": "Home",
+  "workouts": "Workouts",
+  "nutrition": "Nutrition",
+  "health": "Health",
+  "show": "Show",
+  "hide": "Hide"
+}
+
 }
