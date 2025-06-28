@@ -1,0 +1,35 @@
+{
+  "loading": "Loading…",
+  "signIn": "Sign In",
+  "signOut": "Sign Out",
+  "signUp": "Sign Up",
+  "email": "Email",
+  "password": "Password",
+  "confirmPassword": "Confirm Password",
+  "createAccount": "Create Account",
+  "dontHaveAccount": "Don't have an account?",
+  "alreadyHaveAccount": "Already have an account?",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "logout": "Sign Out",
+  "home": "Home",
+  "workouts": "Workouts",
+  "nutrition": "Nutrition",
+  "health": "Health",
+  "show": "Show",
+  "hide": "Hide",
+  "userExists": "A user with this email already exists",
+  "menu": {
+    "home": "Home",
+    "workouts": "Workouts",
+    "nutrition": "Nutrition",
+    "health": "Health"
+  },
+  "features": {
+    "workoutsTitle": "Customized Workouts",
+    "workoutsText": "Find exercises tailored to your fitness level and objectives.",
+    "mealTitle": "Meal Planning",
+    "mealText": "Get personalized diet plans and nutritional guidance.",
+    "trackTitle": "Track Progress",
+    "trackText": "Monitor your achievements and stay motivated."
+  }
+}
