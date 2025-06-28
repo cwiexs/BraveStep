@@ -38,7 +38,6 @@ export default function Navbar({ onHome, onSignIn, onSignUp }) {
       </div>
       <div className="flex items-center gap-4 ml-auto">
         <button onClick={onSignIn} className="hover:text-blue-700">{t('signIn')}</button>
-        <button onClick={onSignUp} className="hover:text-blue-700">{t('signUp')}</button>
         {/* Kalbos pasirinkimas */}
         <div className="relative" ref={langRef}>
           <button
