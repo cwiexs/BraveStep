@@ -28,7 +28,6 @@ export default function Navbar({ onHome, onSignIn, onSignUp }) {
     <nav className="w-full flex justify-between items-center pb-8">
       <div className="flex items-center gap-4">
         <button onClick={onHome}>
-          <img src="/logo.png" alt="Logo" className="w-12 h-12 mr-2" />
         </button>
         <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
           <li><button onClick={onHome} className="hover:text-blue-700">{t('menu.home')}</button></li>
