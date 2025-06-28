@@ -17,9 +17,9 @@ export default function SignUp({ onClose, onSignIn }) {
       setError(t('passwordsDoNotMatch'));
       return;
     }
-    // signup logika
+    // Čia signup logika
     alert(t('signUp') + ': ' + email);
-    onClose(); // Po registracijos gali uždaryti modalą arba palikti atidarytą
+    onClose();
   };
 
   return (

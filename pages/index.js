@@ -1,3 +1,4 @@
+// pages/index.js
 import { useState, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslation } from 'next-i18next';
@@ -11,9 +12,6 @@ export default function Home() {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const langRef = useRef(null);
   const [authModal, setAuthModal] = useState(null); // 'signin', 'signup', null
-
-  // Jei uždaro dropdown paspaudęs kitur
-  // ...praleidžiam šitą kodą aiškumo dėlei...
 
   // Kalbos keitimas
   const changeLanguage = (lng) => {

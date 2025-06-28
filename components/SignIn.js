@@ -6,14 +6,13 @@ export default function SignIn({ onClose, onSignUp }) {
   const { t } = useTranslation('common');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  // Paslėpti ar rodyti slaptažodį
   const [showPass, setShowPass] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // login logika
+    // Čia login logika
     alert(t('signIn') + ': ' + email);
-    onClose(); // Po login gali uždaryti modalą arba palikti atidarytą
+    onClose();
   };
 
   return (
