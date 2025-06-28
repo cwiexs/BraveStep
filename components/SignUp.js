@@ -1,6 +1,6 @@
-// components/SignUp.js
 import { useState } from 'react';
 import { useTranslation } from 'next-i18next';
+import { signIn } from "next-auth/react";
 
 export default function SignUp({ onClose, onSignIn }) {
   const { t } = useTranslation('common');
@@ -32,10 +32,15 @@ export default function SignUp({ onClose, onSignIn }) {
         return;
       }
       setSuccess(t('signUpSuccess'));
-      setTimeout(() => {
-        setSuccess('');
+      // AUTOMATINIS prisijungimas
+      setTimeout(async () => {
+        await signIn("credentials", {
+          redirect: false,
+          email,
+          password,
+        });
         onClose();
-      }, 1500);
+      }, 1200);
     } catch (err) {
       setError(t('errorOccurred'));
     }
