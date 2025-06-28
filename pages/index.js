@@ -17,14 +17,31 @@ export default function Home() {
     setLangDropdownOpen(false);
   };
 
+  // Home mygtukas grąžina pagrindinį vaizdą, jei authView aktyvus
+  const handleGoHome = () => {
+    setAuthView(null);
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <div className="max-w-5xl mx-auto rounded-3xl shadow-lg bg-white p-6 md:p-12 mt-8 mb-8 relative">
         {/* NAVBAR */}
         <nav className="w-full flex justify-between items-center pb-8">
           <div className="flex items-center gap-4">
+            {/* LOGO */}
+            <button
+              onClick={handleGoHome}
+              className="flex items-center focus:outline-none"
+              aria-label="Go to home"
+            >
+              <img src="/logo.png" alt="Logo" className="w-12 h-12 mr-2" />
+            </button>
             <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
-              <li><Link href="/"><span className="hover:text-blue-700">{t('menu.home')}</span></Link></li>
+              <li>
+                <button onClick={handleGoHome} className="hover:text-blue-700">
+                  {t('menu.home')}
+                </button>
+              </li>
               <li><Link href="#"><span className="hover:text-blue-700">{t('menu.workouts')}</span></Link></li>
               <li><Link href="#"><span className="hover:text-blue-700">{t('menu.nutrition')}</span></Link></li>
               <li><Link href="#"><span className="hover:text-blue-700">{t('menu.health')}</span></Link></li>
@@ -60,23 +77,33 @@ export default function Home() {
           </div>
         </nav>
 
-        {/* TURINYS */}
-        {authView === 'signin' && (
-          <SignIn
-            onClose={() => setAuthView(null)}
-            onSignUp={() => setAuthView('signup')}
-          />
+        {/* MODALAS AUTH */}
+        {authView && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+            <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md relative">
+              <button
+                className="absolute top-2 right-4 text-2xl text-gray-400 hover:text-gray-800"
+                onClick={() => setAuthView(null)}
+              >×</button>
+              {authView === 'signin' && (
+                <SignIn
+                  onClose={() => setAuthView(null)}
+                  onSignUp={() => setAuthView('signup')}
+                />
+              )}
+              {authView === 'signup' && (
+                <SignUp
+                  onClose={() => setAuthView(null)}
+                  onSignIn={() => setAuthView('signin')}
+                />
+              )}
+            </div>
+          </div>
         )}
-        {authView === 'signup' && (
-          <SignUp
-            onClose={() => setAuthView(null)}
-            onSignIn={() => setAuthView('signin')}
-          />
-        )}
+
+        {/* PAGRINDINIS TURINYS */}
         {!authView && (
           <div>
-            {/* Čia visa tavo knygos lapo pagrindinė info */}
-            {/* LOGO */}
             <div className="flex flex-col items-center mb-8">
               <img src="/logo.png" alt="Logo" className="w-24 h-24 mb-4" />
               <h1 className="text-4xl font-bold mb-4">{t('welcomeTitle')}</h1>
