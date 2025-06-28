@@ -1,4 +1,4 @@
-{ 
+{
   "loading": "Įkeliam…",
   "signIn": "Prisijungti",
   "signOut": "Atsijungti",
@@ -18,12 +18,9 @@
   "show": "Rodyti",
   "hide": "Slėpti",
   "userExists": "Vartotojas su tokiu el. paštu jau egzistuoja",
-  "menu": {
-    "home": "Pagrindinis",
-    "workouts": "Treniruotės",
-    "nutrition": "Mityba",
-    "health": "Sveikata"
-  },
+  "signUpSuccess": "Paskyra sėkmingai sukurta!",
+  "loginAfterSignUpFailed": "Nepavyko automatiškai prisijungti.",
+  "errorOccurred": "Įvyko klaida. Bandykite dar kartą.",
   "features": {
     "workoutsTitle": "Individualios treniruotės",
     "workoutsText": "Rask pratimus, pritaikytus tavo lygiui ir tikslams.",
