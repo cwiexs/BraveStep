@@ -94,17 +94,6 @@ export default function Home() {
         <button onClick={() => signIn()} className="hover:text-blue-700">{t('signIn')}</button>
       )}
     </div>
-    
-    
-    {/* Hamburger */}
-    <button
-      className="md:hidden focus:outline-none"
-      onClick={() => setMenuOpen(true)}
-      aria-label="Open menu"
-    >
-      <span className="text-3xl">☰</span>
-    </button>
-  </div>
 </nav>
         {/* Mobile overlay meniu */}
         {menuOpen && (
