@@ -1,13 +1,30 @@
 import { useTranslation } from 'next-i18next';
 import { signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 
 export default function Navbar({ onHome, onSignIn, session, onLanguageChange }) {
   const { t } = useTranslation('common');
   const router = useRouter();
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const langRef = useRef();
+
+  // Uždarom dropdown, kai spaudžiam į lauką
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (langRef.current && !langRef.current.contains(event.target)) {
+        setLangDropdownOpen(false);
+      }
+    }
+    if (langDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [langDropdownOpen]);
 
   return (
     <nav className="flex justify-between items-center pb-8">
@@ -35,7 +52,10 @@ export default function Navbar({ onHome, onSignIn, session, onLanguageChange }) 
         <div className="relative" ref={langRef}>
           <button
             onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-            className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1"
+            className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1 ml-2"
+            aria-haspopup="listbox"
+            aria-expanded={langDropdownOpen}
+            type="button"
           >
             {router.locale?.toUpperCase() === 'EN' ? 'EN' : 'LT'}
             <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -46,13 +66,15 @@ export default function Navbar({ onHome, onSignIn, session, onLanguageChange }) 
             <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg z-50 border">
               <button
                 className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
-                onClick={() => { onLanguageChange('en'); setLangDropdownOpen(false); }}
+                onClick={() => { onLanguageChange && onLanguageChange('en'); setLangDropdownOpen(false); }}
+                type="button"
               >
                 EN
               </button>
               <button
                 className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
-                onClick={() => { onLanguageChange('lt'); setLangDropdownOpen(false); }}
+                onClick={() => { onLanguageChange && onLanguageChange('lt'); setLangDropdownOpen(false); }}
+                type="button"
               >
                 LT
               </button>
