@@ -1,58 +1,101 @@
-import { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'next-i18next';
+import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import { useState, useRef, useEffect } from 'react';
 
-export default function Navbar() {
+export default function Navbar({ onHome, onSignIn, session }) {
   const { t } = useTranslation('common');
   const router = useRouter();
-
-  const [langOpen, setLangOpen] = useState(false);
+  const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const langRef = useRef();
 
-  // Funkcija, kuri keičia kalbą
-  const changeLanguage = (lng) => {
-    router.push(router.pathname, router.asPath, { locale: lng });
-    setLangOpen(false);
-  };
-
+  // Uždarom dropdown, kai paspaudžiama lauke
   useEffect(() => {
     function handleClickOutside(event) {
       if (langRef.current && !langRef.current.contains(event.target)) {
-        setLangOpen(false);
+        setLangDropdownOpen(false);
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    if (langDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    } else {
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [langDropdownOpen]);
+
+  // Kalbos keitimas – router push!
+  const changeLanguage = (lng) => {
+    router.push(router.pathname, router.asPath, { locale: lng });
+    setLangDropdownOpen(false);
+  };
 
   return (
-    <nav className="w-full flex items-center justify-end p-4">
-      {/* Kalbos pasirinkimo mygtukas */}
-      <div className="relative" ref={langRef}>
-        <button
-          onClick={() => setLangOpen(!langOpen)}
-          className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1"
-        >
-          {router.locale === 'en' ? 'EN' : 'LT'}
-          <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        {langOpen && (
-          <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg z-40 border">
-            <button
-              className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
-              onClick={() => changeLanguage('en')}
-            >
-              EN
+    <nav className="flex justify-between items-center pb-8">
+      <div className="flex items-center gap-4">
+        <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
+          <li>
+            <button onClick={onHome} className="hover:text-blue-700">
+              {t('menu.home')}
             </button>
-            <button
-              className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
-              onClick={() => changeLanguage('lt')}
-            >
-              LT
-            </button>
-          </div>
+          </li>
+          <li>
+            <span className="hover:text-blue-700">{t('menu.workouts')}</span>
+          </li>
+          <li>
+            <span className="hover:text-blue-700">{t('menu.nutrition')}</span>
+          </li>
+          <li>
+            <span className="hover:text-blue-700">{t('menu.health')}</span>
+          </li>
+        </ul>
+      </div>
+      <div className="flex items-center gap-4">
+        {/* Kalbos pasirinkimas */}
+        <div className="relative" ref={langRef}>
+          <button
+            onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+            className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1 ml-2"
+            aria-haspopup="listbox"
+            aria-expanded={langDropdownOpen}
+            type="button"
+          >
+            {router.locale?.toUpperCase() === 'EN' ? 'EN' : 'LT'}
+            <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          {langDropdownOpen && (
+            <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg z-50 border">
+              <button
+                className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
+                onClick={() => changeLanguage('en')}
+                type="button"
+              >
+                EN
+              </button>
+              <button
+                className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
+                onClick={() => changeLanguage('lt')}
+                type="button"
+              >
+                LT
+              </button>
+            </div>
+          )}
+        </div>
+        {/* Prisijungimo/atsijungimo valdymas */}
+        {!session ? (
+          <button onClick={onSignIn} className="hover:text-blue-700">
+            {t('signIn')}
+          </button>
+        ) : (
+          <>
+            <span className="font-medium text-blue-900">{t('welcome')}, {session.user?.email || 'User'}</span>
+            <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
+          </>
         )}
       </div>
     </nav>
