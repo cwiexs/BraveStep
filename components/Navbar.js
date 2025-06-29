@@ -1,5 +1,5 @@
 import { useTranslation } from 'next-i18next';
-import { signIn, signOut } from 'next-auth/react';
+import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useState, useRef, useEffect } from 'react';
 
@@ -9,7 +9,7 @@ export default function Navbar({ onHome, onSignIn, session, onLanguageChange }) 
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const langRef = useRef();
 
-  // Uždarom dropdown, kai spaudžiam į lauką
+  // Uždarom dropdown, kai paspaudžiama lauke
   useEffect(() => {
     function handleClickOutside(event) {
       if (langRef.current && !langRef.current.contains(event.target)) {
@@ -46,7 +46,6 @@ export default function Navbar({ onHome, onSignIn, session, onLanguageChange }) 
           </li>
         </ul>
       </div>
-
       <div className="flex items-center gap-4">
         {/* Kalbos pasirinkimas */}
         <div className="relative" ref={langRef}>
