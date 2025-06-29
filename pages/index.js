@@ -5,7 +5,7 @@ import WelcomeSection from '../components/WelcomeSection';
 import FeaturesSection from '../components/FeaturesSection';
 import SignIn from '../components/SignIn';
 import SignUp from '../components/SignUp';
-import MemberSection from '../components/MemberSection'; // NAUJA – šis failas turi būti tarp components
+import MemberSection from '../components/MemberSection';
 import { useSession } from 'next-auth/react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
@@ -13,7 +13,6 @@ export default function Home() {
   const [view, setView] = useState('welcome'); // 'welcome' | 'login' | 'signup'
   const { data: session } = useSession();
 
-  // Jei yra sesija, rodom member section, kitaip – kaip buvo
   return (
     <div className="min-h-screen">
       <BookPageLayout>
@@ -27,7 +26,10 @@ export default function Home() {
           <>
             {view === 'welcome' && (
               <>
-                <WelcomeSection onSignIn={() => setView('login')} onSignUp={() => setView('signup')} />
+                <WelcomeSection
+                  onSignIn={() => setView('login')}
+                  onSignUp={() => setView('signup')}
+                />
                 <FeaturesSection />
               </>
             )}
@@ -45,7 +47,6 @@ export default function Home() {
             )}
           </>
         ) : (
-          // Jei prisijungęs – rodom naują MemberSection (sveikinimas, kiti dalykai, ateityje – daugiau)
           <MemberSection user={session.user} />
         )}
       </BookPageLayout>
