@@ -24,11 +24,10 @@ export default function SignUp({ onClose, onSignIn }) {
       return;
     }
     if (!recaptchaToken) {
-      setError('Prašome patvirtinti, kad nesate robotas!');
+      setError(t('verifyNotRobot')); // <-- i18n žinutė
       return;
     }
     try {
-      // 1. Registracija per backend API
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,24 +40,21 @@ export default function SignUp({ onClose, onSignIn }) {
         } else if (data.error === "missingEmailOrPassword") {
           setError(t('errorOccurred'));
         } else if (data.error === "recaptchaFailed") {
-          setError('Nepavyko patvirtinti, kad nesate robotas.');
+          setError(t('verifyNotRobot'));
         } else {
           setError(t('errorOccurred'));
         }
-        // Reset reCAPTCHA (leisti bandyti dar kartą)
         if (recaptchaRef.current) recaptchaRef.current.reset();
         setRecaptchaToken('');
         return;
       }
       setSuccess(t('signUpSuccess'));
-
-      // 2. Automatinis prisijungimas po registracijos
+      // Automatinis prisijungimas po registracijos
       const loginRes = await signIn("credentials", {
         redirect: false,
         email,
         password,
       });
-
       if (loginRes && !loginRes.error) {
         if (onClose) onClose();
         window.location.reload();
@@ -118,7 +114,6 @@ export default function SignUp({ onClose, onSignIn }) {
             {showPass2 ? t('hide') : t('show')}
           </button>
         </div>
-
         {/* reCAPTCHA */}
         <div className="flex justify-center">
           <ReCAPTCHA
@@ -128,7 +123,6 @@ export default function SignUp({ onClose, onSignIn }) {
             theme="light"
           />
         </div>
-
         {error && <div className="text-red-600 text-xs">{error}</div>}
         {success && <div className="text-green-600 text-xs">{success}</div>}
         <button type="submit" className="bg-blue-700 text-white rounded py-2">{t('signUp')}</button>

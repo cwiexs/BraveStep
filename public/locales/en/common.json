@@ -11,6 +11,7 @@
   "alreadyHaveAccount": "Already have an account?",
   "passwordsDoNotMatch": "Passwords do not match",
   "logout": "Log out",
+  "verifyNotRobot": "Please verify you are not a robot.",
   "menu": {
     "home": "Home",
     "workouts": "Workouts",

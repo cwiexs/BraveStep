@@ -11,6 +11,7 @@
   "alreadyHaveAccount": "Jau turite paskyrą?",
   "passwordsDoNotMatch": "Slaptažodžiai nesutampa",
   "logout": "Atsijungti",
+  "verifyNotRobot": "Prašome patvirtinti, kad nesate robotas!",
   "menu": {
     "home": "Pradžia",
     "workouts": "Treniruotės",
