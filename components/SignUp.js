@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useTranslation } from 'next-i18next';
 import { signIn } from "next-auth/react";
+import ReCAPTCHA from "react-google-recaptcha";
 
 export default function SignUp({ onClose, onSignIn }) {
   const { t } = useTranslation('common');
@@ -11,6 +12,8 @@ export default function SignUp({ onClose, onSignIn }) {
   const [showPass2, setShowPass2] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [recaptchaToken, setRecaptchaToken] = useState('');
+  const recaptchaRef = useRef();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,25 +23,31 @@ export default function SignUp({ onClose, onSignIn }) {
       setError(t('passwordsDoNotMatch'));
       return;
     }
+    if (!recaptchaToken) {
+      setError('Prašome patvirtinti, kad nesate robotas!');
+      return;
+    }
     try {
       // 1. Registracija per backend API
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, recaptchaToken }),
       });
       const data = await res.json();
       if (!res.ok) {
-        // Čia pagautas error KODAS, o ne tekstas
         if (data.error === "userExists") {
           setError(t('userExists'));
         } else if (data.error === "missingEmailOrPassword") {
           setError(t('errorOccurred'));
-        } else if (data.error === "methodNotAllowed") {
-          setError(t('errorOccurred'));
+        } else if (data.error === "recaptchaFailed") {
+          setError('Nepavyko patvirtinti, kad nesate robotas.');
         } else {
           setError(t('errorOccurred'));
         }
+        // Reset reCAPTCHA (leisti bandyti dar kartą)
+        if (recaptchaRef.current) recaptchaRef.current.reset();
+        setRecaptchaToken('');
         return;
       }
       setSuccess(t('signUpSuccess'));
@@ -109,6 +118,17 @@ export default function SignUp({ onClose, onSignIn }) {
             {showPass2 ? t('hide') : t('show')}
           </button>
         </div>
+
+        {/* reCAPTCHA */}
+        <div className="flex justify-center">
+          <ReCAPTCHA
+            ref={recaptchaRef}
+            sitekey="6LcTx3ErAAAAADIU4DuAJ7kYCaRtNiC8Ly9KKv9L"
+            onChange={(token) => setRecaptchaToken(token)}
+            theme="light"
+          />
+        </div>
+
         {error && <div className="text-red-600 text-xs">{error}</div>}
         {success && <div className="text-green-600 text-xs">{success}</div>}
         <button type="submit" className="bg-blue-700 text-white rounded py-2">{t('signUp')}</button>
