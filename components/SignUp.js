@@ -131,9 +131,6 @@ export default function SignUp({ onClose, onSignIn }) {
         {t('alreadyHaveAccount')}{' '}
         <button className="text-blue-700 underline" onClick={onSignIn}>{t('signIn')}</button>
       </div>
-      <button onClick={onClose} className="mt-6 text-xs text-gray-500 hover:underline">
-        {t('hide')}
-      </button>
     </div>
   );
 }
