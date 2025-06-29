@@ -5,11 +5,15 @@ import WelcomeSection from '../components/WelcomeSection';
 import FeaturesSection from '../components/FeaturesSection';
 import SignIn from '../components/SignIn';
 import SignUp from '../components/SignUp';
+import MemberSection from '../components/MemberSection'; // NAUJA – šis failas turi būti tarp components
+import { useSession } from 'next-auth/react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 
 export default function Home() {
   const [view, setView] = useState('welcome'); // 'welcome' | 'login' | 'signup'
+  const { data: session } = useSession();
 
+  // Jei yra sesija, rodom member section, kitaip – kaip buvo
   return (
     <div className="min-h-screen">
       <BookPageLayout>
@@ -17,24 +21,32 @@ export default function Home() {
           onHome={() => setView('welcome')}
           onSignIn={() => setView('login')}
           onSignUp={() => setView('signup')}
+          session={session}
         />
-        {view === 'welcome' && (
+        {!session ? (
           <>
-            <WelcomeSection onSignIn={() => setView('login')} onSignUp={() => setView('signup')} />
-            <FeaturesSection />
+            {view === 'welcome' && (
+              <>
+                <WelcomeSection onSignIn={() => setView('login')} onSignUp={() => setView('signup')} />
+                <FeaturesSection />
+              </>
+            )}
+            {view === 'login' && (
+              <SignIn
+                onSignUp={() => setView('signup')}
+                onHome={() => setView('welcome')}
+              />
+            )}
+            {view === 'signup' && (
+              <SignUp
+                onSignIn={() => setView('login')}
+                onHome={() => setView('welcome')}
+              />
+            )}
           </>
-        )}
-        {view === 'login' && (
-          <SignIn
-            onSignUp={() => setView('signup')}
-            onHome={() => setView('welcome')}
-          />
-        )}
-        {view === 'signup' && (
-          <SignUp
-            onSignIn={() => setView('login')}
-            onHome={() => setView('welcome')}
-          />
+        ) : (
+          // Jei prisijungęs – rodom naują MemberSection (sveikinimas, kiti dalykai, ateityje – daugiau)
+          <MemberSection user={session.user} />
         )}
       </BookPageLayout>
     </div>

@@ -1,4 +1,6 @@
 {
+  "welcome": "Sveiki",
+  "signedInMessage": "Jūs sėkmingai prisijungėte. Daugiau funkcijų netrukus!",
   "loading": "Įkeliam…",
   "signIn": "Prisijungti",
   "signOut": "Atsijungti",

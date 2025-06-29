@@ -1,4 +1,6 @@
-{
+{ 
+  "welcome": "Welcome",
+  "signedInMessage": "You are now signed in. More features coming soon!",
   "loading": "Loading…",
   "signIn": "Sign in",
   "signOut": "Sign out",
