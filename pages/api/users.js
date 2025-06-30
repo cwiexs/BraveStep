@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     try {
       // Paimam visą info apie prisijungusį vartotoją
       const result = await query(
-        `SELECT id, name, email, goal, phone, birthday, city, created_at
+        `SELECT id, name, email, goal, phone, dateOfBirth, city, created_at
          FROM users
          WHERE email = $1
          LIMIT 1;`,
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
   else if (req.method === 'PUT') {
     try {
       // Gauna laukus, kuriuos siuntė frontas
-      const { name, goal, phone, birthday, city } = req.body;
+      const { name, goal, phone, dateOfBirth, city } = req.body;
       // Sukuria dinaminį update užklausą pagal gautus laukus
       const fields = [];
       const values = [];
@@ -43,7 +43,7 @@ export default async function handler(req, res) {
       if (name !== undefined) { fields.push(`name = $${idx++}`); values.push(name); }
       if (goal !== undefined) { fields.push(`goal = $${idx++}`); values.push(goal); }
       if (phone !== undefined) { fields.push(`phone = $${idx++}`); values.push(phone); }
-      if (birthday !== undefined) { fields.push(`birthday = $${idx++}`); values.push(birthday); }
+      if (dateOfBirth !== undefined) { fields.push(`dateOfBirth = $${idx++}`); values.push(dateOfBirth); }
       if (city !== undefined) { fields.push(`city = $${idx++}`); values.push(city); }
 
       if (fields.length === 0) return res.status(400).json({ error: 'Nėra ką atnaujinti' });
