@@ -24,6 +24,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <BookPageLayout>
+        <LanguageTab /> 
         <Navbar
           onHome={() => setView('welcome')}
           onSignIn={() => setView('login')}
