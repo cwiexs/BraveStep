@@ -46,7 +46,16 @@ export default function Navbar({ onHome, onSignIn, session }) {
                 {t('menu.home')}
               </button>
             </li>
-            {session && (
+            <li>
+              <span className="hover:text-blue-700">{t('menu.workouts')}</span>
+            </li>
+            <li>
+              <span className="hover:text-blue-700">{t('menu.nutrition')}</span>
+            </li>
+            <li>
+              <span className="hover:text-blue-700">{t('menu.health')}</span>
+            </li>
+              {session && (
               <li>
                 <button
                   onClick={() => setProfileOpen(true)}
@@ -57,15 +66,6 @@ export default function Navbar({ onHome, onSignIn, session }) {
                 </button>
               </li>
             )}
-            <li>
-              <span className="hover:text-blue-700">{t('menu.workouts')}</span>
-            </li>
-            <li>
-              <span className="hover:text-blue-700">{t('menu.nutrition')}</span>
-            </li>
-            <li>
-              <span className="hover:text-blue-700">{t('menu.health')}</span>
-            </li>
           </ul>
         </div>
         <div className="flex items-center gap-4">
