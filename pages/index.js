@@ -9,7 +9,7 @@ import MemberSection from '../components/MemberSection';
 import { useSession } from 'next-auth/react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useRouter } from 'next/router';
-import LanguageTab from '../components/LanguageTab';
+
 
 export default function Home() {
   const [view, setView] = useState('welcome'); // 'welcome' | 'login' | 'signup'
@@ -24,7 +24,6 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <BookPageLayout>
-        <LanguageTab /> 
         <Navbar
           onHome={() => setView('welcome')}
           onSignIn={() => setView('login')}
