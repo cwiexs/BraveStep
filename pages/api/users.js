@@ -44,7 +44,7 @@ export default async function handler(req, res) {
       if (name !== undefined) { fields.push(`name = $${idx++}`); values.push(name); }
       if (goal !== undefined) { fields.push(`goal = $${idx++}`); values.push(goal); }
       if (phone !== undefined) { fields.push(`phone = $${idx++}`); values.push(phone); }
-      if (dateOfBirth !== undefined) { fields.push(`dateOfBirth = $${idx++}`); values.push(dateOfBirth); }
+      if (dateOfBirth !== undefined) { fields.push(`"dateOfBirth" = $${idx++}`); values.push(dateOfBirth); }
       if (city !== undefined) { fields.push(`city = $${idx++}`); values.push(city); }
 
       if (fields.length === 0) return res.status(400).json({ error: 'Nėra ką atnaujinti' });
