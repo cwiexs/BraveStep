@@ -50,8 +50,6 @@ export default function Navbar({ onHome, onSignIn, session }) {
           )}
         </div>
       </nav>
-      {/* Modalas profilis */}
-      <MyProfile open={profileOpen} onClose={() => setProfileOpen(false)} />
     </>
   );
 }
