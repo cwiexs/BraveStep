@@ -35,7 +35,7 @@ export default function Home() {
           onSignUp={() => setView('signup')}
           session={session}
           onLanguageChange={handleLanguageChange}
-          onMyProfile={handleMyProfile} {/* ČIA PRIDĖTAS NAUJAS PROPS */}
+          onMyProfile={handleMyProfile} 
         />
         {!session ? (
           <>
