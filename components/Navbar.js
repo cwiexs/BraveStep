@@ -42,11 +42,11 @@ export default function Navbar({ onHome, onSignIn, session }) {
         <div className="flex items-center gap-4">
           {/* Prisijungimo/atsijungimo valdymas */}
           {!session ? (
-            <button onClick={onSignIn} className="hover:text-blue-700">
+            <button onClick={onSignIn} className="text-blue-900 font-medium hover:text-blue-700 rounded py-2">
               {t('signIn')}
             </button>
           ) : (
-            <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
+            <button onClick={() => signOut()} className="text-blue-900 font-medium hover:text-blue-700 rounded py-2">{t('signOut')}</button>
           )}
         </div>
       </nav>
