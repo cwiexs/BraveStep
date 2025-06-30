@@ -27,7 +27,7 @@ export default function LanguageTab() {
 
   return (
     <div
-      className="absolute -top-10 right-0 z-40 flex flex-col items-end"
+      className="absolute -top-6 right-0 z-40 flex flex-col items-end"
       ref={langRef}
       style={{ userSelect: 'none' }}
     >
