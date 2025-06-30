@@ -27,35 +27,35 @@ export default function LanguageTab() {
 
   return (
     <div
-  className="absolute -top-10 right-0 z-40 flex flex-col items-end" 
-  ref={langRef}
-  style={{ userSelect: 'none' }}
->
-  <button
-  className="bg-white border border-gray-200 px-5 py-2 rounded-tl-3xl rounded-tr-none text-blue-900 font-bold cursor-pointer flex items-center gap-2"
-  style={{
-    borderBottom: 'none',
-    boxShadow: '0px -6px 16px -6px rgba(0,0,0,0.10)',
-  }}
->
-    <span>
-      {router.locale?.toUpperCase() === 'EN' ? 'EN' : 'LT'}
-    </span>
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-    </svg>
-  </button>
-  {open && (
-    <div className="bg-white border border-t-0 rounded-b-3xl shadow-lg mt-0 w-full">
+      className="absolute top-4 right-8 z-40 flex flex-col items-end"
+      ref={langRef}
+      style={{ userSelect: 'none' }}
+    >
+      <button
+        className="backdrop-blur bg-white/70 hover:bg-white/90 px-5 py-2 rounded-full text-blue-900 font-bold cursor-pointer flex items-center gap-2 shadow-md transition"
+        style={{
+          border: 'none',
+          boxShadow: '0 2px 8px 0 rgba(0,0,0,0.07)'
+        }}
+        onClick={() => setOpen(x => !x)}
+        type="button"
+      >
+        <span className="uppercase tracking-wider">{router.locale?.toUpperCase() === 'EN' ? 'EN' : 'LT'}</span>
+        <svg className={`w-4 h-4 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && (
+        <div className="mt-2 bg-white shadow-lg rounded-xl overflow-hidden min-w-[96px] border border-gray-200 animate-fade-in">
           <button
-            className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
+            className={`block w-full text-left px-4 py-2 hover:bg-blue-50 ${router.locale === 'en' ? 'font-bold' : ''}`}
             onClick={() => changeLanguage('en')}
             type="button"
           >
             EN
           </button>
           <button
-            className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
+            className={`block w-full text-left px-4 py-2 hover:bg-blue-50 ${router.locale === 'lt' ? 'font-bold' : ''}`}
             onClick={() => changeLanguage('lt')}
             type="button"
           >
