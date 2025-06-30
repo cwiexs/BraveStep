@@ -25,22 +25,25 @@ export default function MyProfile() {
   if (status === 'loading') return null;
 
   // Užkrauna vartotojo info
-  useEffect(() => {
-    if (status === 'authenticated') {
-      fetch('/api/users')
-        .then(res => res.json())
-        .then(data => {
-          setForm({
-            name: data.name || '',
-            email: data.email || '',
-            goal: data.goal || '',
-            phone: data.phone || '',
-            dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString().substring(0, 10) : '',
-            city: data.city || ''
-          });
+useEffect(() => {
+  if (status === 'authenticated') {
+    fetch('/api/users')
+      .then(res => res.json())
+      .then(data => {
+        console.log('GAUTI DUOMENYS:', data);  // ← ŠITĄ ĮDĖK ČIA
+
+        setForm({
+          name: data.name || '',
+          email: data.email || '',
+          goal: data.goal || '',
+          phone: data.phone || '',
+          dateOfBirth: data.dateOfBirth ? data.dateOfBirth.substring(0, 10) : '',
+          city: data.city || ''
         });
-    }
-  }, [status]);
+      });
+  }
+}, [status]);
+
 
   // Kiekvieno lauko išsaugojimas atskirai
   async function handleFieldSave(field) {
