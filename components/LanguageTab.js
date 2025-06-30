@@ -32,7 +32,7 @@ export default function LanguageTab() {
       style={{ userSelect: 'none' }}
     >
    <button
-    className="bg-white shadow-lg border border-gray-200 px-5 py-2 rounded-t-3xl rounded-b-none text-blue-900 font-bold cursor-pointer flex items-center gap-2"
+    className="bg-white shadow-lg border border-gray-200 px-5 py-2 rounded-tl-3xl rounded-tr-none text-blue-900 font-bold cursor-pointer flex items-center gap-2"
     style={{
       borderBottom: 'none',            // Panaikina tabo apatinį border, kad „įsipjautų“ į lapą
       boxShadow: open
