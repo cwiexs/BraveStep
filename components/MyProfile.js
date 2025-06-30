@@ -1,15 +1,13 @@
 // components/MyProfile.js
 
 import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { useState, useEffect } from 'react';
 
-/**
- * Asmeninio profilio komponentas
- * Personal profile component
- */
 export default function MyProfile() {
   const { data: session, status } = useSession();
+  const router = useRouter();
   const { t } = useTranslation('common');
   const [form, setForm] = useState({
     name: '',
@@ -17,6 +15,20 @@ export default function MyProfile() {
     goal: ''
   });
   const [loading, setLoading] = useState(false);
+
+  // Jeigu neprisijungęs – redirect į prisijungimo puslapį
+  if (status === 'unauthenticated') {
+    if (typeof window !== 'undefined') {
+      router.push('/api/auth/signin');
+    }
+    return null;
+  }
+
+  // Jei sesija kraunasi – galima rodyti nieko arba loaderį
+  if (status === 'loading') {
+    return null;
+    // arba: return <div>Kraunasi...</div>;
+  }
 
   // Užkraunam vartotojo duomenis
   useEffect(() => {
@@ -54,6 +66,7 @@ export default function MyProfile() {
     setLoading(false);
   }
 
+  // Forma rodoma TIK kai prisijungęs!
   return (
     <form className="max-w-md mx-auto p-4 bg-white rounded shadow" onSubmit={handleSave}>
       <h2 className="text-xl font-bold mb-4">{t('myProfile')}</h2>
