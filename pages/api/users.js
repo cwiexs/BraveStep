@@ -3,7 +3,6 @@ import { getSession } from 'next-auth/react';
 import { query } from '../../lib/db';
 
 export default async function handler(req, res) {
-  // Tik patikrinti ar vartotojas prisijungęs
   const session = await getSession({ req });
   if (!session) {
     return res.status(401).json({ error: 'Neautorizuota' });
@@ -13,7 +12,6 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      // Paimam visą info apie prisijungusį vartotoją
       const result = await query(
         `SELECT id, name, email, goal, phone, "dateOfBirth", city, created_at
          FROM users
@@ -26,30 +24,30 @@ export default async function handler(req, res) {
       }
       res.status(200).json(result.rows[0]);
     } catch (error) {
-  console.error('TIKROJI KLAIDA:', error.message);  // ← Pridedam aiškesnį log'ą
-  res.status(500).json({ error: error.message });    // ← Grąžinam tikrą klaidos tekstą
-}
-
+      console.error('TIKROJI KLAIDA:', error.message);
+      res.status(500).json({ error: error.message });
+    }
   }
 
-  // PUT – atnaujina informaciją
   else if (req.method === 'PUT') {
     try {
-      // Gauna laukus, kuriuos siuntė frontas
       const { name, goal, phone, dateOfBirth, city } = req.body;
-      // Sukuria dinaminį update užklausą pagal gautus laukus
+
       const fields = [];
       const values = [];
       let idx = 1;
-      if (name !== undefined) { fields.push(`name = $${idx++}`); values.push(name); }
-      if (goal !== undefined) { fields.push(`goal = $${idx++}`); values.push(goal); }
-      if (phone !== undefined) { fields.push(`phone = $${idx++}`); values.push(phone); }
-      if (dateOfBirth !== undefined) { fields.push(`"dateOfBirth" = $${idx++}`); values.push(dateOfBirth); }
-      if (city !== undefined) { fields.push(`city = $${idx++}`); values.push(city); }
 
-      if (fields.length === 0) return res.status(400).json({ error: 'Nėra ką atnaujinti' });
+      if (name !== undefined)         { fields.push(`name = $${idx++}`); values.push(name); }
+      if (goal !== undefined)         { fields.push(`goal = $${idx++}`); values.push(goal); }
+      if (phone !== undefined)        { fields.push(`phone = $${idx++}`); values.push(phone); }
+      if (dateOfBirth !== undefined)  { fields.push(`"dateOfBirth" = $${idx++}`); values.push(dateOfBirth); }
+      if (city !== undefined)         { fields.push(`city = $${idx++}`); values.push(city); }
 
-      values.push(email); // paskutinis – pagal email WHERE
+      if (fields.length === 0) {
+        return res.status(400).json({ error: 'Nėra ką atnaujinti' });
+      }
+
+      values.push(email); // WHERE sąlyga pagal email
       const updateRes = await query(
         `UPDATE users SET ${fields.join(', ')} WHERE email = $${idx} RETURNING *;`,
         values
@@ -57,10 +55,11 @@ export default async function handler(req, res) {
 
       res.status(200).json(updateRes.rows[0]);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'DB atnaujinimo klaida' });
+      console.error('ATNAUJINIMO KLAIDA:', error.message);
+      res.status(500).json({ error: error.message });
     }
   }
+
   else {
     res.status(405).json({ error: 'Metodas neleidžiamas' });
   }
