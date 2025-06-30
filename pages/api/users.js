@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     try {
       // Paimam visą info apie prisijungusį vartotoją
       const result = await query(
-        `SELECT id, name, email, goal, phone, dateOfBirth, city, created_at
+        `SELECT id, name, email, goal, phone, "dateOfBirth", city, created_at
          FROM users
          WHERE email = $1
          LIMIT 1;`,
