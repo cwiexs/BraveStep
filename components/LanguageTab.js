@@ -27,19 +27,17 @@ export default function LanguageTab() {
 
   return (
     <div
-  className="absolute -top-11 right-0 z-40 flex flex-col items-end" 
+  className="absolute -top-10 right-0 z-40 flex flex-col items-end" 
   ref={langRef}
   style={{ userSelect: 'none' }}
 >
   <button
-    className="bg-white border border-gray-200 px-5 py-2 rounded-tl-3xl rounded-tr-none text-blue-900 font-bold cursor-pointer flex items-center gap-2"
-    style={{
-      borderBottom: 'none',
-      boxShadow: '0px -6px 16px -6px rgba(0,0,0,0.10)',
-    }}
-    onClick={() => setOpen((x) => !x)}
-    type="button"
-  >
+  className="bg-white border border-gray-200 px-5 py-2 rounded-tl-3xl rounded-tr-none text-blue-900 font-bold cursor-pointer flex items-center gap-2"
+  style={{
+    borderBottom: 'none',
+    boxShadow: '0px -6px 16px -6px rgba(0,0,0,0.10)',
+  }}
+>
     <span>
       {router.locale?.toUpperCase() === 'EN' ? 'EN' : 'LT'}
     </span>
