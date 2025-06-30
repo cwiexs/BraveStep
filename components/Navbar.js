@@ -1,7 +1,7 @@
 import { useTranslation } from 'next-i18next';
 import { signOut } from 'next-auth/react';
 import { useState } from 'react';
-import MyProfileModal from './MyProfileModal';
+import MyProfile from './MyProfile';
 
 export default function Navbar({ onHome, onSignIn, session }) {
   const { t } = useTranslation('common');
@@ -51,7 +51,7 @@ export default function Navbar({ onHome, onSignIn, session }) {
         </div>
       </nav>
       {/* Modalas profilis */}
-      <MyProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
+      <MyProfile open={profileOpen} onClose={() => setProfileOpen(false)} />
     </>
   );
 }
