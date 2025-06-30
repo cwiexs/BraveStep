@@ -50,6 +50,11 @@ export default function Navbar({ onHome, onSignIn, session }) {
           )}
         </div>
       </nav>
+      {view === 'profile' ? (
+  <MyProfile />
+) : (
+  <MemberSection user={session.user} />
+)}
     </>
   );
 }
