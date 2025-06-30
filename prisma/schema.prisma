@@ -1,10 +1,21 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Vartotojo lentelė, tinka registracijai, prisijungimui ir profilio redagavimui
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  name     String?
-  goal     String?
-  phone    String?
-  city     String?
-  birthday DateTime?
-  created_at DateTime @default(now())
+  id           String   @id @default(uuid())
+  name         String?
+  email        String   @unique
+  password     String
+  goal         String?
+  phone        String?
+  dateOfBirth  DateTime?
+  city         String?
+  created_at   DateTime @default(now())
 }
