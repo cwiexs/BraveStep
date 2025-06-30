@@ -6,12 +6,13 @@ import FeaturesSection from '../components/FeaturesSection';
 import SignIn from '../components/SignIn';
 import SignUp from '../components/SignUp';
 import MemberSection from '../components/MemberSection';
+import MyProfile from '../components/MyProfile'; // <-- PRIDĖTA
 import { useSession } from 'next-auth/react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useRouter } from 'next/router';
 
 export default function Home() {
-  const [view, setView] = useState('welcome'); // 'welcome' | 'login' | 'signup'
+  const [view, setView] = useState('welcome'); // 'welcome' | 'login' | 'signup' | 'profile'
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -20,11 +21,10 @@ export default function Home() {
     await router.push(router.pathname, router.asPath, { locale });
   };
 
-  // ----------- ČIA PRIDĖTA FUNKCIJA -----------
+  // Funkcija MyProfile langui
   const handleMyProfile = () => {
-    router.push('/my-profile');
+    setView('profile'); // <-- Pakeičia view į "profile"
   };
-  // ----------- ČIA PRIDĖTA FUNKCIJA -----------
 
   return (
     <div className="min-h-screen">
@@ -35,7 +35,7 @@ export default function Home() {
           onSignUp={() => setView('signup')}
           session={session}
           onLanguageChange={handleLanguageChange}
-          onMyProfile={handleMyProfile} 
+          onMyProfile={handleMyProfile}
         />
         {!session ? (
           <>
@@ -62,7 +62,13 @@ export default function Home() {
             )}
           </>
         ) : (
-          <MemberSection user={session.user} />
+          <>
+            {view === 'profile' ? (
+              <MyProfile />
+            ) : (
+              <MemberSection user={session.user} />
+            )}
+          </>
         )}
       </BookPageLayout>
     </div>
