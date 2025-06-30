@@ -69,39 +69,48 @@ export default function Navbar({ onHome, onSignIn, session }) {
           </ul>
         </div>
         <div className="flex items-center gap-4">
-          {/* Kalbos pasirinkimas */}
-          <div className="relative" ref={langRef}>
-            <button
-              onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-              className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1 ml-2"
-              aria-haspopup="listbox"
-              aria-expanded={langDropdownOpen}
-              type="button"
-            >
-              {router.locale?.toUpperCase() === 'EN' ? 'EN' : 'LT'}
-              <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            {langDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg z-50 border">
-                <button
-                  className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
-                  onClick={() => changeLanguage('en')}
-                  type="button"
-                >
-                  EN
-                </button>
-                <button
-                  className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
-                  onClick={() => changeLanguage('lt')}
-                  type="button"
-                >
-                  LT
-                </button>
-              </div>
-            )}
-          </div>
+          <>
+  {/* Kalbos pasirinkimas – atskirai viršuje, virš viso nav */}
+  <div className="fixed top-4 right-6 z-50">
+    <div className="relative" ref={langRef}>
+      <button
+        onClick={() => setLangDropdownOpen(!langDropdownOpen)}
+        className="px-3 py-1 border rounded-md hover:bg-gray-100 flex items-center gap-1 ml-2 bg-white"
+        aria-haspopup="listbox"
+        aria-expanded={langDropdownOpen}
+        type="button"
+      >
+        {router.locale?.toUpperCase() === 'EN' ? 'EN' : 'LT'}
+        <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {langDropdownOpen && (
+        <div className="absolute right-0 mt-2 w-24 bg-white rounded-md shadow-lg z-50 border">
+          <button
+            className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'en' ? 'font-bold' : ''}`}
+            onClick={() => changeLanguage('en')}
+            type="button"
+          >
+            EN
+          </button>
+          <button
+            className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${router.locale === 'lt' ? 'font-bold' : ''}`}
+            onClick={() => changeLanguage('lt')}
+            type="button"
+          >
+            LT
+          </button>
+        </div>
+      )}
+    </div>
+  </div>
+  <nav className="flex justify-between items-center pb-8">
+    {/* ...visa tavo navbar dalis, kaip buvo... */}
+  </nav>
+  {/* Modalas profilis */}
+  <MyProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
+</>
           {/* Prisijungimo/atsijungimo valdymas */}
           {!session ? (
             <button onClick={onSignIn} className="hover:text-blue-700">
@@ -109,7 +118,6 @@ export default function Navbar({ onHome, onSignIn, session }) {
             </button>
           ) : (
             <>
-              <span className="font-medium text-blue-900">{t('welcome')}, {session.user?.email || 'User'}</span>
               <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
             </>
           )}
