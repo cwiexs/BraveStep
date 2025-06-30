@@ -10,7 +10,6 @@ import { useSession } from 'next-auth/react';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { useRouter } from 'next/router';
 
-
 export default function Home() {
   const [view, setView] = useState('welcome'); // 'welcome' | 'login' | 'signup'
   const { data: session } = useSession();
@@ -21,6 +20,12 @@ export default function Home() {
     await router.push(router.pathname, router.asPath, { locale });
   };
 
+  // ----------- ČIA PRIDĖTA FUNKCIJA -----------
+  const handleMyProfile = () => {
+    router.push('/my-profile');
+  };
+  // ----------- ČIA PRIDĖTA FUNKCIJA -----------
+
   return (
     <div className="min-h-screen">
       <BookPageLayout>
@@ -30,6 +35,7 @@ export default function Home() {
           onSignUp={() => setView('signup')}
           session={session}
           onLanguageChange={handleLanguageChange}
+          onMyProfile={handleMyProfile} {/* ČIA PRIDĖTAS NAUJAS PROPS */}
         />
         {!session ? (
           <>
