@@ -24,6 +24,7 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <BookPageLayout>
+        <div className="relative w-full max-w-2xl mx-auto"></div>
         <LanguageTab /> 
         <Navbar
           onHome={() => setView('welcome')}

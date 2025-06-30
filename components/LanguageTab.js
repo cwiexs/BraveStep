@@ -27,7 +27,7 @@ export default function LanguageTab() {
 
   return (
     <div
-      className="absolute -top-20 right-24 z-40 flex flex-col items-end"
+      className="absolute top-0 right-0 z-40 flex flex-col items-end"
       ref={langRef}
       style={{ userSelect: 'none' }}
     >
@@ -37,7 +37,6 @@ export default function LanguageTab() {
           borderBottomLeftRadius: 0,
           borderBottomRightRadius: 0,
           minWidth: 60,
-          transform: 'translateY(-8px)',
           boxShadow: open
             ? '0 4px 16px 0 rgba(0,0,0,0.12)'
             : '0 2px 8px 0 rgba(0,0,0,0.07)'
