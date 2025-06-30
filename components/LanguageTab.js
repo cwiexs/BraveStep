@@ -31,14 +31,12 @@ export default function LanguageTab() {
       ref={langRef}
       style={{ userSelect: 'none' }}
     >
-   <button
-    className="bg-white shadow-lg px-5 py-2 rounded-tl-3xl text-blue-900 font-bold cursor-pointer flex items-center gap-2"
-    style={{
-      borderBottom: 'none',            // Panaikina tabo apatinį border, kad „įsipjautų“ į lapą
-      boxShadow: open
-        ? '0 4px 16px 0 rgba(0,0,0,0.12)'
-        : '0 2px 8px 0 rgba(0,0,0,0.07)'
-    }}
+        <button
+        className="bg-white border border-gray-200 px-5 py-2 rounded-tl-3xl rounded-tr-none text-blue-900 font-bold cursor-pointer flex items-center gap-2"
+        style={{
+            borderBottom: 'none',
+            boxShadow: '0px -6px 16px -6px rgba(0,0,0,0.10)', // Šešėlis tik viršuje ir šonuose
+        }}
     onClick={() => setOpen((x) => !x)}
     type="button"
   >
