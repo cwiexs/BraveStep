@@ -9,6 +9,7 @@
   "dependencies": {
     "@auth/pg-adapter": "^1.9.1",
     "@neondatabase/serverless": "^0.5.0",
+    "@prisma/client": "^6.10.1",
     "autoprefixer": "^10.1.1",
     "bcryptjs": "^2.4.3",
     "i18next": "^22.5.1",
@@ -26,5 +27,8 @@
   },
   "engines": {
     "node": "18.x"
+  },
+  "devDependencies": {
+    "prisma": "^6.10.1"
   }
 }

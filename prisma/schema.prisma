@@ -1,0 +1,10 @@
+model User {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  name     String?
+  goal     String?
+  phone    String?
+  city     String?
+  birthday DateTime?
+  created_at DateTime @default(now())
+}

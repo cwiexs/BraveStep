@@ -1,5 +1,3 @@
-// components/MyProfile.js
-
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
@@ -12,25 +10,21 @@ export default function MyProfile() {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    goal: ''
+    goal: '',
+    phone: '',
+    birthday: '',
+    city: ''
   });
   const [loading, setLoading] = useState(false);
 
-  // Jeigu neprisijungęs – redirect į prisijungimo puslapį
+  // Jei neprisijungęs – redirect
   if (status === 'unauthenticated') {
-    if (typeof window !== 'undefined') {
-      router.push('/api/auth/signin');
-    }
+    if (typeof window !== 'undefined') router.push('/api/auth/signin');
     return null;
   }
+  if (status === 'loading') return null;
 
-  // Jei sesija kraunasi – galima rodyti nieko arba loaderį
-  if (status === 'loading') {
-    return null;
-    // arba: return <div>Kraunasi...</div>;
-  }
-
-  // Užkraunam vartotojo duomenis
+  // Užkrauna vartotojo info
   useEffect(() => {
     if (status === 'authenticated') {
       fetch('/api/users')
@@ -39,70 +33,68 @@ export default function MyProfile() {
           setForm({
             name: data.name || '',
             email: data.email || '',
-            goal: data.goal || ''
+            goal: data.goal || '',
+            phone: data.phone || '',
+            birthday: data.birthday || '',
+            city: data.city || ''
           });
         });
     }
   }, [status]);
 
-  // Išsaugoti profilio duomenis
-  async function handleSave(e) {
-    e.preventDefault();
+  // Kiekvieno lauko išsaugojimas atskirai
+  async function handleFieldSave(field) {
     setLoading(true);
     try {
       const res = await fetch('/api/users', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify({ [field]: form[field] })
       });
-      if (res.ok) {
-        alert(t('profileSaved')); // "Profilis išsaugotas"
-      } else {
-        alert(t('saveError')); // "Išsaugoti nepavyko"
-      }
-    } catch (err) {
+      if (!res.ok) alert(t('saveError'));
+    } catch {
       alert(t('saveError'));
     }
     setLoading(false);
   }
 
-  // Forma rodoma TIK kai prisijungęs!
+  // Atvaizduoja vieną redaguojamą eilutę
+  function FieldRow({ label, type, field, disabled }) {
+    return (
+      <div className="mb-3 flex gap-2 items-center">
+        <label className="w-32">{label}</label>
+        <input
+          type={type}
+          className="w-full p-2 border rounded"
+          value={form[field]}
+          onChange={e => setForm({ ...form, [field]: e.target.value })}
+          disabled={disabled}
+        />
+        {!disabled && (
+          <button
+            type="button"
+            onClick={() => handleFieldSave(field)}
+            className="bg-blue-500 text-white rounded px-3 py-1"
+            disabled={loading}
+          >
+            {t('save')}
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
-    <form className="max-w-md mx-auto p-4 bg-white rounded shadow" onSubmit={handleSave}>
+    <form className="max-w-md mx-auto p-4 bg-white rounded shadow" onSubmit={e => e.preventDefault()}>
       <h2 className="text-xl font-bold mb-4">{t('myProfile')}</h2>
 
-      <label className="block mb-1">{t('name')}</label>
-      <input
-        type="text"
-        className="w-full p-2 border mb-4 rounded"
-        value={form.name}
-        onChange={e => setForm({ ...form, name: e.target.value })}
-      />
+      <FieldRow label={t('name')}     type="text"  field="name"     />
+      <FieldRow label={t('email')}    type="email" field="email"    disabled />
+      <FieldRow label={t('goal')}     type="text"  field="goal"     />
+      <FieldRow label={t('phone')}    type="text"  field="phone"    />
+      <FieldRow label={t('birthday')} type="date"  field="birthday" />
+      <FieldRow label={t('city')}     type="text"  field="city"     />
 
-      <label className="block mb-1">{t('email')}</label>
-      <input
-        type="email"
-        className="w-full p-2 border mb-4 rounded"
-        value={form.email}
-        onChange={e => setForm({ ...form, email: e.target.value })}
-        disabled // redaguoti el. paštą nebūtina
-      />
-
-      <label className="block mb-1">{t('goal')}</label>
-      <input
-        type="text"
-        className="w-full p-2 border mb-4 rounded"
-        value={form.goal}
-        onChange={e => setForm({ ...form, goal: e.target.value })}
-      />
-
-      <button
-        type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-        disabled={loading}
-      >
-        {loading ? t('saving') : t('save')}
-      </button>
     </form>
   );
 }
