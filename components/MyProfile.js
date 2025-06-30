@@ -54,10 +54,6 @@ export default function MyProfile() {
     setLoading(false);
   }
 
-  if (status !== 'authenticated') {
-    return <div>{t('pleaseSignIn')}</div>;
-  }
-
   return (
     <form className="max-w-md mx-auto p-4 bg-white rounded shadow" onSubmit={handleSave}>
       <h2 className="text-xl font-bold mb-4">{t('myProfile')}</h2>
