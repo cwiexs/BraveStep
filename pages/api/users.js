@@ -1,15 +1,17 @@
 // pages/api/users.js
-import { getSession } from 'next-auth/react';
+import { getToken } from 'next-auth/jwt';
 import { query } from '../../lib/db';
 
 export default async function handler(req, res) {
-  const session = await getSession({ req });
-  if (!session) {
+  // Patikrinam prisijungimą naudojant JWT tokeną
+  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  if (!token) {
     return res.status(401).json({ error: 'Neautorizuota' });
   }
 
-  const email = session.user.email;
+  const email = token.email;
 
+  // GET – paima prisijungusio vartotojo duomenis
   if (req.method === 'GET') {
     try {
       const result = await query(
@@ -29,6 +31,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // PUT – atnaujina pateiktus laukus
   else if (req.method === 'PUT') {
     try {
       const { name, goal, phone, dateOfBirth, city } = req.body;
@@ -47,7 +50,7 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'Nėra ką atnaujinti' });
       }
 
-      values.push(email); // WHERE sąlyga pagal email
+      values.push(email); // WHERE pagal email
       const updateRes = await query(
         `UPDATE users SET ${fields.join(', ')} WHERE email = $${idx} RETURNING *;`,
         values
@@ -60,6 +63,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // Jei metodas neleistinas
   else {
     res.status(405).json({ error: 'Metodas neleidžiamas' });
   }
