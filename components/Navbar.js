@@ -102,7 +102,6 @@ export default function Navbar({ onHome, onSignIn, session }) {
             </button>
           ) : (
             <>
-              <span className="font-medium text-blue-900">{t('welcome')}, {session.user?.email || 'User'}</span>
               {/* Pridedam naują mygtuką profilį */}
               <button
                 onClick={() => setProfileOpen(true)}
