@@ -2,7 +2,7 @@ import { useTranslation } from 'next-i18next';
 import { signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useState, useRef, useEffect } from 'react';
-import MyProfileModal from './MyProfileModal'; // <-- Pridedam modalą
+import MyProfileModal from './MyProfileModal';
 
 export default function Navbar({ onHome, onSignIn, session }) {
   const { t } = useTranslation('common');
@@ -46,6 +46,17 @@ export default function Navbar({ onHome, onSignIn, session }) {
                 {t('menu.home')}
               </button>
             </li>
+            {session && (
+              <li>
+                <button
+                  onClick={() => setProfileOpen(true)}
+                  className="hover:text-blue-700"
+                  type="button"
+                >
+                  {t('myProfile')}
+                </button>
+              </li>
+            )}
             <li>
               <span className="hover:text-blue-700">{t('menu.workouts')}</span>
             </li>
@@ -55,10 +66,6 @@ export default function Navbar({ onHome, onSignIn, session }) {
             <li>
               <span className="hover:text-blue-700">{t('menu.health')}</span>
             </li>
-             <li>
-            {/* Modalas profilis */}
-      <MyProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
-        </li>
           </ul>
         </div>
         <div className="flex items-center gap-4">
@@ -102,19 +109,14 @@ export default function Navbar({ onHome, onSignIn, session }) {
             </button>
           ) : (
             <>
-              {/* Pridedam naują mygtuką profilį */}
-              <button
-                onClick={() => setProfileOpen(true)}
-                className="hover:text-blue-700"
-                type="button"
-              >
-                {t('myProfile')}
-              </button>
+              <span className="font-medium text-blue-900">{t('welcome')}, {session.user?.email || 'User'}</span>
               <button onClick={() => signOut()} className="hover:text-blue-700">{t('signOut')}</button>
             </>
           )}
         </div>
       </nav>
+      {/* Modalas profilis */}
+      <MyProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </>
   );
 }
