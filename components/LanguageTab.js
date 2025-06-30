@@ -27,12 +27,12 @@ export default function LanguageTab() {
 
   return (
     <div
-      className="absolute top-0 right-8 z-40 flex flex-col items-end"
+      className="absolute top-0 right-4 z-40 flex flex-col items-end"
       ref={langRef}
       style={{ userSelect: 'none' }}
     >
       <button
-        className="backdrop-blur bg-white/70 hover:bg-white/90 px-5 py-2 rounded-full text-blue-900 font-bold cursor-pointer flex items-center gap-2 shadow-md transition"
+        className="backdrop-blur bg-white/70 hover:bg-white/90 px-4 py-1 rounded-full text-blue-900 font-normal text-sm cursor-pointer flex items-center gap-2 transition"
         style={{
           border: 'none',
           boxShadow: 'none'
