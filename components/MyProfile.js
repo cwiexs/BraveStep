@@ -35,7 +35,7 @@ export default function MyProfile() {
             email: data.email || '',
             goal: data.goal || '',
             phone: data.phone || '',
-            dateOfBirth: data.dateOfBirth ? data.dateOfBirth.substring(0, 10) : '',
+            dateOfBirth: data.dateOfBirth ? new Date(data.dateOfBirth).toISOString().substring(0, 10) : '',
             city: data.city || ''
           });
         });
