@@ -24,7 +24,6 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <BookPageLayout>
-        <div className="relative w-full max-w-2xl mx-auto">
         <LanguageTab /> 
         <Navbar
           onHome={() => setView('welcome')}
@@ -60,7 +59,6 @@ export default function Home() {
         ) : (
           <MemberSection user={session.user} />
         )}
-        </div>
       </BookPageLayout>
     </div>
   );
