@@ -27,7 +27,7 @@ export default function LanguageTab() {
 
   return (
     <div
-      className="absolute top-4 right-8 z-40 flex flex-col items-end"
+      className="absolute top-0 right-8 z-40 flex flex-col items-end"
       ref={langRef}
       style={{ userSelect: 'none' }}
     >
@@ -35,7 +35,7 @@ export default function LanguageTab() {
         className="backdrop-blur bg-white/70 hover:bg-white/90 px-5 py-2 rounded-full text-blue-900 font-bold cursor-pointer flex items-center gap-2 shadow-md transition"
         style={{
           border: 'none',
-          boxShadow: '0 2px 8px 0 rgba(0,0,0,0.07)'
+          boxShadow: 'none'
         }}
         onClick={() => setOpen(x => !x)}
         type="button"
