@@ -26,9 +26,10 @@ export default async function handler(req, res) {
       }
       res.status(200).json(result.rows[0]);
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'DB klaida arba lentelė neegzistuoja' });
-    }
+  console.error('TIKROJI KLAIDA:', error.message);  // ← Pridedam aiškesnį log'ą
+  res.status(500).json({ error: error.message });    // ← Grąžinam tikrą klaidos tekstą
+}
+
   }
 
   // PUT – atnaujina informaciją
