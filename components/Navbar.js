@@ -55,6 +55,10 @@ export default function Navbar({ onHome, onSignIn, session }) {
             <li>
               <span className="hover:text-blue-700">{t('menu.health')}</span>
             </li>
+             <li>
+            {/* Modalas profilis */}
+      <MyProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
+        </li>
           </ul>
         </div>
         <div className="flex items-center gap-4">
@@ -112,8 +116,6 @@ export default function Navbar({ onHome, onSignIn, session }) {
           )}
         </div>
       </nav>
-      {/* Modalas profilis */}
-      <MyProfileModal open={profileOpen} onClose={() => setProfileOpen(false)} />
     </>
   );
 }
