@@ -1,243 +1,373 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
-// Sub-navbar/tab mygtukas
-function TabBtn({ active, onClick, children }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`px-4 py-2 rounded-lg font-semibold transition-all
-        ${active ? "bg-purple-500 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
-      style={{ minWidth: 120 }}
-    >
-      {children}
-    </button>
-  );
+// Pritaikyk šį endpointą, jei tavo API kitoks:
+const API_URL = "/api/users";
+
+const TABS = [
+  { key: "personal", label: "Asmeninė informacija" },
+  { key: "activity", label: "Fizinis aktyvumas" },
+  { key: "nutrition", label: "Mityba" },
+  { key: "preferences", label: "Pageidavimai / papildoma info" },
+];
+
+const initialData = {
+  // Prisma schema laukai (pritaikyk pagal savo laukus, jei reikia)
+  name: "",
+  email: "",
+  phone: "",
+  dateOfBirth: "",
+  gender: "",
+  city: "",
+  country: "",
+  weightKg: "",
+  heightCm: "",
+  accessLevel: 0,
+  jobType: "",
+  workHoursPerDay: "",
+  bedTime: "",
+  sleepHours: "",
+  goal: "",
+  // Nutrition ir health
+  dietaryPreference: "",
+  allergies: "",
+  chronicDiseases: "",
+  injuries: "",
+  // Preferences
+  language: "lt",
+  preferredTrainingTime: "",
+  gymMember: false,
+  trainingLocation: "",
+  sports: "",
+  activityLevel: "",
+  availableTime: "",
+  favoriteActivities: "",
+  additionalNotes: "",
+};
+
+function validateField(name, value) {
+  switch (name) {
+    case "name":
+      return typeof value === "string" && value.length <= 50;
+    case "email":
+      return (
+        typeof value === "string" &&
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) &&
+        value.length <= 100
+      );
+    case "phone":
+      return typeof value === "string" && /^[0-9+\-\s]*$/.test(value) && value.length <= 20;
+    case "city":
+      return typeof value === "string" && value.length <= 50;
+    case "country":
+      return typeof value === "string" && value.length <= 50;
+    case "weightKg":
+      return value === "" || (!isNaN(Number(value)) && Number(value) > 0 && Number(value) < 500);
+    case "heightCm":
+      return value === "" || (!isNaN(Number(value)) && Number(value) > 0 && Number(value) < 300);
+    case "jobType":
+      return typeof value === "string" && value.length <= 50;
+    case "workHoursPerDay":
+      return value === "" || (!isNaN(Number(value)) && Number(value) >= 0 && Number(value) <= 24);
+    case "bedTime":
+      return typeof value === "string" && value.length <= 5;
+    case "sleepHours":
+      return value === "" || (!isNaN(Number(value)) && Number(value) > 0 && Number(value) <= 24);
+    case "goal":
+      return typeof value === "string" && value.length <= 100;
+    case "dietaryPreference":
+      return typeof value === "string" && value.length <= 50;
+    case "allergies":
+      return typeof value === "string" && value.length <= 200;
+    case "chronicDiseases":
+      return typeof value === "string" && value.length <= 200;
+    case "injuries":
+      return typeof value === "string" && value.length <= 200;
+    case "language":
+      return typeof value === "string" && value.length <= 10;
+    case "preferredTrainingTime":
+      return typeof value === "string" && value.length <= 50;
+    case "trainingLocation":
+      return typeof value === "string" && value.length <= 50;
+    case "sports":
+      return typeof value === "string" && value.length <= 100;
+    case "activityLevel":
+      return typeof value === "string" && value.length <= 50;
+    case "availableTime":
+      return typeof value === "string" && value.length <= 50;
+    case "favoriteActivities":
+      return typeof value === "string" && value.length <= 200;
+    case "additionalNotes":
+      return typeof value === "string" && value.length <= 500;
+    default:
+      return true;
+  }
 }
 
-// Asmeninė informacija
-function ProfilePersonal() {
+function getFieldsForTab(tab) {
+  switch (tab) {
+    case "personal":
+      return [
+        { name: "name", label: "Vardas, pavardė", type: "text", required: true },
+        { name: "email", label: "El. paštas", type: "email", required: true, disabled: true },
+        { name: "phone", label: "Telefono numeris", type: "text", required: false },
+        { name: "dateOfBirth", label: "Gimimo data", type: "date", required: false },
+        { name: "gender", label: "Lytis", type: "select", options: ["", "vyras", "moteris", "kita"], required: false },
+        { name: "city", label: "Miestas", type: "text", required: false },
+        { name: "country", label: "Šalis", type: "text", required: false },
+        { name: "accessLevel", label: "Prieigos lygis", type: "number", required: true, min: 0, max: 9, disabled: true },
+      ];
+    case "activity":
+      return [
+        { name: "weightKg", label: "Svoris (kg)", type: "number", required: false, min: 20, max: 400, step: "0.1" },
+        { name: "heightCm", label: "Ūgis (cm)", type: "number", required: false, min: 100, max: 250, step: "1" },
+        { name: "jobType", label: "Darbo pobūdis", type: "text", required: false },
+        { name: "workHoursPerDay", label: "Darbo val. per dieną", type: "number", required: false, min: 0, max: 24, step: "0.5" },
+        { name: "bedTime", label: "Eina miegoti (pvz. 22:30)", type: "text", required: false },
+        { name: "sleepHours", label: "Miego valandų", type: "number", required: false, min: 1, max: 14, step: "0.1" },
+        { name: "goal", label: "Pagrindinis tikslas", type: "text", required: false },
+        { name: "preferredTrainingTime", label: "Pageidaujamas treniruočių laikas", type: "text", required: false },
+        { name: "gymMember", label: "Sporto klubo narys?", type: "checkbox", required: false },
+        { name: "trainingLocation", label: "Sportuojama kur?", type: "text", required: false },
+        { name: "sports", label: "Kokios sporto šakos?", type: "text", required: false },
+        { name: "activityLevel", label: "Aktyvumo lygis", type: "text", required: false },
+        { name: "availableTime", label: "Kiek laiko skiriate sportui per savaitę?", type: "text", required: false },
+        { name: "injuries", label: "Traumos", type: "text", required: false },
+      ];
+    case "nutrition":
+      return [
+        { name: "dietaryPreference", label: "Mitybos tipas (pvz. veganas)", type: "text", required: false },
+        { name: "allergies", label: "Alergijos", type: "text", required: false },
+        { name: "chronicDiseases", label: "Lėtinės ligos", type: "text", required: false },
+      ];
+    case "preferences":
+      return [
+        { name: "language", label: "Pageidaujama kalba", type: "select", options: ["lt", "en", "ru", "pl"], required: true },
+        { name: "favoriteActivities", label: "Mėgstamos veiklos", type: "text", required: false },
+        { name: "additionalNotes", label: "Papildoma informacija", type: "textarea", required: false },
+      ];
+    default:
+      return [];
+  }
+}
+
+function FormSection({ fields, values, onChange, errors }) {
   return (
-    <div>
-      <h2 className="text-lg font-semibold mb-3">Asmeninė informacija</h2>
-      <div className="grid gap-3 max-w-md">
-        <input className="border p-2 rounded" placeholder="Vardas" />
-        <input className="border p-2 rounded" placeholder="El. paštas" type="email" />
-        <input className="border p-2 rounded" placeholder="Telefono numeris" type="tel" />
-        <input className="border p-2 rounded" placeholder="Gimimo data" type="date" />
-        <select className="border p-2 rounded">
-          <option value="">Lytis</option>
-          <option value="male">Vyras</option>
-          <option value="female">Moteris</option>
-          <option value="other">Kita</option>
-        </select>
-        <input className="border p-2 rounded" placeholder="Šalis" />
-        <input className="border p-2 rounded" placeholder="Miestas" />
-        <select className="border p-2 rounded">
-          <option value="">Pageidaujama kalba</option>
-          <option value="lt">Lietuvių</option>
-          <option value="en">English</option>
-        </select>
-        {/* Profilio nuotrauka */}
-        <input className="border p-2 rounded" placeholder="Profilio nuotrauka (URL)" />
-      </div>
+    <div className="flex flex-col gap-4">
+      {fields.map((f) => (
+        <div key={f.name} className="flex flex-col">
+          <label className="font-semibold text-sm mb-1">{f.label}</label>
+          {f.type === "select" ? (
+            <select
+              name={f.name}
+              value={values[f.name] || ""}
+              disabled={f.disabled}
+              onChange={onChange}
+              className="border rounded px-2 py-1"
+            >
+              {(f.options || []).map((op) => (
+                <option key={op} value={op}>
+                  {op === "" ? "(nepasirinkta)" : op}
+                </option>
+              ))}
+            </select>
+          ) : f.type === "checkbox" ? (
+            <input
+              type="checkbox"
+              name={f.name}
+              checked={!!values[f.name]}
+              disabled={f.disabled}
+              onChange={onChange}
+              className="h-5 w-5"
+            />
+          ) : f.type === "textarea" ? (
+            <textarea
+              name={f.name}
+              value={values[f.name] || ""}
+              disabled={f.disabled}
+              onChange={onChange}
+              className="border rounded px-2 py-1 min-h-[80px]"
+            />
+          ) : (
+            <input
+              type={f.type}
+              name={f.name}
+              value={values[f.name] ?? ""}
+              disabled={f.disabled}
+              onChange={onChange}
+              className="border rounded px-2 py-1"
+              min={f.min}
+              max={f.max}
+              step={f.step}
+            />
+          )}
+          {errors[f.name] && (
+            <span className="text-red-500 text-xs mt-1">{errors[f.name]}</span>
+          )}
+        </div>
+      ))}
     </div>
   );
 }
 
-// Fiziniai ir sveikatos duomenys
-function ProfilePhysical() {
-  return (
-    <div>
-      <h2 className="text-lg font-semibold mb-3">Fiziniai duomenys ir sveikata</h2>
-      <div className="grid gap-3 max-w-md">
-        <input className="border p-2 rounded" placeholder="Ūgis (cm)" type="number" min={50} max={260} />
-        <input className="border p-2 rounded" placeholder="Svoris (kg)" type="number" step="0.1" min={20} max={300} />
-        <select className="border p-2 rounded">
-          <option value="">Kūno tipas</option>
-          <option value="ectomorph">Ektomorfas</option>
-          <option value="mesomorph">Mezomorfas</option>
-          <option value="endomorph">Endomorfas</option>
-        </select>
-        <input className="border p-2 rounded" placeholder="Sveikatos būklės / Diagnozės" />
-        <input className="border p-2 rounded" placeholder="Alergijos" />
-        <input className="border p-2 rounded" placeholder="Mitybos apribojimai / lėtinės ligos" />
-        <input className="border p-2 rounded" placeholder="Vartojami vaistai" />
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="insurance" />
-          <label htmlFor="insurance">Turi sveikatos draudimą</label>
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="smokes" />
-          <label htmlFor="smokes">Rūko</label>
-        </div>
-        <input className="border p-2 rounded" placeholder="Vartoja alkoholį (apibūdinkite)" />
-        <input className="border p-2 rounded" placeholder="Streso lygis (1–10)" type="number" min={1} max={10} />
-        <input className="border p-2 rounded" placeholder="Motyvacija (1–10)" type="number" min={1} max={10} />
-        <input className="border p-2 rounded" placeholder="Pagrindinės kliūtys" />
-      </div>
-    </div>
-  );
-}
-
-// Gyvenimo būdas ir rutina
-function ProfileRoutine() {
-  return (
-    <div>
-      <h2 className="text-lg font-semibold mb-3">Gyvenimo būdas ir rutina</h2>
-      <div className="grid gap-3 max-w-md">
-        <input className="border p-2 rounded" placeholder="Darbo tipas" />
-        <input className="border p-2 rounded" placeholder="Darbo valandos per dieną" type="number" min={1} max={18} />
-        <select className="border p-2 rounded">
-          <option value="">Darbo grafikas</option>
-          <option value="early">Ankstyvas</option>
-          <option value="late">Vėlyvas</option>
-          <option value="shift">Pamaininis</option>
-          <option value="flexible">Lankstus</option>
-          <option value="normal">Standartinis</option>
-        </select>
-        <input className="border p-2 rounded" placeholder="Miego valandos per parą" type="number" min={1} max={16} />
-        <input className="border p-2 rounded" placeholder="Kelimosi laikas" type="time" />
-        <input className="border p-2 rounded" placeholder="Einamo miego laikas" type="time" />
-        <input className="border p-2 rounded" placeholder="Šeimos statusas" />
-        <input className="border p-2 rounded" placeholder="Kiek valgymų per dieną?" type="number" min={1} max={10} />
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="eatsOutOften" />
-          <label htmlFor="eatsOutOften">Dažnai valgau ne namie</label>
-        </div>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="notifications" />
-          <label htmlFor="notifications">Noriu gauti priminimus</label>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Sporto aktyvumas
-function ProfileActivity() {
-  return (
-    <div>
-      <h2 className="text-lg font-semibold mb-3">Sportas ir aktyvumas</h2>
-      <div className="grid gap-3 max-w-md">
-        <select className="border p-2 rounded">
-          <option value="">Fizinio aktyvumo lygis</option>
-          <option value="very_low">Labai žemas</option>
-          <option value="low">Žemas</option>
-          <option value="medium">Vidutinis</option>
-          <option value="high">Aukštas</option>
-          <option value="very_high">Labai aukštas</option>
-        </select>
-        <input className="border p-2 rounded" placeholder="Žingsnių per dieną" type="number" min={0} />
-        <input className="border p-2 rounded" placeholder="Kokius sportus dabar lankote?" />
-        <input className="border p-2 rounded" placeholder="Kiek minučių trunka treniruotė?" type="number" min={0} />
-        <input className="border p-2 rounded" placeholder="Kiek treniruočių per savaitę?" type="number" min={0} max={14} />
-        <select className="border p-2 rounded">
-          <option value="">Kur sportuojate?</option>
-          <option value="home">Namie</option>
-          <option value="gym">Sporto salėje</option>
-          <option value="outdoor">Lauke</option>
-          <option value="other">Kita</option>
-        </select>
-        <input className="border p-2 rounded" placeholder="Kokia turite įrangą?" />
-        <input className="border p-2 rounded" placeholder="Ką norėtumėte išbandyti?" />
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="gymMember" />
-          <label htmlFor="gymMember">Sporto klubo narys</label>
-        </div>
-        <input className="border p-2 rounded" placeholder="Fizinis pasiruošimo lygis" />
-        <input className="border p-2 rounded" placeholder="Ankstesnė sporto patirtis" />
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="wantsRestRecommendations" />
-          <label htmlFor="wantsRestRecommendations">Noriu poilsio rekomendacijų</label>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Mityba ir pageidavimai
-function ProfileNutrition() {
-  return (
-    <div>
-      <h2 className="text-lg font-semibold mb-3">Mityba ir pageidavimai</h2>
-      <div className="grid gap-3 max-w-md">
-        <input className="border p-2 rounded" placeholder="Pagrindinis tikslas" />
-        <input className="border p-2 rounded" placeholder="Mitybos tipas" />
-        <input className="border p-2 rounded" placeholder="Mėgstami maisto produktai" />
-        <input className="border p-2 rounded" placeholder="Nemėgstami maisto produktai" />
-        <input className="border p-2 rounded" placeholder="Mėgstamos virtuvės rūšys" />
-        <input className="border p-2 rounded" placeholder="Papildai / vitaminai" />
-        <input className="border p-2 rounded" placeholder="Mitybos įpročiai" />
-        <input className="border p-2 rounded" placeholder="Kiek kavos per dieną?" type="number" min={0} />
-        <input className="border p-2 rounded" placeholder="Kiek arbatos per dieną?" type="number" min={0} />
-        <input className="border p-2 rounded" placeholder="Cukraus kiekis per dieną (g)" type="number" min={0} />
-      </div>
-    </div>
-  );
-}
-
-// Papildoma informacija ir motyvacija
-function ProfileOther() {
-  return (
-    <div>
-      <h2 className="text-lg font-semibold mb-3">Papildoma informacija ir motyvacija</h2>
-      <div className="grid gap-3 max-w-md">
-        <input className="border p-2 rounded" placeholder="Kas jums trukdo siekti tikslų?" />
-        <input className="border p-2 rounded" placeholder="Kaip apibrėžiate sėkmę?" />
-        <select className="border p-2 rounded">
-          <option value="">Planų atnaujinimo dažnis</option>
-          <option value="weekly">Kas savaitę</option>
-          <option value="monthly">Kas mėnesį</option>
-          <option value="quarterly">Kas ketvirtį</option>
-        </select>
-        <div className="flex items-center gap-2">
-          <input type="checkbox" id="smartWatch" />
-          <label htmlFor="smartWatch">Turi išmanų laikrodį</label>
-        </div>
-        <input className="border p-2 rounded" placeholder="Tikslų data" type="date" />
-        <input className="border p-2 rounded" placeholder="Prieigos lygis" type="number" min={0} max={10} />
-      </div>
-    </div>
-  );
-}
-
-// Pagrindinis MyProfile komponentas
 export default function MyProfile() {
   const [activeTab, setActiveTab] = useState("personal");
+  const [userData, setUserData] = useState(initialData);
+  const [originalData, setOriginalData] = useState(initialData);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [successMsg, setSuccessMsg] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [errors, setErrors] = useState({});
+
+  // Užkrauna duomenis iš API
+  useEffect(() => {
+    setLoading(true);
+    fetch(API_URL, { credentials: "include" })
+      .then((res) => res.json())
+      .then((data) => {
+        setUserData({ ...initialData, ...data });
+        setOriginalData({ ...initialData, ...data });
+        setLoading(false);
+      })
+      .catch(() => {
+        setLoading(false);
+        setErrorMsg("Nepavyko užkrauti duomenų.");
+      });
+  }, []);
+
+  // Patikrina ar yra pakeitimų šiame tabe
+  function isTabChanged(tab) {
+    const fields = getFieldsForTab(tab);
+    return fields.some((f) => {
+      if (f.type === "checkbox")
+        return !!userData[f.name] !== !!originalData[f.name];
+      return (userData[f.name] ?? "") !== (originalData[f.name] ?? "");
+    });
+  }
+
+  // Validoja laukus, grąžina klaidų objektą (jei yra)
+  function validateTab(tab) {
+    const fields = getFieldsForTab(tab);
+    const newErrors = {};
+    fields.forEach((f) => {
+      if (f.required && (userData[f.name] === "" || userData[f.name] == null)) {
+        newErrors[f.name] = "Privalomas laukas";
+      } else if (!validateField(f.name, userData[f.name])) {
+        newErrors[f.name] = "Neteisingas formatas arba viršytas ilgis";
+      }
+    });
+    return newErrors;
+  }
+
+  function handleInputChange(e) {
+    const { name, type, value, checked } = e.target;
+    setUserData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+    setErrors((errs) => ({ ...errs, [name]: undefined }));
+  }
+
+  // Išsaugo TIK šio tabo laukus
+  function handleSave(tab) {
+    setSuccessMsg("");
+    setErrorMsg("");
+    const tabFields = getFieldsForTab(tab).map((f) => f.name);
+    const newErrors = validateTab(tab);
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length) return;
+    setSaving(true);
+
+    const toUpdate = {};
+    tabFields.forEach((f) => {
+      if (userData[f] !== originalData[f]) {
+        toUpdate[f] = userData[f];
+      }
+    });
+
+    fetch(API_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(toUpdate),
+    })
+      .then((res) => {
+        if (res.ok) {
+          setSuccessMsg("Sėkmingai išsaugota!");
+          setOriginalData((prev) => ({ ...prev, ...toUpdate }));
+        } else {
+          setErrorMsg("Klaida išsaugant duomenis.");
+        }
+        setSaving(false);
+      })
+      .catch(() => {
+        setErrorMsg("Nepavyko išsaugoti duomenų.");
+        setSaving(false);
+      });
+  }
+
+  // Pranešimas po išsaugojimo išnyksta po 2,5 s
+  useEffect(() => {
+    if (successMsg || errorMsg) {
+      const t = setTimeout(() => {
+        setSuccessMsg("");
+        setErrorMsg("");
+      }, 2500);
+      return () => clearTimeout(t);
+    }
+  }, [successMsg, errorMsg]);
 
   return (
-    <div className="p-8">
-      {/* Sub-navbar/tabai */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        <TabBtn active={activeTab === "personal"} onClick={() => setActiveTab("personal")}>
-          Asmeninė info
-        </TabBtn>
-        <TabBtn active={activeTab === "physical"} onClick={() => setActiveTab("physical")}>
-          Fiziniai duomenys
-        </TabBtn>
-        <TabBtn active={activeTab === "routine"} onClick={() => setActiveTab("routine")}>
-          Gyvenimo būdas
-        </TabBtn>
-        <TabBtn active={activeTab === "activity"} onClick={() => setActiveTab("activity")}>
-          Sportas
-        </TabBtn>
-        <TabBtn active={activeTab === "nutrition"} onClick={() => setActiveTab("nutrition")}>
-          Mityba
-        </TabBtn>
-        <TabBtn active={activeTab === "other"} onClick={() => setActiveTab("other")}>
-          Papildoma info
-        </TabBtn>
+    <div className="max-w-xl mx-auto mt-10 p-6 bg-white rounded-xl shadow-md">
+      <h2 className="text-2xl font-bold text-blue-900 mb-6">Mano profilis</h2>
+
+      {/* Tab navigacija */}
+      <div className="flex gap-2 mb-6">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`px-4 py-2 rounded-t-lg font-semibold ${
+              activeTab === tab.key
+                ? "bg-blue-700 text-white"
+                : "bg-blue-100 text-blue-800"
+            }`}
+            disabled={loading}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Rodoma aktyvi forma */}
-      <div className="bg-white rounded-xl shadow p-6 max-w-2xl">
-        {activeTab === "personal" && <ProfilePersonal />}
-        {activeTab === "physical" && <ProfilePhysical />}
-        {activeTab === "routine" && <ProfileRoutine />}
-        {activeTab === "activity" && <ProfileActivity />}
-        {activeTab === "nutrition" && <ProfileNutrition />}
-        {activeTab === "other" && <ProfileOther />}
-      </div>
+      {loading ? (
+        <div>Duomenys kraunami...</div>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave(activeTab);
+          }}
+          className="flex flex-col gap-6"
+        >
+          <FormSection
+            fields={getFieldsForTab(activeTab)}
+            values={userData}
+            onChange={handleInputChange}
+            errors={errors}
+          />
+          <div className="flex items-center mt-4 gap-4">
+            <button
+              type="submit"
+              className={`px-6 py-2 rounded bg-blue-700 text-white font-bold transition disabled:bg-gray-300`}
+              disabled={!isTabChanged(activeTab) || saving}
+            >
+              {saving ? "Saugoma..." : "Išsaugoti"}
+            </button>
+            {successMsg && <span className="text-green-700">{successMsg}</span>}
+            {errorMsg && <span className="text-red-600">{errorMsg}</span>}
+          </div>
+        </form>
+      )}
     </div>
   );
 }
