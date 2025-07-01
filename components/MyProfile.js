@@ -25,13 +25,13 @@ export default function MyProfile() {
   if (status === 'loading') return null;
 
   // Užkrauna vartotojo info
+const [loaded, setLoaded] = useState(false); // ← nauja būsena
+
 useEffect(() => {
-  if (status === 'authenticated') {
+  if (status === 'authenticated' && !loaded) {
     fetch('/api/users')
       .then(res => res.json())
       .then(data => {
-        console.log('GAUTI DUOMENYS:', data);  // ← ŠITĄ ĮDĖK ČIA
-
         setForm({
           name: data.name || '',
           email: data.email || '',
@@ -40,9 +40,11 @@ useEffect(() => {
           dateOfBirth: data.dateOfBirth ? data.dateOfBirth.substring(0, 10) : '',
           city: data.city || ''
         });
+        setLoaded(true); // ← duomenys užkrauti, daugiau nebeatnaujinti
       });
   }
-}, [status]);
+}, [status, loaded]);
+
 
 
   // Kiekvieno lauko išsaugojimas atskirai
