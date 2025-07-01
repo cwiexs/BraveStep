@@ -4,7 +4,8 @@ import { useTranslation } from 'next-i18next';
 import { useState, useEffect } from 'react';
 
 export default function MyProfile() {
-  console.log('MyProfile render', Date.now());
+  console.log('%c[MyProfile RENDER]', 'color: green; font-weight: bold;', new Date().toLocaleTimeString());
+
   const { data: session, status } = useSession();
   const router = useRouter();
   const { t } = useTranslation('common');
@@ -19,13 +20,18 @@ export default function MyProfile() {
   const [originalForm, setOriginalForm] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Redirect jei neprisijungęs
   if (status === 'unauthenticated') {
-    if (typeof window !== 'undefined') router.push('/api/auth/signin');
+    if (typeof window !== 'undefined') {
+      console.log('%c[REDIRECT to SIGNIN]', 'color: orange; font-weight: bold;', new Date().toLocaleTimeString());
+      router.push('/api/auth/signin');
+    }
     return null;
   }
   if (status === 'loading') return null;
 
   useEffect(() => {
+    console.log('%c[useEffect] status:', 'color: blue;', status, new Date().toLocaleTimeString());
     if (status === 'authenticated') {
       fetch('/api/users')
         .then(res => res.json())
@@ -40,6 +46,7 @@ export default function MyProfile() {
           };
           setForm(profile);
           setOriginalForm(profile);
+          console.log('%c[DATA LOADED from API]', 'color: purple;', profile, new Date().toLocaleTimeString());
         });
     }
   }, [status]);
@@ -62,6 +69,7 @@ export default function MyProfile() {
   async function handleSaveAll() {
     setLoading(true);
     const changedFields = getChangedFields();
+    console.log('%c[SAVE BUTTON CLICKED] Fields to update:', 'color: teal;', changedFields, new Date().toLocaleTimeString());
     try {
       const res = await fetch('/api/users', {
         method: 'PUT',
@@ -70,16 +78,20 @@ export default function MyProfile() {
       });
       if (res.ok) {
         setOriginalForm(form);
+        console.log('%c[SAVE SUCCESS]', 'color: green;', new Date().toLocaleTimeString());
       } else {
         alert(t('saveError') || 'Klaida išsaugant duomenis!');
+        console.log('%c[SAVE FAILED - RES NOT OK]', 'color: red;', new Date().toLocaleTimeString());
       }
     } catch {
       alert(t('saveError') || 'Klaida išsaugant duomenis!');
+      console.log('%c[SAVE FAILED - EXCEPTION]', 'color: red;', new Date().toLocaleTimeString());
     }
     setLoading(false);
   }
 
   function handleChange(field, value) {
+    console.log('%c[INPUT CHANGE]', 'color: #a0522d;', field, '->', value, new Date().toLocaleTimeString());
     setForm(prev => ({ ...prev, [field]: value }));
   }
 
@@ -99,8 +111,14 @@ export default function MyProfile() {
   }
 
   return (
-    <form className="max-w-sm ml-0 p-4 bg-white rounded shadow"
-      onSubmit={e => { e.preventDefault(); if (isFormChanged()) handleSaveAll(); }}>
+    <form
+      className="max-w-sm ml-0 p-4 bg-white rounded shadow"
+      onSubmit={e => {
+        e.preventDefault();
+        console.log('%c[FORM SUBMIT]', 'color: navy;', 'isFormChanged:', isFormChanged(), new Date().toLocaleTimeString());
+        if (isFormChanged()) handleSaveAll();
+      }}
+    >
       <h2 className="text-blue-900 font-medium mb-4">{t('myProfile')}</h2>
       <FieldRow label={t('name')}         type="text"  field="name"        />
       <FieldRow label={t('email')}        type="email" field="email"       disabled />
