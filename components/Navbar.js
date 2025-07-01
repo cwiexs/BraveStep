@@ -29,7 +29,7 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
                 className="hover:text-blue-700"
                 type="button"
               >
-                {t('myProfile')}
+                {t('menu.myProfile')}
               </button>
             </li>
           )}
