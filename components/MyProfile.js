@@ -88,7 +88,7 @@ useEffect(() => {
   }
 
   return (
-    <form className="max-w-sd ml-0 mx-auto p-4 bg-white rounded px-3 py-1 shadow" onSubmit={e => e.preventDefault()}>
+    <form className="max-w-sm ml-0 p-4 bg-white rounded px-3 py-1 shadow" onSubmit={e => e.preventDefault()}>
       <h2 className="text-xl font-bold mb-4">{t('myProfile')}</h2>
 
       <FieldRow label={t('name')}         type="text"  field="name"        />
