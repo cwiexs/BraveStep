@@ -4,6 +4,7 @@ import { useTranslation } from 'next-i18next';
 import { useState, useEffect } from 'react';
 
 export default function MyProfile() {
+  console.log('MyProfile render', Date.now());
   const { data: session, status } = useSession();
   const router = useRouter();
   const { t } = useTranslation('common');
@@ -108,7 +109,13 @@ export default function MyProfile() {
       <FieldRow label={t('dateOfBirth')}  type="date"  field="dateOfBirth" />
       <FieldRow label={t('city')}         type="text"  field="city"        />
       <div className="mt-6 flex items-center gap-4">
-        
+        <button
+          type="submit"
+          className={`bg-blue-700 text-white rounded px-6 py-2 font-semibold transition ${(!isFormChanged() || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+          disabled={!isFormChanged() || loading}
+        >
+          {loading ? t('loading') || 'Išsaugojama...' : t('save') || 'Išsaugoti'}
+        </button>
       </div>
     </form>
   );
