@@ -7,7 +7,7 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
   return (
     <nav className="flex justify-between items-center pb-8">
       <div className="flex items-center gap-4">
-        <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
+        <ul className=" gap-8 text-blue-900 font-medium">
           <li>
             <button onClick={onHome} className="hover:text-blue-700">
               {t('menu.home')}
