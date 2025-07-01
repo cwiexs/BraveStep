@@ -2,35 +2,34 @@ import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import { signOut } from "next-auth/react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { Menu, X } from "lucide-react";
 
-export default function Navbar({ onHome, onSignIn, session, onMyProfile, onWorkouts }) {
+export default function Navbar({ session, onSignIn }) {
   const { t } = useTranslation("common");
   const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Kurio puslapio route aktyvus (pvz., /workouts)
-  const isActive = (href) => router.pathname === href;
+  // Funkcija, kuri grąžina true jei esame ant to puslapio
+  const isActive = (href) =>
+    router.pathname === href ||
+    (href !== "/" && router.pathname.startsWith(href));
 
   const menuItems = [
     {
       label: t("menu.home"),
-      onClick: onHome,
       href: "/"
     },
     {
       label: t("menu.workouts"),
-      onClick: onWorkouts,
       href: "/workouts"
     },
     {
       label: t("menu.nutrition"),
-      onClick: null,
       href: "/nutrition"
     },
     {
       label: t("menu.health"),
-      onClick: null,
       href: "/health"
     },
   ];
@@ -42,28 +41,28 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile, onWorko
         <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
           {menuItems.map((item, i) => (
             <li key={i}>
-              <button
-                onClick={item.onClick}
-                className={`hover:text-blue-700 transition ${
-                  isActive(item.href) ? "font-bold underline text-blue-700" : ""
-                }`}
-                type="button"
-              >
-                {item.label}
-              </button>
+              <Link href={item.href}>
+                <a
+                  className={`hover:text-blue-700 transition ${
+                    isActive(item.href) ? "font-bold underline text-blue-700" : ""
+                  }`}
+                >
+                  {item.label}
+                </a>
+              </Link>
             </li>
           ))}
           {session && (
             <li>
-              <button
-                onClick={onMyProfile}
-                className={`hover:text-blue-700 transition ${
-                  isActive("/my-profile") ? "font-bold underline text-blue-700" : ""
-                }`}
-                type="button"
-              >
-                {t("menu.myProfile")}
-              </button>
+              <Link href="/my-profile">
+                <a
+                  className={`hover:text-blue-700 transition ${
+                    isActive("/my-profile") ? "font-bold underline text-blue-700" : ""
+                  }`}
+                >
+                  {t("menu.myProfile")}
+                </a>
+              </Link>
             </li>
           )}
         </ul>
@@ -111,34 +110,30 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile, onWorko
             <ul className="flex flex-col gap-4 text-blue-900 font-medium mb-6">
               {menuItems.map((item, i) => (
                 <li key={i}>
-                  <button
-                    onClick={() => {
-                      item.onClick && item.onClick();
-                      setMenuOpen(false);
-                    }}
-                    className={`hover:text-blue-700 text-lg transition ${
-                      isActive(item.href) ? "font-bold underline text-blue-700" : ""
-                    }`}
-                    type="button"
-                  >
-                    {item.label}
-                  </button>
+                  <Link href={item.href}>
+                    <a
+                      className={`hover:text-blue-700 text-lg transition ${
+                        isActive(item.href) ? "font-bold underline text-blue-700" : ""
+                      }`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {item.label}
+                    </a>
+                  </Link>
                 </li>
               ))}
               {session && (
                 <li>
-                  <button
-                    onClick={() => {
-                      onMyProfile();
-                      setMenuOpen(false);
-                    }}
-                    className={`hover:text-blue-700 text-lg transition ${
-                      isActive("/my-profile") ? "font-bold underline text-blue-700" : ""
-                    }`}
-                    type="button"
-                  >
-                    {t("menu.myProfile")}
-                  </button>
+                  <Link href="/my-profile">
+                    <a
+                      className={`hover:text-blue-700 text-lg transition ${
+                        isActive("/my-profile") ? "font-bold underline text-blue-700" : ""
+                      }`}
+                      onClick={() => setMenuOpen(false)}
+                    >
+                      {t("menu.myProfile")}
+                    </a>
+                  </Link>
                 </li>
               )}
             </ul>
