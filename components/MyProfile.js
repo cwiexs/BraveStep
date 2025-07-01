@@ -1,228 +1,243 @@
-import React, { useState, useEffect } from "react";
-import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
-import { useTranslation } from "next-i18next";
+import React, { useState } from "react";
 
-//
-// *** FormField komponentas (viršuje, NE inline) ***
-//
-function FormField({ label, type = "text", value, onChange, disabled }) {
+// Sub-navbar/tab mygtukas
+function TabBtn({ active, onClick, children }) {
   return (
-    <div className="mb-3 flex gap-2 items-center">
-      <label className="w-32">{label}</label>
-      <input
-        type={type}
-        className="w-full p-2 border rounded"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-        disabled={disabled}
-      />
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 rounded-lg font-semibold transition-all
+        ${active ? "bg-purple-500 text-white shadow-md" : "bg-gray-100 text-gray-700 hover:bg-gray-200"}`}
+      style={{ minWidth: 120 }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Asmeninė informacija
+function ProfilePersonal() {
+  return (
+    <div>
+      <h2 className="text-lg font-semibold mb-3">Asmeninė informacija</h2>
+      <div className="grid gap-3 max-w-md">
+        <input className="border p-2 rounded" placeholder="Vardas" />
+        <input className="border p-2 rounded" placeholder="El. paštas" type="email" />
+        <input className="border p-2 rounded" placeholder="Telefono numeris" type="tel" />
+        <input className="border p-2 rounded" placeholder="Gimimo data" type="date" />
+        <select className="border p-2 rounded">
+          <option value="">Lytis</option>
+          <option value="male">Vyras</option>
+          <option value="female">Moteris</option>
+          <option value="other">Kita</option>
+        </select>
+        <input className="border p-2 rounded" placeholder="Šalis" />
+        <input className="border p-2 rounded" placeholder="Miestas" />
+        <select className="border p-2 rounded">
+          <option value="">Pageidaujama kalba</option>
+          <option value="lt">Lietuvių</option>
+          <option value="en">English</option>
+        </select>
+        {/* Profilio nuotrauka */}
+        <input className="border p-2 rounded" placeholder="Profilio nuotrauka (URL)" />
+      </div>
     </div>
   );
 }
 
-//
-// *** MyProfile pagrindinis komponentas ***
-//
-export default function MyProfile() {
-  console.log(
-    "%c[MyProfile RENDER]",
-    "color: green; font-weight: bold;",
-    new Date().toLocaleTimeString()
+// Fiziniai ir sveikatos duomenys
+function ProfilePhysical() {
+  return (
+    <div>
+      <h2 className="text-lg font-semibold mb-3">Fiziniai duomenys ir sveikata</h2>
+      <div className="grid gap-3 max-w-md">
+        <input className="border p-2 rounded" placeholder="Ūgis (cm)" type="number" min={50} max={260} />
+        <input className="border p-2 rounded" placeholder="Svoris (kg)" type="number" step="0.1" min={20} max={300} />
+        <select className="border p-2 rounded">
+          <option value="">Kūno tipas</option>
+          <option value="ectomorph">Ektomorfas</option>
+          <option value="mesomorph">Mezomorfas</option>
+          <option value="endomorph">Endomorfas</option>
+        </select>
+        <input className="border p-2 rounded" placeholder="Sveikatos būklės / Diagnozės" />
+        <input className="border p-2 rounded" placeholder="Alergijos" />
+        <input className="border p-2 rounded" placeholder="Mitybos apribojimai / lėtinės ligos" />
+        <input className="border p-2 rounded" placeholder="Vartojami vaistai" />
+        <div className="flex items-center gap-2">
+          <input type="checkbox" id="insurance" />
+          <label htmlFor="insurance">Turi sveikatos draudimą</label>
+        </div>
+        <div className="flex items-center gap-2">
+          <input type="checkbox" id="smokes" />
+          <label htmlFor="smokes">Rūko</label>
+        </div>
+        <input className="border p-2 rounded" placeholder="Vartoja alkoholį (apibūdinkite)" />
+        <input className="border p-2 rounded" placeholder="Streso lygis (1–10)" type="number" min={1} max={10} />
+        <input className="border p-2 rounded" placeholder="Motyvacija (1–10)" type="number" min={1} max={10} />
+        <input className="border p-2 rounded" placeholder="Pagrindinės kliūtys" />
+      </div>
+    </div>
   );
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const { t } = useTranslation("common");
-  const [form, setForm] = useState({
-    name: "",
-    email: "",
-    goal: "",
-    phone: "",
-    dateOfBirth: "",
-    city: "",
-  });
-  const [originalForm, setOriginalForm] = useState(null);
-  const [isSaving, setIsSaving] = useState(false);
+}
 
-  // REDIRECT jei neprisijungęs
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      console.log(
-        "%c[REDIRECT to SIGNIN]",
-        "color: orange; font-weight: bold;",
-        new Date().toLocaleTimeString()
-      );
-      router.push("/api/auth/signin");
-    }
-  }, [status, router]);
+// Gyvenimo būdas ir rutina
+function ProfileRoutine() {
+  return (
+    <div>
+      <h2 className="text-lg font-semibold mb-3">Gyvenimo būdas ir rutina</h2>
+      <div className="grid gap-3 max-w-md">
+        <input className="border p-2 rounded" placeholder="Darbo tipas" />
+        <input className="border p-2 rounded" placeholder="Darbo valandos per dieną" type="number" min={1} max={18} />
+        <select className="border p-2 rounded">
+          <option value="">Darbo grafikas</option>
+          <option value="early">Ankstyvas</option>
+          <option value="late">Vėlyvas</option>
+          <option value="shift">Pamaininis</option>
+          <option value="flexible">Lankstus</option>
+          <option value="normal">Standartinis</option>
+        </select>
+        <input className="border p-2 rounded" placeholder="Miego valandos per parą" type="number" min={1} max={16} />
+        <input className="border p-2 rounded" placeholder="Kelimosi laikas" type="time" />
+        <input className="border p-2 rounded" placeholder="Einamo miego laikas" type="time" />
+        <input className="border p-2 rounded" placeholder="Šeimos statusas" />
+        <input className="border p-2 rounded" placeholder="Kiek valgymų per dieną?" type="number" min={1} max={10} />
+        <div className="flex items-center gap-2">
+          <input type="checkbox" id="eatsOutOften" />
+          <label htmlFor="eatsOutOften">Dažnai valgau ne namie</label>
+        </div>
+        <div className="flex items-center gap-2">
+          <input type="checkbox" id="notifications" />
+          <label htmlFor="notifications">Noriu gauti priminimus</label>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  // Užkrauk duomenis tik kartą (arba kai prisijungi)
-  useEffect(() => {
-    console.log(
-      "%c[useEffect] status:",
-      "color: blue;",
-      status,
-      new Date().toLocaleTimeString()
-    );
-    if (status === "authenticated") {
-      fetch("/api/users")
-        .then((res) => res.json())
-        .then((data) => {
-          const profile = {
-            name: data.name || "",
-            email: data.email || "",
-            goal: data.goal || "",
-            phone: data.phone || "",
-            dateOfBirth: data.dateOfBirth
-              ? data.dateOfBirth.substring(0, 10)
-              : "",
-            city: data.city || "",
-          };
-          setForm(profile);
-          setOriginalForm(profile);
-          console.log(
-            "%c[DATA LOADED from API]",
-            "color: purple;",
-            profile,
-            new Date().toLocaleTimeString()
-          );
-        });
-    }
-  }, [status]);
+// Sporto aktyvumas
+function ProfileActivity() {
+  return (
+    <div>
+      <h2 className="text-lg font-semibold mb-3">Sportas ir aktyvumas</h2>
+      <div className="grid gap-3 max-w-md">
+        <select className="border p-2 rounded">
+          <option value="">Fizinio aktyvumo lygis</option>
+          <option value="very_low">Labai žemas</option>
+          <option value="low">Žemas</option>
+          <option value="medium">Vidutinis</option>
+          <option value="high">Aukštas</option>
+          <option value="very_high">Labai aukštas</option>
+        </select>
+        <input className="border p-2 rounded" placeholder="Žingsnių per dieną" type="number" min={0} />
+        <input className="border p-2 rounded" placeholder="Kokius sportus dabar lankote?" />
+        <input className="border p-2 rounded" placeholder="Kiek minučių trunka treniruotė?" type="number" min={0} />
+        <input className="border p-2 rounded" placeholder="Kiek treniruočių per savaitę?" type="number" min={0} max={14} />
+        <select className="border p-2 rounded">
+          <option value="">Kur sportuojate?</option>
+          <option value="home">Namie</option>
+          <option value="gym">Sporto salėje</option>
+          <option value="outdoor">Lauke</option>
+          <option value="other">Kita</option>
+        </select>
+        <input className="border p-2 rounded" placeholder="Kokia turite įrangą?" />
+        <input className="border p-2 rounded" placeholder="Ką norėtumėte išbandyti?" />
+        <div className="flex items-center gap-2">
+          <input type="checkbox" id="gymMember" />
+          <label htmlFor="gymMember">Sporto klubo narys</label>
+        </div>
+        <input className="border p-2 rounded" placeholder="Fizinis pasiruošimo lygis" />
+        <input className="border p-2 rounded" placeholder="Ankstesnė sporto patirtis" />
+        <div className="flex items-center gap-2">
+          <input type="checkbox" id="wantsRestRecommendations" />
+          <label htmlFor="wantsRestRecommendations">Noriu poilsio rekomendacijų</label>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-  function isFormChanged() {
-    return (
-      !!originalForm &&
-      Object.keys(form).some((key) => form[key] !== originalForm[key])
-    );
-  }
+// Mityba ir pageidavimai
+function ProfileNutrition() {
+  return (
+    <div>
+      <h2 className="text-lg font-semibold mb-3">Mityba ir pageidavimai</h2>
+      <div className="grid gap-3 max-w-md">
+        <input className="border p-2 rounded" placeholder="Pagrindinis tikslas" />
+        <input className="border p-2 rounded" placeholder="Mitybos tipas" />
+        <input className="border p-2 rounded" placeholder="Mėgstami maisto produktai" />
+        <input className="border p-2 rounded" placeholder="Nemėgstami maisto produktai" />
+        <input className="border p-2 rounded" placeholder="Mėgstamos virtuvės rūšys" />
+        <input className="border p-2 rounded" placeholder="Papildai / vitaminai" />
+        <input className="border p-2 rounded" placeholder="Mitybos įpročiai" />
+        <input className="border p-2 rounded" placeholder="Kiek kavos per dieną?" type="number" min={0} />
+        <input className="border p-2 rounded" placeholder="Kiek arbatos per dieną?" type="number" min={0} />
+        <input className="border p-2 rounded" placeholder="Cukraus kiekis per dieną (g)" type="number" min={0} />
+      </div>
+    </div>
+  );
+}
 
-  async function handleSave() {
-    setIsSaving(true);
-    // Paruošk tik pakeistus laukus
-    const fieldsToUpdate = {};
-    Object.keys(form).forEach((key) => {
-      if (form[key] !== originalForm[key]) {
-        fieldsToUpdate[key] = form[key];
-      }
-    });
-    console.log(
-      "%c[SAVE BUTTON CLICKED] Fields to update:",
-      "color: teal;",
-      fieldsToUpdate,
-      new Date().toLocaleTimeString()
-    );
-    try {
-      const res = await fetch("/api/users", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(fieldsToUpdate),
-      });
-      if (res.ok) {
-        setOriginalForm(form);
-        console.log(
-          "%c[SAVE SUCCESS]",
-          "color: green;",
-          new Date().toLocaleTimeString()
-        );
-      } else {
-        alert(t("saveError") || "Klaida išsaugant duomenis!");
-        console.log(
-          "%c[SAVE FAILED - RES NOT OK]",
-          "color: red;",
-          new Date().toLocaleTimeString()
-        );
-      }
-    } catch (e) {
-      alert(t("saveError") || "Klaida išsaugant duomenis!");
-      console.log(
-        "%c[SAVE FAILED - EXCEPTION]",
-        "color: red;",
-        new Date().toLocaleTimeString()
-      );
-    }
-    setIsSaving(false);
-  }
+// Papildoma informacija ir motyvacija
+function ProfileOther() {
+  return (
+    <div>
+      <h2 className="text-lg font-semibold mb-3">Papildoma informacija ir motyvacija</h2>
+      <div className="grid gap-3 max-w-md">
+        <input className="border p-2 rounded" placeholder="Kas jums trukdo siekti tikslų?" />
+        <input className="border p-2 rounded" placeholder="Kaip apibrėžiate sėkmę?" />
+        <select className="border p-2 rounded">
+          <option value="">Planų atnaujinimo dažnis</option>
+          <option value="weekly">Kas savaitę</option>
+          <option value="monthly">Kas mėnesį</option>
+          <option value="quarterly">Kas ketvirtį</option>
+        </select>
+        <div className="flex items-center gap-2">
+          <input type="checkbox" id="smartWatch" />
+          <label htmlFor="smartWatch">Turi išmanų laikrodį</label>
+        </div>
+        <input className="border p-2 rounded" placeholder="Tikslų data" type="date" />
+        <input className="border p-2 rounded" placeholder="Prieigos lygis" type="number" min={0} max={10} />
+      </div>
+    </div>
+  );
+}
 
-  function handleFieldChange(field, value) {
-    console.log(
-      "%c[INPUT CHANGE]",
-      "color: #a0522d;",
-      field,
-      "->",
-      value,
-      new Date().toLocaleTimeString()
-    );
-    setForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  }
-
-  if (status === "loading") return null;
+// Pagrindinis MyProfile komponentas
+export default function MyProfile() {
+  const [activeTab, setActiveTab] = useState("personal");
 
   return (
-    <form
-      className="max-w-sm ml-0 p-4 bg-white rounded shadow"
-      onSubmit={(e) => {
-        e.preventDefault();
-        console.log(
-          "%c[FORM SUBMIT]",
-          "color: navy;",
-          "isFormChanged:",
-          isFormChanged(),
-          new Date().toLocaleTimeString()
-        );
-        if (isFormChanged()) handleSave();
-      }}
-    >
-      <h2 className="text-blue-900 font-medium mb-4">{t("myProfile")}</h2>
-      <FormField
-        label={t("name")}
-        value={form.name}
-        onChange={(val) => handleFieldChange("name", val)}
-      />
-      <FormField
-        label={t("email")}
-        value={form.email}
-        type="email"
-        onChange={() => {}}
-        disabled={true}
-      />
-      <FormField
-        label={t("goal")}
-        value={form.goal}
-        onChange={(val) => handleFieldChange("goal", val)}
-      />
-      <FormField
-        label={t("phone")}
-        value={form.phone}
-        onChange={(val) => handleFieldChange("phone", val)}
-      />
-      <FormField
-        label={t("dateOfBirth")}
-        value={form.dateOfBirth}
-        type="date"
-        onChange={(val) => handleFieldChange("dateOfBirth", val)}
-      />
-      <FormField
-        label={t("city")}
-        value={form.city}
-        onChange={(val) => handleFieldChange("city", val)}
-      />
-      <div className="mt-6 flex items-center gap-4">
-        <button
-          type="submit"
-          className={`bg-blue-700 text-white rounded px-6 py-2 font-semibold transition ${
-            !isFormChanged() || isSaving ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-          disabled={!isFormChanged() || isSaving}
-        >
-          {isSaving ? t("loading") || "Išsaugojama..." : t("save") || "Išsaugoti"}
-        </button>
+    <div className="p-8">
+      {/* Sub-navbar/tabai */}
+      <div className="flex flex-wrap gap-2 mb-8">
+        <TabBtn active={activeTab === "personal"} onClick={() => setActiveTab("personal")}>
+          Asmeninė info
+        </TabBtn>
+        <TabBtn active={activeTab === "physical"} onClick={() => setActiveTab("physical")}>
+          Fiziniai duomenys
+        </TabBtn>
+        <TabBtn active={activeTab === "routine"} onClick={() => setActiveTab("routine")}>
+          Gyvenimo būdas
+        </TabBtn>
+        <TabBtn active={activeTab === "activity"} onClick={() => setActiveTab("activity")}>
+          Sportas
+        </TabBtn>
+        <TabBtn active={activeTab === "nutrition"} onClick={() => setActiveTab("nutrition")}>
+          Mityba
+        </TabBtn>
+        <TabBtn active={activeTab === "other"} onClick={() => setActiveTab("other")}>
+          Papildoma info
+        </TabBtn>
       </div>
-    </form>
+
+      {/* Rodoma aktyvi forma */}
+      <div className="bg-white rounded-xl shadow p-6 max-w-2xl">
+        {activeTab === "personal" && <ProfilePersonal />}
+        {activeTab === "physical" && <ProfilePhysical />}
+        {activeTab === "routine" && <ProfileRoutine />}
+        {activeTab === "activity" && <ProfileActivity />}
+        {activeTab === "nutrition" && <ProfileNutrition />}
+        {activeTab === "other" && <ProfileOther />}
+      </div>
+    </div>
   );
 }
