@@ -17,16 +17,13 @@ export default function MyProfile() {
   });
   const [originalForm, setOriginalForm] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [successMsg, setSuccessMsg] = useState('');
 
-  // Jei neprisijungęs – redirect
   if (status === 'unauthenticated') {
     if (typeof window !== 'undefined') router.push('/api/auth/signin');
     return null;
   }
   if (status === 'loading') return null;
 
-  // Užkrauna vartotojo info
   useEffect(() => {
     if (status === 'authenticated') {
       fetch('/api/users')
@@ -46,13 +43,11 @@ export default function MyProfile() {
     }
   }, [status]);
 
-  // Ar buvo kokių nors pakeitimų?
   function isFormChanged() {
     if (!originalForm) return false;
     return Object.keys(form).some(key => form[key] !== originalForm[key]);
   }
 
-  // Suranda tik pakeistus laukus
   function getChangedFields() {
     const changed = {};
     Object.keys(form).forEach(key => {
@@ -63,10 +58,8 @@ export default function MyProfile() {
     return changed;
   }
 
-  // Išsaugo visus pakeitimus
   async function handleSaveAll() {
     setLoading(true);
-    setSuccessMsg('');
     const changedFields = getChangedFields();
     try {
       const res = await fetch('/api/users', {
@@ -75,8 +68,6 @@ export default function MyProfile() {
         body: JSON.stringify(changedFields)
       });
       if (res.ok) {
-        setSuccessMsg(t('saveSuccess') || 'Pakeitimai išsaugoti!');
-        // Atnaujink formą kaip originalą (kad mygtukas vėl išsijungtų)
         setOriginalForm(form);
       } else {
         alert(t('saveError') || 'Klaida išsaugant duomenis!');
@@ -87,7 +78,10 @@ export default function MyProfile() {
     setLoading(false);
   }
 
-  // Vienas bendras render funkcija kiekvienam laukui
+  function handleChange(field, value) {
+    setForm(prev => ({ ...prev, [field]: value }));
+  }
+
   function FieldRow({ label, type, field, disabled }) {
     return (
       <div className="mb-3 flex gap-2 items-center">
@@ -96,7 +90,7 @@ export default function MyProfile() {
           type={type}
           className="w-full p-2 border rounded"
           value={form[field]}
-          onChange={e => setForm({ ...form, [field]: e.target.value })}
+          onChange={e => handleChange(field, e.target.value)}
           disabled={disabled || loading}
         />
       </div>
@@ -106,15 +100,13 @@ export default function MyProfile() {
   return (
     <form className="max-w-sm ml-0 p-4 bg-white rounded shadow"
       onSubmit={e => { e.preventDefault(); if (isFormChanged()) handleSaveAll(); }}>
-      <h2 className="text-blue-900 font-medium hover:text-blue-700 rounded px-4 py-2 text-3xl transition">{t('myProfile')}</h2>
-
+      <h2 className="text-blue-900 font-medium mb-4">{t('myProfile')}</h2>
       <FieldRow label={t('name')}         type="text"  field="name"        />
       <FieldRow label={t('email')}        type="email" field="email"       disabled />
       <FieldRow label={t('goal')}         type="text"  field="goal"        />
       <FieldRow label={t('phone')}        type="text"  field="phone"       />
       <FieldRow label={t('dateOfBirth')}  type="date"  field="dateOfBirth" />
       <FieldRow label={t('city')}         type="text"  field="city"        />
-
       <div className="mt-6 flex items-center gap-4">
         <button
           type="submit"
@@ -123,7 +115,6 @@ export default function MyProfile() {
         >
           {loading ? t('loading') || 'Išsaugojama...' : t('save') || 'Išsaugoti'}
         </button>
-        {successMsg && <span className="text-green-700">{successMsg}</span>}
       </div>
     </form>
   );
