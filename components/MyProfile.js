@@ -108,13 +108,7 @@ export default function MyProfile() {
       <FieldRow label={t('dateOfBirth')}  type="date"  field="dateOfBirth" />
       <FieldRow label={t('city')}         type="text"  field="city"        />
       <div className="mt-6 flex items-center gap-4">
-        <button
-          type="submit"
-          className={`bg-blue-700 text-white rounded px-6 py-2 font-semibold transition ${(!isFormChanged() || loading) ? 'opacity-50 cursor-not-allowed' : ''}`}
-          disabled={!isFormChanged() || loading}
-        >
-          {loading ? t('loading') || 'Išsaugojama...' : t('save') || 'Išsaugoti'}
-        </button>
+        
       </div>
     </form>
   );
