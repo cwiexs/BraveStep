@@ -24,6 +24,7 @@ export default function MyProfile() {
   if (status === 'unauthenticated') {
     if (typeof window !== 'undefined') {
       console.log('%c[REDIRECT to SIGNIN]', 'color: orange; font-weight: bold;', new Date().toLocaleTimeString());
+      console.log('Status:', status, Date.now());
       router.push('/api/auth/signin');
     }
     return null;
