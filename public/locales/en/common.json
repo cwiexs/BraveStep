@@ -155,7 +155,8 @@
     "saving": "Saving...",
     "save": "Save",
     "select": "Select",
-    "other": "Other..."
+    "other": "Other...",
+    "enterOther": "Enter..."
   },
   "info": {
     "name": "Enter your real name. E.g.: John.",

@@ -75,44 +75,48 @@ const MultiInput = ({ value, onChange, placeholder }) => {
 };
 
 // ENUM'ų select'ai su "Kita" logika
- const EnumSelect = ({
+const EnumSelect = ({
   name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey,
-}) => (
-  <div className="flex items-center gap-2">
-    <select
-      name={name}
-      className="w-full border rounded px-2 py-2"
-      value={options.includes(value) ? value : value === "other" ? "other" : ""}
-      onChange={e => {
-        if (e.target.value === "other") {
-          onChange("other");
-        } else {
-          onChange(e.target.value);
-        }
-      }}
-    >
-      <option value="" disabled>
-        -- Pasirinkti --
-      </option>
-      {options.map(opt => (
-        <option key={opt} value={opt}>
-          {labelOther(opt)}
+}) => {
+  const { t } = useTranslation();
+  return (
+    <div className="flex items-center gap-2">
+      <select
+        name={name}
+        className="w-full border rounded px-2 py-2"
+        value={options.includes(value) ? value : value === "other" ? "other" : ""}
+        onChange={e => {
+          if (e.target.value === "other") {
+            onChange("other");
+          } else {
+            onChange(e.target.value);
+          }
+        }}
+      >
+        <option value="" disabled>
+          {t("form.select")}
         </option>
-      ))}
-      <option value="other">Kita...</option>
-    </select>
-    {value === "other" && (
-      <input
-        type="text"
-        className="border rounded px-2 py-2 w-32"
-        value={otherValue || ""}
-        onChange={e => setOtherValue(e.target.value)}
-        placeholder="Įrašykite..."
-      />
-    )}
-    <InfoTooltip infoKey={infoKey} />
-  </div>
-);
+        {options.map(opt => (
+          <option key={opt} value={opt}>
+            {labelOther(opt)}
+          </option>
+        ))}
+        <option value="other">{t("form.other")}</option>
+      </select>
+      {value === "other" && (
+        <input
+          type="text"
+          className="border rounded px-2 py-2 w-32"
+          value={otherValue || ""}
+          onChange={e => setOtherValue(e.target.value)}
+          placeholder={t("form.enterOther") || "Enter..."}
+        />
+      )}
+      <InfoTooltip infoKey={infoKey} />
+    </div>
+  );
+};
+
 
 
 // Visų laukų ir sekcijų konfigūracija (generuojama iš schema.prisma, pavadinimai - infoKey ir label universalūs)

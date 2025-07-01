@@ -155,7 +155,8 @@
     "saving": "Išsaugojama...",
     "save": "Išsaugoti",
     "select": "Pasirinkti",
-    "other": "Kita..."
+    "other": "Kita...",
+    "enterOther": "Įrašykite..."
   },
   "info": {
     "name": "Įrašykite tikrą vardą. Pvz.: Jonas.",
