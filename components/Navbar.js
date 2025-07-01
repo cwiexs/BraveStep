@@ -1,17 +1,23 @@
-import { useRouter } from "next/router";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import { signOut } from "next-auth/react";
 import { Menu, X } from "lucide-react";
 
-export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
+export default function Navbar({
+  onHome,
+  onSignIn,
+  onSignUp,
+  session,
+  onLanguageChange,
+  onMyProfile,
+  onWorkouts,
+}) {
   const { t } = useTranslation("common");
-  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const menuItems = [
     { label: t("menu.home"), onClick: onHome },
-    { label: t("menu.workouts"), onClick: () => router.push("/workouts") },
+    { label: t("menu.workouts"), onClick: onWorkouts },
     { label: t("menu.nutrition"), onClick: null },
     { label: t("menu.health"), onClick: null },
   ];
@@ -51,6 +57,7 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
           <Menu size={32} />
         </button>
       </div>
+
       <div className="hidden md:flex items-center gap-4">
         {!session ? (
           <button
@@ -68,13 +75,12 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
           </button>
         )}
       </div>
+
       {menuOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex">
           <div className="bg-white w-64 max-w-full h-full p-6 shadow-2xl flex flex-col">
             <div className="flex justify-between items-center mb-8">
-              <span className="text-2xl font-bold text-blue-900">
-                Menu
-              </span>
+              <span className="text-2xl font-bold text-blue-900">Menu</span>
               <button
                 onClick={() => setMenuOpen(false)}
                 className="text-blue-900 hover:text-blue-700 p-2"
