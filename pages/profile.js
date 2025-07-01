@@ -2,6 +2,11 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useTranslation } from 'next-i18next';
 import { useState, useEffect } from 'react';
+// pages/profile.js
+import MyProfile from '../components/MyProfile';
+export default function ProfilePage() {
+  return <MyProfile />;
+}
 
 export default function MyProfile() {
   const { data: session, status } = useSession();
