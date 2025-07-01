@@ -152,7 +152,10 @@
     "myProfile": "Mano profilis",
     "saveSuccess": "Sėkmingai išsaugota!",
     "saveError": "Nepavyko išsaugoti duomenų!",
-    "saving": "Išsaugojama..."
+    "saving": "Išsaugojama...",
+    "save": "Išsaugoti",
+    "select": "Pasirinkti",
+    "other": "Kita..."
   },
   "info": {
     "name": "Įrašykite tikrą vardą. Pvz.: Jonas.",
@@ -267,5 +270,47 @@
     "quarterly": "Kas ketvirtį"
   },
   "yes": "Taip",
-  "no": "Ne"
+  "no": "Ne",
+  "enum": {
+    "gender": {
+      "male": "Vyras",
+      "female": "Moteris",
+      "other": "Kita"
+    },
+    "bodyType": {
+      "ectomorph": "Ektomorfas",
+      "mesomorph": "Mezomorfas",
+      "endomorph": "Endomorfas",
+      "unknown": "Nežinoma",
+      "other": "Kita"
+    },
+    "fitnessLevel": {
+      "beginner": "Pradedantysis",
+      "intermediate": "Pažengęs",
+      "advanced": "Patyręs",
+      "other": "Kita"
+    },
+    "physicalActivityLevel": {
+      "very_low": "Labai mažas",
+      "low": "Mažas",
+      "medium": "Vidutinis",
+      "high": "Didelis",
+      "very_high": "Labai didelis",
+      "other": "Kita"
+    },
+    "workSchedule": {
+      "early": "Ankstyvas",
+      "late": "Vėlyvas",
+      "shift": "Pamaininis",
+      "flexible": "Lankstus",
+      "normal": "Įprastas",
+      "other": "Kita"
+    },
+    "workoutLocation": {
+      "home": "Namie",
+      "gym": "Sporto salė",
+      "outdoor": "Lauke",
+      "other": "Kita"
+    }
+  }
 }
