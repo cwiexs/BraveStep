@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -75,8 +74,8 @@ const MultiInput = ({ value, onChange, placeholder }) => {
   );
 };
 
-// SAUGUS ENUM SELECT - TIK ŠIĄ DALĮ PAKEIČIAM
-const EnumSelect = ({
+// ENUM'ų select'ai su "Kita" logika
+ const EnumSelect = ({
   name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey,
 }) => (
   <div className="flex items-center gap-2">
@@ -115,11 +114,401 @@ const EnumSelect = ({
   </div>
 );
 
+
 // Visų laukų ir sekcijų konfigūracija (generuojama iš schema.prisma, pavadinimai - infoKey ir label universalūs)
 const sections = [
-  // ... visa tavo pilna sekcijų struktūra čia, kaip tavo pavyzdyje ...
-
-  // ... (čia tęsiasi visas tavo sekcijų masyvas ir MyProfile komponentas kaip originaliame variante) ...
+  {
+    key: "personal",
+    title: "section.personal",
+    fields: [
+      {
+        name: "name",
+        label: "form.name",
+        type: "text",
+        infoKey: "info.name",
+      },
+      {
+        name: "email",
+        label: "form.email",
+        type: "email",
+        readOnly: true,
+        infoKey: "info.email",
+      },
+      {
+        name: "phone",
+        label: "form.phone",
+        type: "text",
+        infoKey: "info.phone",
+      },
+      {
+        name: "preferredLanguage",
+        label: "form.preferredLanguage",
+        type: "text",
+        infoKey: "info.preferredLanguage",
+      },
+      {
+        name: "dateOfBirth",
+        label: "form.dateOfBirth",
+        type: "date",
+        infoKey: "info.dateOfBirth",
+      },
+      {
+        name: "gender",
+        label: "form.gender",
+        type: "enum",
+        options: ["male", "female", "other"],
+        infoKey: "info.gender",
+      },
+      {
+        name: "city",
+        label: "form.city",
+        type: "text",
+        infoKey: "info.city",
+      },
+      {
+        name: "country",
+        label: "form.country",
+        type: "text",
+        infoKey: "info.country",
+      },
+      {
+        name: "profilePhotoUrl",
+        label: "form.profilePhotoUrl",
+        type: "text",
+        infoKey: "info.profilePhotoUrl",
+      },
+    ],
+  },
+  {
+    key: "body",
+    title: "section.body",
+    fields: [
+      {
+        name: "heightCm",
+        label: "form.heightCm",
+        type: "number",
+        infoKey: "info.heightCm",
+      },
+      {
+        name: "weightKg",
+        label: "form.weightKg",
+        type: "number",
+        infoKey: "info.weightKg",
+      },
+      {
+        name: "bodyType",
+        label: "form.bodyType",
+        type: "enum",
+        options: ["ectomorph", "mesomorph", "endomorph", "unknown", "other"],
+        infoKey: "info.bodyType",
+      },
+      {
+        name: "fitnessLevel",
+        label: "form.fitnessLevel",
+        type: "enum",
+        options: ["beginner", "intermediate", "advanced", "other"],
+        infoKey: "info.fitnessLevel",
+      },
+    ],
+  },
+  {
+    key: "health",
+    title: "section.health",
+    fields: [
+      {
+        name: "healthConditions",
+        label: "form.healthConditions",
+        type: "array",
+        infoKey: "info.healthConditions",
+      },
+      {
+        name: "allergies",
+        label: "form.allergies",
+        type: "array",
+        infoKey: "info.allergies",
+      },
+      {
+        name: "foodRestrictions",
+        label: "form.foodRestrictions",
+        type: "array",
+        infoKey: "info.foodRestrictions",
+      },
+      {
+        name: "medications",
+        label: "form.medications",
+        type: "array",
+        infoKey: "info.medications",
+      },
+      {
+        name: "hasInsurance",
+        label: "form.hasInsurance",
+        type: "boolean",
+        infoKey: "info.hasInsurance",
+      },
+      {
+        name: "smokes",
+        label: "form.smokes",
+        type: "boolean",
+        infoKey: "info.smokes",
+      },
+      {
+        name: "alcohol",
+        label: "form.alcohol",
+        type: "text",
+        infoKey: "info.alcohol",
+      },
+      {
+        name: "stressLevel",
+        label: "form.stressLevel",
+        type: "number",
+        infoKey: "info.stressLevel",
+      },
+      {
+        name: "familyStatus",
+        label: "form.familyStatus",
+        type: "text",
+        infoKey: "info.familyStatus",
+      },
+    ],
+  },
+  {
+    key: "nutrition",
+    title: "section.nutrition",
+    fields: [
+      {
+        name: "mealsPerDay",
+        label: "form.mealsPerDay",
+        type: "number",
+        infoKey: "info.mealsPerDay",
+      },
+      {
+        name: "eatsOutOften",
+        label: "form.eatsOutOften",
+        type: "boolean",
+        infoKey: "info.eatsOutOften",
+      },
+      {
+        name: "dietType",
+        label: "form.dietType",
+        type: "text",
+        infoKey: "info.dietType",
+      },
+      {
+        name: "favoriteFoods",
+        label: "form.favoriteFoods",
+        type: "array",
+        infoKey: "info.favoriteFoods",
+      },
+      {
+        name: "dislikedFoods",
+        label: "form.dislikedFoods",
+        type: "array",
+        infoKey: "info.dislikedFoods",
+      },
+      {
+        name: "cuisinePreference",
+        label: "form.cuisinePreference",
+        type: "array",
+        infoKey: "info.cuisinePreference",
+      },
+      {
+        name: "supplements",
+        label: "form.supplements",
+        type: "array",
+        infoKey: "info.supplements",
+      },
+      {
+        name: "eatingHabits",
+        label: "form.eatingHabits",
+        type: "text",
+        infoKey: "info.eatingHabits",
+      },
+      {
+        name: "coffeePerDay",
+        label: "form.coffeePerDay",
+        type: "number",
+        infoKey: "info.coffeePerDay",
+      },
+      {
+        name: "teaPerDay",
+        label: "form.teaPerDay",
+        type: "number",
+        infoKey: "info.teaPerDay",
+      },
+      {
+        name: "sugarPerDay",
+        label: "form.sugarPerDay",
+        type: "number",
+        infoKey: "info.sugarPerDay",
+      },
+    ],
+  },
+  {
+    key: "lifestyle",
+    title: "section.lifestyle",
+    fields: [
+      {
+        name: "jobType",
+        label: "form.jobType",
+        type: "text",
+        infoKey: "info.jobType",
+      },
+      {
+        name: "workHoursPerDay",
+        label: "form.workHoursPerDay",
+        type: "number",
+        infoKey: "info.workHoursPerDay",
+      },
+      {
+        name: "workSchedule",
+        label: "form.workSchedule",
+        type: "enum",
+        options: ["early", "late", "shift", "flexible", "normal", "other"],
+        infoKey: "info.workSchedule",
+      },
+      {
+        name: "wakeUpTime",
+        label: "form.wakeUpTime",
+        type: "text",
+        infoKey: "info.wakeUpTime",
+      },
+      {
+        name: "bedTime",
+        label: "form.bedTime",
+        type: "text",
+        infoKey: "info.bedTime",
+      },
+      {
+        name: "sleepHours",
+        label: "form.sleepHours",
+        type: "number",
+        infoKey: "info.sleepHours",
+      },
+      {
+        name: "goalDeadline",
+        label: "form.goalDeadline",
+        type: "date",
+        infoKey: "info.goalDeadline",
+      },
+      {
+        name: "notifications",
+        label: "form.notifications",
+        type: "boolean",
+        infoKey: "info.notifications",
+      },
+      {
+        name: "motivationLevel",
+        label: "form.motivationLevel",
+        type: "number",
+        infoKey: "info.motivationLevel",
+      },
+      {
+        name: "mainObstacles",
+        label: "form.mainObstacles",
+        type: "text",
+        infoKey: "info.mainObstacles",
+      },
+      {
+        name: "successDefinition",
+        label: "form.successDefinition",
+        type: "text",
+        infoKey: "info.successDefinition",
+      },
+      {
+        name: "previousFitnessExperience",
+        label: "form.previousFitnessExperience",
+        type: "text",
+        infoKey: "info.previousFitnessExperience",
+      },
+      {
+        name: "goal",
+        label: "form.goal",
+        type: "text",
+        infoKey: "info.goal",
+      },
+    ],
+  },
+  {
+    key: "activity",
+    title: "section.activity",
+    fields: [
+      {
+        name: "physicalActivityLevel",
+        label: "form.physicalActivityLevel",
+        type: "enum",
+        options: ["very_low", "low", "medium", "high", "very_high", "other"],
+        infoKey: "info.physicalActivityLevel",
+      },
+      {
+        name: "stepsPerDay",
+        label: "form.stepsPerDay",
+        type: "number",
+        infoKey: "info.stepsPerDay",
+      },
+      {
+        name: "favoriteActivities",
+        label: "form.favoriteActivities",
+        type: "array",
+        infoKey: "info.favoriteActivities",
+      },
+      {
+        name: "currentSports",
+        label: "form.currentSports",
+        type: "array",
+        infoKey: "info.currentSports",
+      },
+      {
+        name: "newActivitiesInterest",
+        label: "form.newActivitiesInterest",
+        type: "array",
+        infoKey: "info.newActivitiesInterest",
+      },
+    ],
+  },
+  {
+    key: "sport",
+    title: "section.sport",
+    fields: [
+      {
+        name: "minutesPerWorkout",
+        label: "form.minutesPerWorkout",
+        type: "number",
+        infoKey: "info.minutesPerWorkout",
+      },
+      {
+        name: "workoutsPerWeek",
+        label: "form.workoutsPerWeek",
+        type: "number",
+        infoKey: "info.workoutsPerWeek",
+      },
+      {
+        name: "workoutLocation",
+        label: "form.workoutLocation",
+        type: "enum",
+        options: ["home", "gym", "outdoor", "other"],
+        infoKey: "info.workoutLocation",
+      },
+      {
+        name: "equipmentAvailable",
+        label: "form.equipmentAvailable",
+        type: "array",
+        infoKey: "info.equipmentAvailable",
+      },
+    ],
+  },
+  {
+    key: "privileges",
+    title: "section.privileges",
+    fields: [
+      {
+        name: "accessLevel",
+        label: "form.accessLevel",
+        type: "number",
+        readOnly: true,
+        infoKey: "info.accessLevel",
+      },
+    ],
+  },
 ];
 
 function MyProfile() {
