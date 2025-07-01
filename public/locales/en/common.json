@@ -26,7 +26,7 @@
   "loginFailed": "Invalid email or password.",
   "hide": "Hide",
   "show": "Show",
-  "loading": "Saving...",
+  "loading": "Loading...",
   "save": "Save",
   "saveError": "Failed to save data!",
   "signedInMessage": "Successfully signed in.",

@@ -26,7 +26,7 @@
   "loginFailed": "Neteisingas el. paštas arba slaptažodis.",
   "hide": "Slėpti",
   "show": "Rodyti",
-  "loading": "Išsaugojama...",
+  "loading": "Kraunama...",
   "save": "Išsaugoti",
   "saveError": "Nepavyko išsaugoti duomenų!",
   "signedInMessage": "Sėkmingai prisijungėte.",
