@@ -39,10 +39,10 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
         {/* Prisijungimo/atsijungimo valdymas */}
         {!session ? (
           <button onClick={onSignIn} className="text-blue-900 font-medium hover:text-blue-700 rounded py-2">
-            {t('signIn')}
+            {t('menu.signIn')}
           </button>
         ) : (
-          <button onClick={() => signOut()} className="text-blue-900 font-medium hover:text-blue-700 rounded py-2">{t('signOut')}</button>
+          <button onClick={() => signOut()} className="text-blue-900 font-medium hover:text-blue-700 rounded py-2">{t('menu.signOut')}</button>
         )}
       </div>
     </nav>
