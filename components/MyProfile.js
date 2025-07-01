@@ -56,7 +56,7 @@ const MultiInput = ({ value, onChange, placeholder }) => {
       <input
         className="min-w-[80px] flex-1 border rounded px-2 py-1 text-sm"
         placeholder={placeholder || ""}
-        value={value === "" ? "" : options.includes(value) ? value : "other"}
+        value={input}
         onChange={e => setInput(e.target.value)}
         onKeyDown={e => {
           if ((e.key === "Enter" || e.key === "," || e.key === "Tab") && input.trim() !== "") {
@@ -82,7 +82,7 @@ const EnumSelect = ({
     <select
       name={name}
       className="w-full border rounded px-2 py-2"
-      value={value === "" ? "" : options.includes(value) ? value : "other"}
+      value={options.includes(value) ? value : "other"}
       onChange={e => {
         if (e.target.value === "other") {
           onChange("other");
@@ -95,17 +95,17 @@ const EnumSelect = ({
         -- Pasirinkti --
       </option>
       {options.map(opt => (
-        <option key={opt} value={value === "" ? "" : options.includes(value) ? value : "other"}>
+        <option key={opt} value={opt}>
           {labelOther(opt)}
         </option>
       ))}
-      <option value="other">{t("form.other", "Kita...")}</option>
+      <option value="other">Kita...</option>
     </select>
     {value === "other" && (
       <input
         type="text"
         className="border rounded px-2 py-2 w-32"
-        value={value === "" ? "" : options.includes(value) ? value : "other"}
+        value={otherValue || ""}
         onChange={e => setOtherValue(e.target.value)}
         placeholder="Įrašykite..."
       />
@@ -640,7 +640,7 @@ function MyProfile() {
                       </label>
                       <EnumSelect
                         name={f.name}
-                        value={value === "" ? "" : options.includes(value) ? value : "other"}
+                        value={val}
                         onChange={v => {
                           if (v === "other") handleOtherValue(f.name, otherValues[f.name] || "");
                           else handleChange(f.name, v);
@@ -662,7 +662,7 @@ function MyProfile() {
                         <InfoTooltip infoKey={f.infoKey} />
                       </label>
                       <MultiInput
-                        value={value === "" ? "" : options.includes(value) ? value : "other"}
+                        value={Array.isArray(val) ? val : []}
                         onChange={v => handleChange(f.name, v)}
                         placeholder={t(f.label)}
                       />
@@ -696,7 +696,7 @@ function MyProfile() {
                     <input
                       type={f.type}
                       name={f.name}
-                      value={value === "" ? "" : options.includes(value) ? value : "other"}
+                      value={val === null || val === undefined ? "" : val}
                       onChange={e => handleChange(f.name, e.target.value)}
                       disabled={f.readOnly}
                       className={`w-full border rounded px-3 py-2 ${
