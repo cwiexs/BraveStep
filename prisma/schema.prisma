@@ -56,69 +56,75 @@ enum PlanUpdateFrequency {
 }
 
 model User {
-  id                   String    @id @default(uuid())
-  name                 String?   @db.VarChar(50)
-  email                String    @unique @db.VarChar(100)
-  password             String
-  goal                 String?   @db.VarChar(100)
-  phone                String?   @db.VarChar(20)
-  preferredLanguage    String?   @db.VarChar(5)
-  profilePhotoUrl      String?   @db.VarChar(250)
-  dateOfBirth          DateTime?
-  gender               Gender?
-  city                 String?   @db.VarChar(50)
-  country              String?   @db.VarChar(50)
-  heightCm             Int?      @db.SmallInt
-  weightKg             Decimal?  @db.Decimal(5,2)
-  bodyType             BodyType?
-  fitnessLevel         FitnessLevel?
-  healthConditions     String[]  @db.VarChar(100)
-  allergies            String[]  @db.VarChar(100)
-  foodRestrictions     String[]  @db.VarChar(50)
-  jobType              String?   @db.VarChar(50)
-  workHoursPerDay      Float?
-  workSchedule         WorkSchedule?
-  wakeUpTime           String?   @db.VarChar(5)
-  bedTime              String?   @db.VarChar(5)
-  sleepHours           Float?
-  familyStatus         String?   @db.VarChar(50)
-  mealsPerDay          Int?      @db.SmallInt
-  eatsOutOften         Boolean?
-  favoriteActivities   String[]
-  gymMember            Boolean?
-  physicalActivityLevel PhysicalActivityLevel?
-  stepsPerDay          Int?
-  currentSports        String[]
-  newActivitiesInterest String[]
-  minutesPerWorkout    Int?
-  workoutsPerWeek      Int?
-  workoutLocation      WorkoutLocation?
-  equipmentAvailable   String[]
-  dietType             String?   @db.VarChar(50)
-  favoriteFoods        String[]
-  dislikedFoods        String[]
-  cuisinePreference    String[]
-  supplements          String[]
-  eatingHabits         String?   @db.VarChar(100)
-  coffeePerDay         Int?
-  teaPerDay            Int?
-  sugarPerDay          Int?
-  motivationLevel      Int?
-  mainObstacles        String?   @db.VarChar(200)
-  notifications        Boolean?
-  successDefinition    String?   @db.VarChar(200)
-  previousFitnessExperience String? @db.VarChar(200)
-  planUpdateFrequency  PlanUpdateFrequency?
-  hasInsurance         Boolean?
-  smokes               Boolean?
-  alcohol              String?   @db.VarChar(50)
-  stressLevel          Int?
-  medications          String[]  @db.VarChar(100)
-  smartWatch           Boolean?
-  goalDeadline         DateTime?
-  wantsRestRecommendations Boolean?
-  accessLevel          Int?      @default(0)
-  created_at           DateTime  @default(now())
+  id                         String     @id @default(uuid())
+  name                       String?    @db.VarChar(50)
+  email                      String     @unique @db.VarChar(100)
+  password                   String
+  phone                      String?    @db.VarChar(20)
+  preferredLanguage          String?    @db.VarChar(5)
+  profilePhotoUrl            String?    @db.VarChar(250)
+  dateOfBirth                DateTime?
+  gender                     Gender?
+  city                       String?    @db.VarChar(50)
+  country                    String?    @db.VarChar(50)
+  address                    String?    @db.VarChar(100)  // papildomai, jei nori surinkti adresą
+  heightCm                   Int?       @db.SmallInt
+  weightKg                   Decimal?   @db.Decimal(5,2)
+  bodyType                   BodyType?
+  fitnessLevel               FitnessLevel?
+  healthConditions           String[]   @db.VarChar(100)
+  allergies                  String[]   @db.VarChar(100)
+  foodRestrictions           String[]   @db.VarChar(50)
+  jobType                    String?    @db.VarChar(50)
+  workHoursPerDay            Float?
+  workSchedule               WorkSchedule?
+  wakeUpTime                 String?    @db.VarChar(5)
+  bedTime                    String?    @db.VarChar(5)
+  sleepHours                 Float?
+  familyStatus               String?    @db.VarChar(50)
+  mealsPerDay                Int?       @db.SmallInt
+  eatsOutOften               Boolean?
+  favoriteActivities         String[]   @db.VarChar(50)
+  gymMember                  Boolean?
+  physicalActivityLevel      PhysicalActivityLevel?
+  stepsPerDay                Int?
+  currentSports              String[]   @db.VarChar(50)
+  newActivitiesInterest      String[]   @db.VarChar(50)
+  minutesPerWorkout          Int?
+  workoutsPerWeek            Int?
+  workoutLocation            WorkoutLocation?
+  equipmentAvailable         String[]   @db.VarChar(50)
+  dietType                   String?    @db.VarChar(50)
+  favoriteFoods              String[]   @db.VarChar(50)
+  dislikedFoods              String[]   @db.VarChar(50)
+  cuisinePreference          String[]   @db.VarChar(50)
+  supplements                String[]   @db.VarChar(50)
+  eatingHabits               String?    @db.VarChar(100)
+  coffeePerDay               Int?
+  teaPerDay                  Int?
+  sugarPerDay                Int?
+  motivationLevel            Int?
+  mainObstacles              String?    @db.VarChar(200)
+  notifications              Boolean?
+  successDefinition          String?    @db.VarChar(200)
+  previousFitnessExperience  String?    @db.VarChar(200)
+  planUpdateFrequency        PlanUpdateFrequency?
+  hasInsurance               Boolean?
+  smokes                     Boolean?
+  alcohol                    String?    @db.VarChar(50)
+  stressLevel                Int?
+  medications                String[]   @db.VarChar(100)
+  smartWatch                 Boolean?
+  goal                       String?    @db.VarChar(100)
+  goalDeadline               DateTime?
+  wantsRestRecommendations   Boolean?
+  accessLevel                Int?       @default(0)
+  additionalNotes            String?    @db.VarChar(500)    // papildomi komentarai/pastabos
+  preferredContactTime       String?    @db.VarChar(20)     // jei nori
+  referralSource             String?    @db.VarChar(100)    // iš kur sužinojo
+  created_at                 DateTime   @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
 
   @@map("users")
 }
