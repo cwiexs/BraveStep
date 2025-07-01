@@ -1,0 +1,16 @@
+{
+  "guest": {
+    "title": "Future workouts are powered by AI!",
+    "info": "Sign in to experience personalized workouts as soon as they launch. For now, enjoy this demo view.",
+    "generate": "Generate workout",
+    "generating": "Generating workout..."
+  },
+  "member": {
+    "title": "Welcome back!",
+    "encouragement": "Great job searching for workouts! Choose your action:",
+    "confirmPrevious": "Confirm previous data",
+    "showHistory": "Show previous workouts",
+    "generate": "Generate new workout",
+    "generating": "Generating new workout..."
+  }
+}

@@ -1,42 +1,65 @@
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import { signOut } from "next-auth/react";
-import { Menu, X } from "lucide-react"; // arba naudok bet kokią burger ikonos biblioteką
+import { useRouter } from "next/router";
+import { Menu, X } from "lucide-react";
 
-export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
+export default function Navbar({ onHome, onSignIn, session, onMyProfile, onWorkouts }) {
   const { t } = useTranslation("common");
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Visų meniu punktų masyvas – DRY!
+  // Kurio puslapio route aktyvus (pvz., /workouts)
+  const isActive = (href) => router.pathname === href;
+
   const menuItems = [
-    { label: t("menu.home"), onClick: onHome },
-    { label: t("menu.workouts"), onClick: null },
-    { label: t("menu.nutrition"), onClick: null },
-    { label: t("menu.health"), onClick: null },
+    {
+      label: t("menu.home"),
+      onClick: onHome,
+      href: "/"
+    },
+    {
+      label: t("menu.workouts"),
+      onClick: onWorkouts,
+      href: "/workouts"
+    },
+    {
+      label: t("menu.nutrition"),
+      onClick: null,
+      href: "/nutrition"
+    },
+    {
+      label: t("menu.health"),
+      onClick: null,
+      href: "/health"
+    },
   ];
 
   return (
     <nav className="w-full flex justify-between items-center pb-8 px-4 relative z-20">
-      {/* Kairė – logotipas ar tuščias blokas */}
       <div className="flex items-center gap-4">
-        {/* Kompiuteriui (md+) */}
+        {/* Kompiuterio meniu */}
         <ul className="hidden md:flex gap-8 text-blue-900 font-medium">
           {menuItems.map((item, i) => (
             <li key={i}>
-              {item.onClick ? (
-                <button onClick={item.onClick} className="hover:text-blue-700 transition">
-                  {item.label}
-                </button>
-              ) : (
-                <span className="hover:text-blue-700 transition cursor-pointer">{item.label}</span>
-              )}
+              <button
+                onClick={item.onClick}
+                className={`hover:text-blue-700 transition ${
+                  isActive(item.href) ? "font-bold underline text-blue-700" : ""
+                }`}
+                type="button"
+              >
+                {item.label}
+              </button>
             </li>
           ))}
           {session && (
             <li>
               <button
                 onClick={onMyProfile}
-                className="hover:text-blue-700 transition"
+                className={`hover:text-blue-700 transition ${
+                  isActive("/my-profile") ? "font-bold underline text-blue-700" : ""
+                }`}
                 type="button"
               >
                 {t("menu.myProfile")}
@@ -44,7 +67,7 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
             </li>
           )}
         </ul>
-        {/* Burger mygtukas (tik mobiliems) */}
+        {/* Burger */}
         <button
           className="md:hidden text-blue-900 hover:text-blue-700 p-2"
           onClick={() => setMenuOpen(true)}
@@ -53,7 +76,6 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
           <Menu size={32} />
         </button>
       </div>
-
       {/* Prisijungimo/atsijungimo kompiuteriui */}
       <div className="hidden md:flex items-center gap-4">
         {!session ? (
@@ -72,16 +94,12 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
           </button>
         )}
       </div>
-
-      {/* Mobili burger meniu dalis */}
+      {/* Mobilus burger meniu */}
       {menuOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex">
-          {/* Šoninis meniu */}
           <div className="bg-white w-64 max-w-full h-full p-6 shadow-2xl flex flex-col">
             <div className="flex justify-between items-center mb-8">
-              <span className="text-2xl font-bold text-blue-900">
-                Menu
-              </span>
+              <span className="text-2xl font-bold text-blue-900">Menu</span>
               <button
                 onClick={() => setMenuOpen(false)}
                 className="text-blue-900 hover:text-blue-700 p-2"
@@ -93,21 +111,18 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
             <ul className="flex flex-col gap-4 text-blue-900 font-medium mb-6">
               {menuItems.map((item, i) => (
                 <li key={i}>
-                  {item.onClick ? (
-                    <button
-                      onClick={() => {
-                        item.onClick();
-                        setMenuOpen(false);
-                      }}
-                      className="hover:text-blue-700 text-lg transition"
-                    >
-                      {item.label}
-                    </button>
-                  ) : (
-                    <span className="hover:text-blue-700 text-lg transition cursor-pointer">
-                      {item.label}
-                    </span>
-                  )}
+                  <button
+                    onClick={() => {
+                      item.onClick && item.onClick();
+                      setMenuOpen(false);
+                    }}
+                    className={`hover:text-blue-700 text-lg transition ${
+                      isActive(item.href) ? "font-bold underline text-blue-700" : ""
+                    }`}
+                    type="button"
+                  >
+                    {item.label}
+                  </button>
                 </li>
               ))}
               {session && (
@@ -117,7 +132,9 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
                       onMyProfile();
                       setMenuOpen(false);
                     }}
-                    className="hover:text-blue-700 text-lg transition"
+                    className={`hover:text-blue-700 text-lg transition ${
+                      isActive("/my-profile") ? "font-bold underline text-blue-700" : ""
+                    }`}
                     type="button"
                   >
                     {t("menu.myProfile")}
@@ -125,7 +142,7 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
                 </li>
               )}
             </ul>
-            {/* Prisijungimo/atsijungimo mygtukas mobiliai */}
+            {/* Prisijungimo/atsijungimo burger meniu */}
             <div className="mt-auto pt-4 flex flex-col gap-2 border-t">
               {!session ? (
                 <button
@@ -150,12 +167,8 @@ export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
               )}
             </div>
           </div>
-          {/* Paspaudus ant šoninio šešėlio – uždaro */}
-          <div
-            className="flex-1"
-            onClick={() => setMenuOpen(false)}
-            aria-label="Uždaryti meniu"
-          />
+          {/* Šešėlis – paspaudus uždaro */}
+          <div className="flex-1" onClick={() => setMenuOpen(false)} aria-label="Uždaryti meniu" />
         </div>
       )}
     </nav>

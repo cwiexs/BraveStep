@@ -1,0 +1,16 @@
+{
+  "guest": {
+    "title": "Ateities treniruotės kuriamos dirbtiniu intelektu!",
+    "info": "Prisijunkite prie sistemos ir galėsite išbandyti personalizuotus workout'us, kai jie bus paleisti. Kol kas tai tik demonstracinis vaizdas.",
+    "generate": "Generuoti treniruotę",
+    "generating": "Treniruotė generuojama..."
+  },
+  "member": {
+    "title": "Sveikiname prisijungus!",
+    "encouragement": "Puikiai darai, kad domiesi treniruotėmis! Pasirink norimą veiksmą:",
+    "confirmPrevious": "Patvirtinti ankstesnius duomenis",
+    "showHistory": "Žiūrėti praeitus workout'us",
+    "generate": "Generuoti naują treniruotę",
+    "generating": "Generuojama nauja treniruotė..."
+  }
+}
