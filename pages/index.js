@@ -29,48 +29,50 @@ export default function Home() {
   return (
     <div className="min-h-screen">
       <BookPageLayout>
-        <Navbar
-          onHome={() => setView('welcome')}
-          onSignIn={() => setView('login')}
+  <Navbar
+    onHome={() => setView('welcome')}
+    onSignIn={() => setView('login')}
+    onSignUp={() => setView('signup')}
+    session={session}
+    onLanguageChange={handleLanguageChange}
+    onMyProfile={handleMyProfile}
+  />
+  {!session ? (
+    <>
+      {view === 'welcome' && (
+        <>
+          <WelcomeSection
+            onSignIn={() => setView('login')}
+            onSignUp={() => setView('signup')}
+          />
+          <FeaturesSection />
+        </>
+      )}
+      {view === 'login' && (
+        <SignIn
           onSignUp={() => setView('signup')}
-          session={session}
-          onLanguageChange={handleLanguageChange}
-          onMyProfile={handleMyProfile}
+          onHome={() => setView('welcome')}
         />
-        {!session ? (
-          <>
-            {view === 'welcome' && (
-              <>
-                <WelcomeSection
-                  onSignIn={() => setView('login')}
-                  onSignUp={() => setView('signup')}
-                />
-                <FeaturesSection />
-              </>
-            )}
-            {view === 'login' && (
-              <SignIn
-                onSignUp={() => setView('signup')}
-                onHome={() => setView('welcome')}
-              />
-            )}
-            {view === 'signup' && (
-              <SignUp
-                onSignIn={() => setView('login')}
-                onHome={() => setView('welcome')}
-              />
-            )}
-          </>
-        ) : (
-          <>
-            {view === 'profile' ? (
-              <MyProfile />
-            ) : (
-              <MemberSection user={session.user} />
-            )}
-          </>
-        )}
-      </BookPageLayout>
+      )}
+      {view === 'signup' && (
+        <SignUp
+          onSignIn={() => setView('login')}
+          onHome={() => setView('welcome')}
+        />
+      )}
+    </>
+  ) : (
+    <>
+      {/* MY PROFILE VISADA DOM’E */}
+      <div className={view === 'profile' ? '' : 'hidden'}>
+        <MyProfile />
+      </div>
+      <div className={view === 'profile' ? 'hidden' : ''}>
+        <MemberSection user={session.user} />
+      </div>
+    </>
+  )}
+</BookPageLayout>
     </div>
   );
 }
