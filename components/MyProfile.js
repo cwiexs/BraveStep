@@ -88,8 +88,8 @@ useEffect(() => {
   }
 
   return (
-    <form className="max-w-sm ml-0 p-4 bg-white rounded px-3 py-1 shadow" onSubmit={e => e.preventDefault()}>
-      <h2 className="text-xl font-bold mb-4">{t('myProfile')}</h2>
+    <form className="max-w-sm ml-0 p-4 bg-white" onSubmit={e => e.preventDefault()}>
+      <h2 className="text-blue-900 font-medium hover:text-blue-700 rounded px-4 py-2 text-3xl transition">{t('myProfile')}</h2>
 
       <FieldRow label={t('name')}         type="text"  field="name"        />
       <FieldRow label={t('email')}        type="email" field="email"       disabled />
