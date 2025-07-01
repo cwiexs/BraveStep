@@ -606,7 +606,7 @@ function MyProfile() {
 
   return (
     <div className="max-w-3xl mx-auto mt-8 mb-16 bg-white rounded-2xl shadow-lg p-6">
-      <h1 className="text-blue-900 font-medium flex justify-center hover:text-blue-700 rounded px-4 py-2 text-3xl transition">{t("form.myProfile")}</h1>
+      <h1 className="text-blue-900 font-medium flex justify-center hover:text-blue-700 rounded px-4 py-2 text-3xl transition mb-10">{t("form.myProfile")}</h1>
       <div className="flex gap-2 mb-6 flex-wrap">
         {sections.map(sec => (
           <button
