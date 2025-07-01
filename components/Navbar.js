@@ -1,15 +1,17 @@
+import { useRouter } from "next/router";
 import { useState } from "react";
 import { useTranslation } from "next-i18next";
 import { signOut } from "next-auth/react";
 import { Menu, X } from "lucide-react";
 
-export default function Navbar({ onHome, onWorkouts, onSignIn, session, onMyProfile }) {
+export default function Navbar({ onHome, onSignIn, session, onMyProfile }) {
   const { t } = useTranslation("common");
+  const router = useRouter();
   const [menuOpen, setMenuOpen] = useState(false);
 
   const menuItems = [
     { label: t("menu.home"), onClick: onHome },
-    { label: t("menu.workouts"), onClick: onWorkouts },
+    { label: t("menu.workouts"), onClick: () => router.push("/workouts") },
     { label: t("menu.nutrition"), onClick: null },
     { label: t("menu.health"), onClick: null },
   ];
