@@ -148,7 +148,11 @@
     "medications": "Vartojami vaistai",
     "goalDeadline": "Tikslo pasiekimo data",
     "wantsRestRecommendations": "Reikia rekomendacijų poilsiui?",
-    "accessLevel": "Prieigos lygis"
+    "accessLevel": "Prieigos lygis",
+    "myProfile": "Mano profilis",
+    "saveSuccess": "Sėkmingai išsaugota!",
+    "saveError": "Nepavyko išsaugoti duomenų!",
+    "saving": "Išsaugojama..."
   },
   "info": {
     "name": "Įrašykite tikrą vardą. Pvz.: Jonas.",
@@ -209,6 +213,16 @@
     "goalDeadline": "Kada norėtumėte pasiekti tikslą?",
     "wantsRestRecommendations": "Pažymėkite, jei norite gauti patarimų dėl poilsio.",
     "accessLevel": "Automatiškai priskiriamas. Nekoreguojamas rankiniu būdu."
+  },
+  "section": {
+    "personal": "Asmeninė informacija",
+    "body": "Kūno duomenys",
+    "health": "Sveikata",
+    "nutrition": "Mityba",
+    "lifestyle": "Gyvensena",
+    "activity": "Aktyvumas",
+    "sport": "Sportas",
+    "privileges": "Privilegijos"
   },
   "gender": {
     "male": "Vyras",
