@@ -1,16 +1,15 @@
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useState } from "react";
+import ReactMarkdown from "react-markdown";
 
 export default function Workouts() {
   const { data: session, status } = useSession();
   const { t } = useTranslation("workouts");
 
-  // Papildomai: saugoti sugeneruotą planą state
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // ŠITA funkcija bus kviečiama mygtuko paspaudimu
   async function handleGeneratePlan() {
     setLoading(true);
     setPlan(null);
@@ -46,8 +45,8 @@ export default function Workouts() {
           {loading ? "Generuojama..." : t("generateWorkout") || "Generuoti naują treniruotę"}
         </button>
         {plan && (
-          <div className="mt-6 p-4 bg-gray-100 rounded">
-            <pre className="text-left text-sm">{JSON.stringify(plan, null, 2)}</pre>
+          <div className="mt-6 p-4 bg-gray-100 rounded text-left">
+            <ReactMarkdown className="prose prose-sm max-w-none">{plan.text}</ReactMarkdown>
           </div>
         )}
       </div>
