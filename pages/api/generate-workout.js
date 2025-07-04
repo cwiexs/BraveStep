@@ -23,14 +23,19 @@ export default async function handler(req, res) {
 
   // 3. Atmetam jautrius laukus
   const {
-    password,
-    email,
-    id,
-    created_at,
-    updated_at,
-    preferredLanguage,
-    ...userData
-  } = user;
+  password,
+  email,
+  id,
+  created_at,
+  updated_at,
+  preferredLanguage,
+  ...userData
+} = user;
+
+// Konvertuoja weightKg į skaičių, jei buvo tekstas
+if (userData.weightKg !== undefined && userData.weightKg !== null) {
+  userData.weightKg = Number(String(userData.weightKg).replace(",", "."));
+}
 
   // 4. Kalbos nustatymas
   let languageString = "English";
