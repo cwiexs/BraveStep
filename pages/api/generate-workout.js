@@ -48,6 +48,7 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
     profilePhotoUrl: "Ignore. This is a profile photo URL, not relevant for workouts.",
     dateOfBirth: "Use to determine the client's age and adapt recommendations for age.",
     gender: "Consider any gender-specific physiological aspects when making recommendations.",
+    preferredLanguage: "The language in which the user prefers to receive all workout plan instructions, motivational messages, and exercise descriptions. Absolutely all output must be in this language.",
     city: "The client's city, for location-based recommendations or climate.",
     country: "The client's country, for cultural or climate context.",
     address: "May be ignored, unless relevant for logistics.",
@@ -108,14 +109,16 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
   };
 
   // 6. Promptas AI su duomenų validacija ir motyvacija kiekvienai dienai
- const promptParts = [
+const promptParts = [
   `You are a professional fitness coach and data safety validator.`,
   `First, carefully analyze all the provided user information for logic, realism, safety, and appropriateness.`,
   `Completely ignore grammar, spelling, or language mistakes in the provided data, as long as the intended meaning is clear. Infer the user's intent as a human would, even if the wording is imperfect. Do not reject data because of language, grammar, or typing mistakes.`,
   `If any of the data fields or goals are unrealistic, impossible, unsafe, contain bad intentions, or make it impossible to safely create a workout plan, DO NOT create a plan. Instead, return a clear list of which fields are problematic and why they are inappropriate, unsafe, or illogical. Respond ONLY with: "Cannot create plan: [reason(s)]".`,
-  `If some important fields are missing (for example, fitness goals, available equipment, or current fitness level), DO NOT reject the request. Instead, generate the best possible workout plan based on the information that is available. Clearly state at the beginning or end of your response which fields are missing, and provide specific recommendations to the user on why filling in those fields would help you create an even more accurate and safe plan in the future.`,
+  `If some important fields are missing (for example, fitness goals, available equipment, or current fitness level), DO NOT reject the request. Instead, generate the best possible workout plan based on the information that is available. At the beginning or end of your response, clearly list the missing fields and provide specific recommendations to the user on why filling in those fields would help you create an even more accurate and safe plan in the future.`,
   `If all the provided data is realistic, logical, and safe, proceed to generate a highly personalized and safe workout plan according to the user's information.`,
-  `For each field, here is its meaning and value:`
+  `Absolutely ALL workout plan instructions, exercise descriptions, motivational messages, and every part of your response MUST be in the user's preferred language, which is provided as 'preferredLanguage'. DO NOT mix languages. DO NOT use English if a different language is specified. If 'preferredLanguage' is missing, use English by default.`,
+  `For each day, start the plan with a unique motivational message for starting the workout, and finish each day with a unique motivational message for ending the workout. For every exercise, add a short, beginner-friendly description in the user's preferred language. If the exercise name is complex, briefly explain it.`,
+  `Here are the field descriptions and their values:`
 ];
 
   for (const [key, value] of Object.entries(userData)) {
