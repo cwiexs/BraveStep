@@ -104,13 +104,13 @@ export default async function handler(req, res) {
 
   // 6. Promptas AI su duomenų validacija ir motyvacija kiekvienai dienai
   const promptParts = [
-    `You are a professional fitness coach and data safety validator.`,
-    `First, carefully analyze all the provided user information for logic, realism, safety, and appropriateness.`,
-    `If any of the data fields are unrealistic, unsafe, contain bad intentions, or make it impossible to safely create a workout plan, DO NOT create a plan. Instead, return a clear list of which fields are problematic and why they are inappropriate, unsafe, or illogical. Respond ONLY with: "Cannot create plan: [reason(s)]".`,
-    `If all the provided data is realistic, logical, and safe, proceed to generate a highly personalized and safe workout plan according to the user's information.`,
-    ``,
-    `For each field, here is its meaning and value:`
-  ];
+  `You are a professional fitness coach and data safety validator.`,
+  `First, carefully analyze all the provided user information for logic, realism, safety, and appropriateness.`,
+  `Completely ignore grammar, spelling, or language mistakes in the provided data, as long as the intended meaning is clear. Infer the user's intent as a human would, even if the wording is imperfect. Do not reject data because of language, grammar, or typing mistakes.`,
+  `If any of the data fields or goals are unrealistic, impossible, unsafe, contain bad intentions, or make it impossible to safely create a workout plan, DO NOT create a plan. Instead, return a clear list of which fields are problematic and why they are inappropriate, unsafe, or illogical. Respond ONLY with: "Cannot create plan: [reason(s)]".`,
+  `If all the provided data is realistic, logical, and safe, proceed to generate a highly personalized and safe workout plan according to the user's information.`,
+  `For each field, here is its meaning and value:`
+];
 
   for (const [key, value] of Object.entries(userData)) {
     if (
