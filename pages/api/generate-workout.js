@@ -28,17 +28,16 @@ export default async function handler(req, res) {
     id,
     created_at,
     updated_at,
+    preferredLanguage,
     ...userData
   } = user;
 
   // 4. Kalbos nustatymas
-  const preferredLanguage = user.preferredLanguage || "en";
   let languageString = "English";
-  if (preferredLanguage.toLowerCase() === "lt") languageString = "Lithuanian";
-  if (preferredLanguage.toLowerCase() === "ru") languageString = "Russian";
-  // galima pridėti daugiau kalbų jei reikia
+  if (preferredLanguage?.toLowerCase() === "lt") languageString = "Lithuanian";
+  if (preferredLanguage?.toLowerCase() === "ru") languageString = "Russian";
 
-  // 5. Visų laukų aprašymai (KEY = tavo DB stulpelis, VALUE = AI instrukcija)
+  // 5. Visų laukų aprašymai
   const descriptions = {
     name: "The client's first name for a more personal plan.",
     profilePhotoUrl: "Ignore. This is a profile photo URL, not relevant for workouts.",
@@ -103,9 +102,14 @@ export default async function handler(req, res) {
     referralSource: "Ignore.",
   };
 
-  // 6. Promptas AI: kiekvienas laukas su paaiškinimu ir verte
+  // 6. Promptas AI su duomenų validacija ir motyvacija kiekvienai dienai
   const promptParts = [
-    `You are a professional fitness coach. Below is the client's personal data. For each field, use the description to understand its relevance. Analyze everything and create a safe, highly personalized and realistic workout plan.`,
+    `You are a professional fitness coach and data safety validator.`,
+    `First, carefully analyze all the provided user information for logic, realism, safety, and appropriateness.`,
+    `If any of the data fields are unrealistic, unsafe, contain bad intentions, or make it impossible to safely create a workout plan, DO NOT create a plan. Instead, return a clear list of which fields are problematic and why they are inappropriate, unsafe, or illogical. Respond ONLY with: "Cannot create plan: [reason(s)]".`,
+    `If all the provided data is realistic, logical, and safe, proceed to generate a highly personalized and safe workout plan according to the user's information.`,
+    ``,
+    `For each field, here is its meaning and value:`
   ];
 
   for (const [key, value] of Object.entries(userData)) {
@@ -115,17 +119,15 @@ export default async function handler(req, res) {
       (Array.isArray(value) && value.length === 0)
     )
       continue;
-    // Jei yra AI aprašymas, pridedam jį, jei ne – tik pavadinimą
-    const desc = descriptions[key]
-      ? `[${descriptions[key]}]`
-      : "";
-    promptParts.push(
-      `${key}: ${JSON.stringify(value)} ${desc}`
-    );
+    const desc = descriptions[key] ? `[${descriptions[key]}]` : "";
+    promptParts.push(`${key}: ${JSON.stringify(value)} ${desc}`);
   }
 
   promptParts.push(
-    `IMPORTANT: Write the plan in ${languageString}. For EVERY exercise, include a short and clear description that even a beginner would understand. Explain any exercise with a complicated name. The weekly structure must match the client's schedule, available equipment and goal. If information is missing, make your best professional assumptions.`
+    `IMPORTANT INSTRUCTIONS: 
+- NEVER generate a workout plan if there are any doubts about the safety, realism, or appropriateness of the input data. 
+- ALWAYS give a clear, structured response in ${languageString}. 
+- If you generate a workout plan: For EVERY DAY, start with a unique motivational message to encourage starting the workout, and finish with a unique motivational message for the end of the workout. For EVERY EXERCISE, add a short, beginner-friendly description. If any exercise has a complicated name, explain it briefly. The weekly structure must match the client's schedule, available equipment, and goal. If any data is missing, make your best professional assumptions.`
   );
 
   const aiPrompt = promptParts.join("\n\n");
@@ -142,10 +144,10 @@ export default async function handler(req, res) {
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
         messages: [
-          { role: "system", content: "You are a professional fitness coach." },
+          { role: "system", content: "You are a professional fitness coach and data safety validator." },
           { role: "user", content: aiPrompt },
         ],
-        max_tokens: 900,
+        max_tokens: 1200,
         temperature: 0.7,
       }),
     });
@@ -159,10 +161,14 @@ export default async function handler(req, res) {
   }
 
   const aiData = await aiResponse.json();
-
   const generatedText = aiData.choices?.[0]?.message?.content || "No plan generated.";
 
-  // 8. Įrašom į DB
+  // Jei AI atsako "Cannot create plan:" – plano neišsaugom, grąžinam vartotojui
+  if (generatedText.startsWith("Cannot create plan:")) {
+    return res.status(400).json({ error: "AI validation failed", details: generatedText });
+  }
+
+  // Kitaip – saugom kaip įprasta
   let newPlan;
   try {
     newPlan = await prisma.generatedPlan.create({
@@ -176,6 +182,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: "Database error", details: String(dbError) });
   }
 
-  // 9. Grąžinam klientui
   res.status(200).json({ plan: newPlan.planData });
 }
