@@ -1,5 +1,5 @@
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]"; // pakeisk kelią jei tavo nextauth failas kitoje vietoje
+import { authOptions } from "./auth/[...nextauth]"; // pakeisk kelią jei tavo nextauth failas kitoje vietoje
 import { prisma } from "../../lib/prisma"; // pakeisk jei tavo prisma helperis kitur
 
 export default async function handler(req, res) {
