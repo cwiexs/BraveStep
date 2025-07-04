@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 
 export default function Workouts() {
@@ -9,6 +9,16 @@ export default function Workouts() {
 
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Užkrauna naujausią planą kai prisijungiama
+  useEffect(() => {
+    if (session) {
+      fetch("/api/last-workout")
+        .then(res => res.json())
+        .then(data => setPlan(data.plan))
+        .catch(() => setPlan(null));
+    }
+  }, [session]);
 
   async function handleGeneratePlan() {
     setLoading(true);
