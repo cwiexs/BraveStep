@@ -67,7 +67,7 @@ model User {
   gender                     Gender?
   city                       String?    @db.VarChar(50)
   country                    String?    @db.VarChar(50)
-  address                    String?    @db.VarChar(100)  // papildomai, jei nori surinkti adresą
+  address                    String?    @db.VarChar(100)
   heightCm                   Int?       @db.SmallInt
   weightKg                   Decimal?   @db.Decimal(5,2)
   bodyType                   BodyType?
@@ -119,12 +119,23 @@ model User {
   goalDeadline               DateTime?
   wantsRestRecommendations   Boolean?
   accessLevel                Int?       @default(0)
-  additionalNotes            String?    @db.VarChar(500)    // papildomi komentarai/pastabos
-  preferredContactTime       String?    @db.VarChar(20)     // jei nori
-  referralSource             String?    @db.VarChar(100)    // iš kur sužinojo
+  additionalNotes            String?    @db.VarChar(500)
+  preferredContactTime       String?    @db.VarChar(20)
+  referralSource             String?    @db.VarChar(100)
   created_at                 DateTime   @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  updated_at                 DateTime   @default(now()) @updatedAt
 
+  generatedPlans             GeneratedPlan[]
 
   @@map("users")
+}
+
+model GeneratedPlan {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  type      String
+  planData  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
