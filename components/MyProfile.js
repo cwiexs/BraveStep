@@ -640,13 +640,21 @@ function MyProfile() {
 
   };
 
-  const finalData = {
+const finalData = {
   ...fields,
   ...Object.keys(otherValues).reduce((acc, key) => {
-    acc[key] = otherValues[key];
+    const fieldDef = sections
+      .flatMap(s => s.fields)
+      .find(f => f.name === key);
+    
+    if (fieldDef && fieldDef.options && !fieldDef.options.includes(fields[key])) {
+      acc[key] = otherValues[key];
+    }
+
     return acc;
   }, {})
-}
+};
+
 
   // Ar yra pokyčių?
   const isChanged = useMemo(
