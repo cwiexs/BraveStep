@@ -129,16 +129,21 @@ const EnumSelectWithOther = ({
       </div>
       {/* Jei pasirinkta "other" – rodom didelį tekstinį lauką */}
       {isOther && (
-        <textarea
-          className="border rounded px-2 py-2 w-full min-h-[48px] max-h-40"
-          value={otherValue}
-          onChange={e => setOtherValue(e.target.value)}
-          placeholder={t("form.enterOther") || "Enter..."}
-        />
-      )}
-    </div>
-  );
-};
+          <textarea
+            className="border rounded px-2 py-2 w-full min-h-[48px] max-h-40"
+            value={otherValue}
+            onChange={e => {
+              setOtherValue(e.target.value);       // saugo į otherValues
+              onChange(e.target.value);            // iš karto atnaujina ir pagrindinį field
+            }}
+            placeholder={t("form.enterOther") || "Enter..."}
+          />
+        )}
+
+
+            </div>
+          );
+        };
 
 // Paprastas ENUM select (be "other" logikos) — naudojamas gender
 const SimpleEnumSelect = ({
@@ -660,7 +665,7 @@ function MyProfile() {
       const res = await fetch("/api/users", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(fields),
+        body: JSON.stringify(finalData),
       });
       if (!res.ok) throw new Error(await res.text());
       setSuccess(t("form.saveSuccess"));
