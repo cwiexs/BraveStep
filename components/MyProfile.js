@@ -98,7 +98,7 @@ const EnumSelectWithOther = ({
   name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey,
 }) => {
   const { t } = useTranslation();
-  const isOther = value && !options.includes(value);
+  const isOther = value === "" && (otherValue !== undefined && otherValue !== "");
 
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -131,7 +131,7 @@ const EnumSelectWithOther = ({
       {isOther && (
         <textarea
           className="border rounded px-2 py-2 w-full min-h-[48px] max-h-40"
-          value={value}
+          value={otherValue}
           onChange={e => setOtherValue(e.target.value)}
           placeholder={t("form.enterOther") || "Enter..."}
         />
