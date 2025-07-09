@@ -650,18 +650,13 @@ const handleOtherValue = (field, value) => {
                           {t(f.label)}
                         </label>
                         <EnumSelect
-                          name={f.name}
-                          value={val}
-                          onChange={v => {
-                            if (v === "other") handleOtherValue(f.name, otherValues[f.name] || "");
-                            else handleChange(f.name, v);
-                          }}
-                          options={f.options.filter(opt => opt !== "other")}
-                          otherValue={otherValues[f.name] || ""}
-                          setOtherValue={v => handleOtherValue(f.name, v)}
-                          labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-                          infoKey={f.infoKey}
-                        />
+                            name={f.name}
+                            value={val}
+                            onChange={v => handleChange(f.name, v)}
+                            options={f.options}
+                            labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+                            infoKey={f.infoKey}
+                          />
                         {/* PAPILDOMA: */}
                         {f.name === "bodyType" && val === "unknown" && (
                           <div className="mt-3">
