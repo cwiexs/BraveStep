@@ -584,14 +584,14 @@ function MyProfile() {
   };
 
   // Multiinput "other" logika
-  const handleOtherValue = (field, value) => {
-    setOtherValues(prev => ({ ...prev, [field]: value }));
-    setFields(prev => ({
-      ...prev,
-      [field]: "other",
-      [`${field}Other`]: value,
-    }));
-  };
+const handleOtherValue = (field, value) => {
+  setOtherValues(prev => ({ ...prev, [field]: value }));
+  setFields(prev => ({
+    ...prev,
+    [field]: value, 
+    [`${field}Other`]: value,
+  }));
+};
 
   // Ar yra pokyčių?
   const isChanged = useMemo(
