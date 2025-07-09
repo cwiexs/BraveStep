@@ -711,7 +711,7 @@ function MyProfile() {
               {sec.fields.map(f => {
                 const val = fields[f.name] ?? "";
                 // Gender — paprastas select be "other"
-                if (f.type === "enum" && f.name === "gender") {
+                if (f.type === "enum" && f.name === "gender", "bodyType") {
                   return (
                     <div key={f.name} className="mb-4">
                       <label className="block mb-1 font-medium text-blue-900">
