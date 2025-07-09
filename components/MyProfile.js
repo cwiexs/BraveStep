@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { CheckCircle2, Info } from "lucide-react";
+import EnumSelect from "./EnumSelect";
 
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
