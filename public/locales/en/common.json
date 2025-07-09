@@ -163,7 +163,7 @@
     "email": "This field cannot be edited.",
     "phone": "Phone number. E.g.: +447123456789.",
     "dateOfBirth": "Required for precise age, plan, and calorie calculations.",
-    "gender": "Select your gender. If you select 'Other', specify below. E.g.: agender.",
+    "gender": "Select your gender.",
     "city": "City of residence. E.g.: Vilnius.",
     "country": "Country of residence. E.g.: Lithuania.",
     "preferredLanguage": "Your plan and system will be displayed in your chosen language.",

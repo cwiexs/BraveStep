@@ -163,7 +163,7 @@
     "email": "Šis laukas nekoreguojamas.",
     "phone": "Telefono numeris. Pvz.: +37061234567.",
     "dateOfBirth": "Reikalinga tiksliam amžiaus, plano, kalorijų skaičiavimui.",
-    "gender": "Pasirinkite lytį. Jei pasirenkate \"Kita\", nurodykite laukelyje žemiau. Pvz.: agender.",
+    "gender": "Pasirinkite lytį.",
     "city": "Gyvenamoji vieta (miestas). Pvz.: Vilnius.",
     "country": "Gyvenamoji vieta (šalis). Pvz.: Lietuva.",
     "preferredLanguage": "Planas ir sistema bus rodoma jūsų pageidaujama kalba.",

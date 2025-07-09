@@ -93,55 +93,33 @@ const MultiInput = ({ value, onChange, placeholder }) => {
   );
 };
 
-// ENUM'ų select'ai su "Kita" logika
+// Paprastas ENUM select 
 const EnumSelect = ({
-  name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey,
+  name, value, onChange, options, infoKey, labelOther,
 }) => {
   const { t } = useTranslation();
-
-  // Ar reikšmė nėra iš sąrašo, tada rodome tekstinį lauką (other)
-  const isOther = value && !options.includes(value);
-
   return (
     <div className="flex items-center gap-2">
       <select
         name={name}
         className="w-full border rounded px-2 py-2"
-        value={isOther ? "other" : value}
-        onChange={e => {
-          if (e.target.value === "other") {
-            // Pasirinkus "kita", value tampa tuščias stringas,
-            // ir rodome tekstinį lauką
-            onChange("");
-          } else {
-            onChange(e.target.value);
-          }
-        }}
+        value={value}
+        onChange={e => onChange(e.target.value)}
       >
         <option value="" disabled>
           {t("form.select")}
         </option>
         {options.map(opt => (
           <option key={opt} value={opt}>
-            {labelOther(opt)}
+            {labelOther ? labelOther(opt) : opt}
           </option>
         ))}
-        <option value="other">{t("form.other")}</option>
       </select>
-      {/* Jei pasirinkta "other" – rodom tekstinį lauką */}
-      {isOther && (
-        <input
-          type="text"
-          className="border rounded px-2 py-2 w-32"
-          value={value}
-          onChange={e => onChange(e.target.value)}
-          placeholder={t("form.enterOther") || "Enter..."}
-        />
-      )}
       <InfoTooltip infoKey={infoKey} />
     </div>
   );
 };
+
 
 
 
