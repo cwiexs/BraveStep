@@ -255,7 +255,7 @@ const sections = [
       {
         name: "bodyType",
         label: "form.bodyType",
-        type: "enum",
+        type: "enumSimple",
         options: ["ectomorph", "mesomorph", "endomorph", "unknown" ],
         infoKey: "info.bodyType",
       },
@@ -787,6 +787,23 @@ function MyProfile() {
                     </div>
                   );
                 }
+if (f.type === "enumSimple") {
+  return (
+    <div key={f.name} className="mb-4">
+      <label className="block mb-1 font-medium text-blue-900">
+        {t(f.label)}
+      </label>
+      <EnumSelect
+        name={f.name}
+        value={val}
+        onChange={v => handleChange(f.name, v)}
+        options={f.options}
+        labelOption={opt => t(`enum.${f.name}.${opt}`, opt)}
+        infoKey={f.infoKey}
+      />
+    </div>
+  );
+}
 
                 if (f.type === "array") {
                   return (
