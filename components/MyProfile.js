@@ -98,15 +98,21 @@ const EnumSelect = ({
   name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey,
 }) => {
   const { t } = useTranslation();
+
+  // Ar reikšmė nėra iš sąrašo, tada rodome tekstinį lauką (other)
+  const isOther = value && !options.includes(value);
+
   return (
     <div className="flex items-center gap-2">
       <select
         name={name}
         className="w-full border rounded px-2 py-2"
-        value={options.includes(value) ? value : value === "other" ? "other" : ""}
+        value={isOther ? "other" : value}
         onChange={e => {
           if (e.target.value === "other") {
-            onChange("other");
+            // Pasirinkus "kita", value tampa tuščias stringas,
+            // ir rodome tekstinį lauką
+            onChange("");
           } else {
             onChange(e.target.value);
           }
@@ -122,12 +128,13 @@ const EnumSelect = ({
         ))}
         <option value="other">{t("form.other")}</option>
       </select>
-      {value === "other" && (
+      {/* Jei pasirinkta "other" – rodom tekstinį lauką */}
+      {isOther && (
         <input
           type="text"
           className="border rounded px-2 py-2 w-32"
-          value={otherValue || ""}
-          onChange={e => setOtherValue(e.target.value)}
+          value={value}
+          onChange={e => onChange(e.target.value)}
           placeholder={t("form.enterOther") || "Enter..."}
         />
       )}
@@ -135,6 +142,7 @@ const EnumSelect = ({
     </div>
   );
 };
+
 
 
 
