@@ -171,7 +171,7 @@
     "profilePhotoUrl": "Galite įkelti nuotrauką — bus rodoma profilyje.",
     "heightCm": "Ūgis centimetrais. Pvz.: 180.",
     "weightKg": "Svoris kilogramais. Pvz.: 80.25.",
-    "bodyType": "Kūno sudėjimas. Jei pasirenkate \"Kita\", aprašykite laukelyje žemiau.",
+    "bodyType": "Kūno sudėjimas.",
     "fitnessLevel": "Įvertinkite savo sportinį pasirengimą.",
     "healthConditions": "Sveikatos problemos. Pvz.: diabetas, astma. Įveskite per kablelį.",
     "allergies": "Alergijos, pvz.: riešutams, laktozei. Įveskite per kablelį.",
@@ -237,8 +237,8 @@
     "ectomorph": "Ektomorfas",
     "mesomorph": "Mezomorfas",
     "endomorph": "Endomorfas",
-    "unknown": "Nežinoma",
-    "other": "Kita"
+    "unknown": "Nežinoma"
+
   },
   "fitnessLevel": {
     "beginner": "Pradedantysis",
@@ -282,8 +282,8 @@
       "ectomorph": "Ektomorfas",
       "mesomorph": "Mezomorfas",
       "endomorph": "Endomorfas",
-      "unknown": "Nežinoma",
-      "other": "Kita"
+      "unknown": "Nežinoma"
+
     },
     "fitnessLevel": {
       "beginner": "Pradedantysis",

@@ -171,7 +171,7 @@
     "profilePhotoUrl": "You can upload a photo – it will be shown in your profile.",
     "heightCm": "Height in centimeters. E.g.: 180.",
     "weightKg": "Weight in kilograms. E.g.: 80.25.",
-    "bodyType": "Body composition. If you select 'Other', describe it below.",
+    "bodyType": "Body composition.",
     "fitnessLevel": "Assess your fitness level.",
     "healthConditions": "Health issues. E.g.: diabetes, asthma. Enter separated by commas.",
     "allergies": "Allergies, e.g.: nuts, lactose. Enter separated by commas.",
