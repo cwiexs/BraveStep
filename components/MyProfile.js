@@ -147,9 +147,14 @@ const sections = [
       {
         name: "preferredLanguage",
         label: "form.preferredLanguage",
-        type: "text",
+        type: "select",
+        options: [
+          { value: "LT", label: "Lietuvių" },
+          { value: "EN", label: "English" }
+        ],
         infoKey: "info.preferredLanguage",
       },
+
       {
         name: "dateOfBirth",
         label: "form.dateOfBirth",
@@ -689,6 +694,31 @@ function MyProfile() {
                         {t(f.label)}
                         <InfoTooltip infoKey={f.infoKey} />
                       </label>
+                    </div>
+                  );
+                }
+                if (f.type === "select") {
+                  return (
+                    <div key={f.name} className="mb-4">
+                      <label className="block mb-1 font-medium text-blue-900">
+                        {t(f.label)}
+                        <InfoTooltip infoKey={f.infoKey} />
+                      </label>
+                      <select
+                        name={f.name}
+                        value={val}
+                        onChange={e => handleChange(f.name, e.target.value)}
+                        className="w-full border rounded px-3 py-2"
+                      >
+                        <option value="" disabled>
+                          {t("form.select")}
+                        </option>
+                        {f.options.map(opt => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   );
                 }
