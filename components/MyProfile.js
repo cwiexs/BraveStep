@@ -698,18 +698,22 @@ function MyProfile() {
                       {t(f.label)}
                       <InfoTooltip infoKey={f.infoKey} />
                     </label>
-                    <input
-                      type={f.type}
-                      name={f.name}
-                      value={val === null || val === undefined ? "" : val}
-                      onChange={e => handleChange(f.name, e.target.value)}
-                      disabled={f.readOnly}
-                      className={`w-full border rounded px-3 py-2 ${
-                        f.readOnly ? "bg-gray-100" : ""
-                      }`}
-                      placeholder={t(f.label)}
-                      autoComplete="off"
-                    />
+                      <input
+                        type={f.type}
+                        name={f.name}
+                        value={
+                          f.type === "date" && typeof val === "string" && val.length >= 10
+                            ? val.slice(0, 10)
+                            : val === null || val === undefined
+                              ? ""
+                              : val
+                        }
+                        onChange={e => handleChange(f.name, e.target.value)}
+                        disabled={f.readOnly}
+                        className={`w-full border rounded px-3 py-2 ${f.readOnly ? "bg-gray-100" : ""}`}
+                        placeholder={t(f.label)}
+                        autoComplete="off"
+                      />
                   </div>
                 );
               })}
