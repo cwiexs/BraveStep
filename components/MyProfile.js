@@ -258,6 +258,7 @@ const sections = [
         type: "enum",
         options: ["ectomorph", "mesomorph", "endomorph", "unknown" ],
         infoKey: "info.bodyType",
+        noOther: true,
       },
       {
         name: "fitnessLevel",
@@ -738,66 +739,75 @@ const finalData = {
                 }
                 // Kiti enumai — su "other"
                 if (f.type === "enum") {
-                  return (
-                    <div key={f.name} className="mb-4">
-                      <label className="block mb-1 font-medium text-blue-900">
-                        {t(f.label)}
-                      </label>
-                      <EnumSelectWithOther
-                        name={f.name}
-                        value={val}
-                        onChange={v => {
-                          if (v === "") {
-                            // "other" pasirinkimas — rodom langą, vertė tuščia
-                            handleChange(f.name, otherValues[f.name] || "");
-                          } else {
-                            handleChange(f.name, v);
-                          }
-                        }}
-                        options={f.options
-                          .filter(opt => f.name !== "gender" ? true : ["male", "female"].includes(opt))
-                          .filter(opt => opt !== "other")}
+  const isSimple = f.name === "gender" || f.noOther;
+  return (
+    <div key={f.name} className="mb-4">
+      <label className="block mb-1 font-medium text-blue-900">
+        {t(f.label)}
+      </label>
+      {isSimple ? (
+        <SimpleEnumSelect
+          name={f.name}
+          value={val}
+          onChange={v => handleChange(f.name, v)}
+          options={f.options}
+          labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+          infoKey={f.infoKey}
+        />
+      ) : (
+        <EnumSelectWithOther
+          name={f.name}
+          value={val}
+          onChange={v => {
+            if (v === "") {
+              handleChange(f.name, otherValues[f.name] || "");
+            } else {
+              handleChange(f.name, v);
+            }
+          }}
+          options={f.options.filter(opt => opt !== "other")}
+          otherValue={otherValues[f.name] || ""}
+          setOtherValue={v => handleOtherValue(f.name, v)}
+          labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+          infoKey={f.infoKey}
+        />
+      )}
+      {/* PAPILDOMA: */}
+      {f.name === "bodyType" && val === "unknown" && (
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => setBodyTypeModalOpen(true)}
+            className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
+          >
+            {t("wantToKnow")}
+          </button>
+        </div>
+      )}
+      <Modal
+        open={bodyTypeModalOpen}
+        onClose={() => setBodyTypeModalOpen(false)}
+        title={t("bodyTypeDescriptionsTitle")}
+      >
+        <div className="space-y-4">
+          <div>
+            <b>{t("enum.bodyType.ectomorph")}:</b>
+            <span className="ml-2">{t("bodyTypeInfo.ectomorph")}</span>
+          </div>
+          <div>
+            <b>{t("enum.bodyType.mesomorph")}:</b>
+            <span className="ml-2">{t("bodyTypeInfo.mesomorph")}</span>
+          </div>
+          <div>
+            <b>{t("enum.bodyType.endomorph")}:</b>
+            <span className="ml-2">{t("bodyTypeInfo.endomorph")}</span>
+          </div>
+        </div>
+      </Modal>
+    </div>
+  );
+}
 
-                        otherValue={otherValues[f.name] || ""}
-                        setOtherValue={v => handleOtherValue(f.name, v)}
-                        labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-                        infoKey={f.infoKey}
-                      />
-                      {/* PAPILDOMA: */}
-                      {f.name === "bodyType" && val === "unknown" && (
-                        <div className="mt-3">
-                          <button
-                            type="button"
-                            onClick={() => setBodyTypeModalOpen(true)}
-                            className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
-                          >
-                            {t("wantToKnow")}
-                          </button>
-                        </div>
-                      )}
-                      <Modal
-                        open={bodyTypeModalOpen}
-                        onClose={() => setBodyTypeModalOpen(false)}
-                        title={t("bodyTypeDescriptionsTitle")}
-                      >
-                        <div className="space-y-4">
-                          <div>
-                            <b>{t("enum.bodyType.ectomorph")}:</b>
-                            <span className="ml-2">{t("bodyTypeInfo.ectomorph")}</span>
-                          </div>
-                          <div>
-                            <b>{t("enum.bodyType.mesomorph")}:</b>
-                            <span className="ml-2">{t("bodyTypeInfo.mesomorph")}</span>
-                          </div>
-                          <div>
-                            <b>{t("enum.bodyType.endomorph")}:</b>
-                            <span className="ml-2">{t("bodyTypeInfo.endomorph")}</span>
-                          </div>
-                        </div>
-                      </Modal>
-                    </div>
-                  );
-                }
 
                 if (f.type === "array") {
                   return (
