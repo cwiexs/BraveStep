@@ -93,8 +93,55 @@ const MultiInput = ({ value, onChange, placeholder }) => {
   );
 };
 
-// Paprastas ENUM select 
-const EnumSelect = ({
+// ENUM select su "other" logika TIK ten, kur reikia (bet ne gender)
+const EnumSelectWithOther = ({
+  name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey,
+}) => {
+  const { t } = useTranslation();
+  const isOther = value && !options.includes(value);
+
+  return (
+    <div className="flex flex-col gap-2 w-full">
+      <div className="flex items-center gap-2">
+        <select
+          name={name}
+          className="w-full border rounded px-2 py-2"
+          value={isOther ? "other" : value}
+          onChange={e => {
+            if (e.target.value === "other") {
+              onChange("");
+            } else {
+              onChange(e.target.value);
+            }
+          }}
+        >
+          <option value="" disabled>
+            {t("form.select")}
+          </option>
+          {options.map(opt => (
+            <option key={opt} value={opt}>
+              {labelOther(opt)}
+            </option>
+          ))}
+          <option value="other">{t("form.other")}</option>
+        </select>
+        <InfoTooltip infoKey={infoKey} />
+      </div>
+      {/* Jei pasirinkta "other" – rodom didelį tekstinį lauką */}
+      {isOther && (
+        <textarea
+          className="border rounded px-2 py-2 w-full min-h-[48px] max-h-40"
+          value={value}
+          onChange={e => setOtherValue(e.target.value)}
+          placeholder={t("form.enterOther") || "Enter..."}
+        />
+      )}
+    </div>
+  );
+};
+
+// Paprastas ENUM select (be "other" logikos) — naudojamas gender
+const SimpleEnumSelect = ({
   name, value, onChange, options, infoKey, labelOther,
 }) => {
   const { t } = useTranslation();
@@ -119,10 +166,6 @@ const EnumSelect = ({
     </div>
   );
 };
-
-
-
-
 
 
 // Visų laukų ir sekcijų konfigūracija (generuojama iš schema.prisma, pavadinimai - infoKey ir label universalūs)
@@ -520,6 +563,7 @@ const sections = [
   },
 ];
 
+// ———— KOMPONENTAS ————
 function MyProfile() {
   const [bodyTypeModalOpen, setBodyTypeModalOpen] = useState(false);
   const { t } = useTranslation();
@@ -534,7 +578,7 @@ function MyProfile() {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState(sections[0].key);
 
-  // Other value laukai (kai enum – other)
+  // "other" values laukai (kai enum – other)
   const [otherValues, setOtherValues] = useState({});
 
   // Formo pradinis užkrovimas iš API
@@ -554,6 +598,21 @@ function MyProfile() {
           }
           setFields(withArrays);
           setInitialFields(withArrays);
+          // Užpildyk otherValues, jeigu kažkur yra netiesioginis tekstas:
+          const initOther = {};
+          for (const sec of sections) {
+            for (const f of sec.fields) {
+              if (
+                f.type === "enum" &&
+                f.name !== "gender" &&
+                withArrays[f.name] &&
+                !f.options.includes(withArrays[f.name])
+              ) {
+                initOther[f.name] = withArrays[f.name];
+              }
+            }
+          }
+          setOtherValues(initOther);
         });
     } else if (status === "unauthenticated") {
       router.push("/api/auth/signin");
@@ -571,14 +630,14 @@ function MyProfile() {
   };
 
   // Multiinput "other" logika
-const handleOtherValue = (field, value) => {
-  setOtherValues(prev => ({ ...prev, [field]: value }));
-  setFields(prev => ({
-    ...prev,
-    [field]: value, 
-    [`${field}Other`]: value,
-  }));
-};
+  const handleOtherValue = (field, value) => {
+    setOtherValues(prev => ({ ...prev, [field]: value }));
+    setFields(prev => ({
+      ...prev,
+      [field]: value,
+      [`${field}Other`]: value,
+    }));
+  };
 
   // Ar yra pokyčių?
   const isChanged = useMemo(
@@ -642,56 +701,83 @@ const handleOtherValue = (field, value) => {
             >
               {sec.fields.map(f => {
                 const val = fields[f.name] ?? "";
-                // Enum 'other' valdymas
+                // Gender — paprastas select be "other"
+                if (f.type === "enum" && f.name === "gender") {
+                  return (
+                    <div key={f.name} className="mb-4">
+                      <label className="block mb-1 font-medium text-blue-900">
+                        {t(f.label)}
+                      </label>
+                      <SimpleEnumSelect
+                        name={f.name}
+                        value={val}
+                        onChange={v => handleChange(f.name, v)}
+                        options={f.options}
+                        labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+                        infoKey={f.infoKey}
+                      />
+                    </div>
+                  );
+                }
+                // Kiti enumai — su "other"
                 if (f.type === "enum") {
-                    return (
-                      <div key={f.name} className="mb-4">
-                        <label className="block mb-1 font-medium text-blue-900">
-                          {t(f.label)}
-                        </label>
-                        <EnumSelect
-                            name={f.name}
-                            value={val}
-                            onChange={v => handleChange(f.name, v)}
-                            options={f.options}
-                            labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-                            infoKey={f.infoKey}
-                          />
-                        {/* PAPILDOMA: */}
-                        {f.name === "bodyType" && val === "unknown" && (
-                          <div className="mt-3">
-                            <button
-                              type="button"
-                              onClick={() => setBodyTypeModalOpen(true)}
-                              className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
-                            >
-                              {t("wantToKnow")}
-                            </button>
+                  return (
+                    <div key={f.name} className="mb-4">
+                      <label className="block mb-1 font-medium text-blue-900">
+                        {t(f.label)}
+                      </label>
+                      <EnumSelectWithOther
+                        name={f.name}
+                        value={val}
+                        onChange={v => {
+                          if (v === "") {
+                            // "other" pasirinkimas — rodom langą, vertė tuščia
+                            handleChange(f.name, otherValues[f.name] || "");
+                          } else {
+                            handleChange(f.name, v);
+                          }
+                        }}
+                        options={f.options.filter(opt => f.name !== "gender" ? true : ["male", "female", "other"].includes(opt))}
+                        otherValue={otherValues[f.name] || ""}
+                        setOtherValue={v => handleOtherValue(f.name, v)}
+                        labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+                        infoKey={f.infoKey}
+                      />
+                      {/* PAPILDOMA: */}
+                      {f.name === "bodyType" && val === "unknown" && (
+                        <div className="mt-3">
+                          <button
+                            type="button"
+                            onClick={() => setBodyTypeModalOpen(true)}
+                            className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
+                          >
+                            {t("wantToKnow")}
+                          </button>
+                        </div>
+                      )}
+                      <Modal
+                        open={bodyTypeModalOpen}
+                        onClose={() => setBodyTypeModalOpen(false)}
+                        title={t("bodyTypeDescriptionsTitle")}
+                      >
+                        <div className="space-y-4">
+                          <div>
+                            <b>{t("enum.bodyType.ectomorph")}:</b>
+                            <span className="ml-2">{t("bodyTypeInfo.ectomorph")}</span>
                           </div>
-                        )}
-                        <Modal
-                          open={bodyTypeModalOpen}
-                          onClose={() => setBodyTypeModalOpen(false)}
-                          title={t("bodyTypeDescriptionsTitle")}
-                        >
-                          <div className="space-y-4">
-                            <div>
-                              <b>{t("enum.bodyType.ectomorph")}:</b>
-                              <span className="ml-2">{t("bodyTypeInfo.ectomorph")}</span>
-                            </div>
-                            <div>
-                              <b>{t("enum.bodyType.mesomorph")}:</b>
-                              <span className="ml-2">{t("bodyTypeInfo.mesomorph")}</span>
-                            </div>
-                            <div>
-                              <b>{t("enum.bodyType.endomorph")}:</b>
-                              <span className="ml-2">{t("bodyTypeInfo.endomorph")}</span>
-                            </div>
+                          <div>
+                            <b>{t("enum.bodyType.mesomorph")}:</b>
+                            <span className="ml-2">{t("bodyTypeInfo.mesomorph")}</span>
                           </div>
-                        </Modal>
-                      </div>
-                    );
-                  }
+                          <div>
+                            <b>{t("enum.bodyType.endomorph")}:</b>
+                            <span className="ml-2">{t("bodyTypeInfo.endomorph")}</span>
+                          </div>
+                        </div>
+                      </Modal>
+                    </div>
+                  );
+                }
 
                 if (f.type === "array") {
                   return (
@@ -757,22 +843,22 @@ const handleOtherValue = (field, value) => {
                       {t(f.label)}
                       <InfoTooltip infoKey={f.infoKey} />
                     </label>
-                      <input
-                        type={f.type}
-                        name={f.name}
-                        value={
-                          f.type === "date" && typeof val === "string" && val.length >= 10
-                            ? val.slice(0, 10)
-                            : val === null || val === undefined
-                              ? ""
-                              : val
-                        }
-                        onChange={e => handleChange(f.name, e.target.value)}
-                        disabled={f.readOnly}
-                        className={`w-full border rounded px-3 py-2 ${f.readOnly ? "bg-gray-100" : ""}`}
-                        placeholder={t(f.label)}
-                        autoComplete="off"
-                      />
+                    <input
+                      type={f.type}
+                      name={f.name}
+                      value={
+                        f.type === "date" && typeof val === "string" && val.length >= 10
+                          ? val.slice(0, 10)
+                          : val === null || val === undefined
+                            ? ""
+                            : val
+                      }
+                      onChange={e => handleChange(f.name, e.target.value)}
+                      disabled={f.readOnly}
+                      className={`w-full border rounded px-3 py-2 ${f.readOnly ? "bg-gray-100" : ""}`}
+                      placeholder={t(f.label)}
+                      autoComplete="off"
+                    />
                   </div>
                 );
               })}
