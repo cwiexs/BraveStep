@@ -257,7 +257,6 @@ const sections = [
         label: "form.bodyType",
         type: "enum",
         options: ["ectomorph", "mesomorph", "endomorph", "unknown" ],
-        component: EnumSelect,
         infoKey: "info.bodyType",
       },
       {
@@ -736,7 +735,7 @@ function MyProfile() {
                       <label className="block mb-1 font-medium text-blue-900">
                         {t(f.label)}
                       </label>
-                      <EnumSelect
+                      <EnumSelectWithOther
                         name={f.name}
                         value={val}
                         onChange={v => {
