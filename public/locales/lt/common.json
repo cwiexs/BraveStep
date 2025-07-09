@@ -313,5 +313,14 @@
       "outdoor": "Lauke",
       "other": "Kita"
     }
-  }
+  },
+  "bodyTypeInfo": {
+  "ectomorph": "Ektomorfas: Natūraliai lieknas, sunkiai priauga svorio ir raumenų masės. Greita medžiagų apykaita.",
+  "mesomorph": "Mezomorfas: Natūraliai atletiškas, lengvai auginantis raumenis, proporcingas kūno sudėjimas.",
+  "endomorph": "Endomorfas: Lengvai kaupia riebalus, lėtesnė medžiagų apykaita, apvalesnė kūno forma, gali būti labai stiprus.",
+  "unknown": "Nežinoma: Jei nežinai savo kūno tipo, spausk „Noriu sužinoti“ ir perskaityk aprašymus."
+},
+"wantToKnow": "Noriu sužinoti",
+"bodyTypeDescriptionsTitle": "Kūno tipų aprašymai"
+
 }

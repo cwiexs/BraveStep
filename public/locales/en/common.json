@@ -313,5 +313,14 @@
       "outdoor": "Outdoor",
       "other": "Other"
     }
-  }
+  },
+  "bodyTypeInfo": {
+  "ectomorph": "Ectomorph: Naturally slim, has difficulty gaining weight and muscle mass. Fast metabolism.",
+  "mesomorph": "Mesomorph: Naturally athletic, easily gains muscle mass, proportionate body structure.",
+  "endomorph": "Endomorph: Tends to store fat easily, slower metabolism, rounder body shape, but can be strong.",
+  "unknown": "Unknown: Not sure about your body type? Click 'Want to know' to read descriptions."
+},
+"wantToKnow": "Want to know",
+"bodyTypeDescriptionsTitle": "Body Type Descriptions"
+
 }
