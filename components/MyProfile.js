@@ -124,6 +124,7 @@ const EnumSelect = ({
 
 
 
+
 // Visų laukų ir sekcijų konfigūracija (generuojama iš schema.prisma, pavadinimai - infoKey ir label universalūs)
 const sections = [
   {
