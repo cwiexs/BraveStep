@@ -4,6 +4,25 @@ import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { CheckCircle2, Info } from "lucide-react";
 
+const Modal = ({ open, onClose, title, children }) => {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
+      <div className="bg-white rounded-xl p-8 max-w-lg w-full shadow-xl relative">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-4 text-xl text-gray-400 hover:text-blue-600"
+          aria-label="Uždaryti"
+        >
+          ×
+        </button>
+        <h2 className="text-xl font-bold mb-4 text-blue-900">{title}</h2>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 // Info tooltip komponentas (suderintas su lokalizacija)
 const InfoTooltip = ({ infoKey }) => {
   const { t } = useTranslation();
@@ -521,6 +540,7 @@ const sections = [
 ];
 
 function MyProfile() {
+  const [bodyTypeModalOpen, setBodyTypeModalOpen] = useState(false);
   const { t } = useTranslation();
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -643,27 +663,60 @@ function MyProfile() {
                 const val = fields[f.name] ?? "";
                 // Enum 'other' valdymas
                 if (f.type === "enum") {
-                  return (
-                    <div key={f.name} className="mb-4">
-                      <label className="block mb-1 font-medium text-blue-900">
-                        {t(f.label)}
-                      </label>
-                      <EnumSelect
-                        name={f.name}
-                        value={val}
-                        onChange={v => {
-                          if (v === "other") handleOtherValue(f.name, otherValues[f.name] || "");
-                          else handleChange(f.name, v);
-                        }}
-                        options={f.options.filter(opt => opt !== "other")}
-                        otherValue={otherValues[f.name] || ""}
-                        setOtherValue={v => handleOtherValue(f.name, v)}
-                        labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-                        infoKey={f.infoKey}
-                      />
-                    </div>
-                  );
-                }
+                    return (
+                      <div key={f.name} className="mb-4">
+                        <label className="block mb-1 font-medium text-blue-900">
+                          {t(f.label)}
+                        </label>
+                        <EnumSelect
+                          name={f.name}
+                          value={val}
+                          onChange={v => {
+                            if (v === "other") handleOtherValue(f.name, otherValues[f.name] || "");
+                            else handleChange(f.name, v);
+                          }}
+                          options={f.options.filter(opt => opt !== "other")}
+                          otherValue={otherValues[f.name] || ""}
+                          setOtherValue={v => handleOtherValue(f.name, v)}
+                          labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+                          infoKey={f.infoKey}
+                        />
+                        {/* PAPILDOMA: */}
+                        {f.name === "bodyType" && val === "unknown" && (
+                          <div className="mt-3">
+                            <button
+                              type="button"
+                              onClick={() => setBodyTypeModalOpen(true)}
+                              className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
+                            >
+                              {t("wantToKnow")}
+                            </button>
+                          </div>
+                        )}
+                        <Modal
+                          open={bodyTypeModalOpen}
+                          onClose={() => setBodyTypeModalOpen(false)}
+                          title={t("bodyTypeDescriptionsTitle")}
+                        >
+                          <div className="space-y-4">
+                            <div>
+                              <b>{t("enum.bodyType.ectomorph")}:</b>
+                              <span className="ml-2">{t("bodyTypeInfo.ectomorph")}</span>
+                            </div>
+                            <div>
+                              <b>{t("enum.bodyType.mesomorph")}:</b>
+                              <span className="ml-2">{t("bodyTypeInfo.mesomorph")}</span>
+                            </div>
+                            <div>
+                              <b>{t("enum.bodyType.endomorph")}:</b>
+                              <span className="ml-2">{t("bodyTypeInfo.endomorph")}</span>
+                            </div>
+                          </div>
+                        </Modal>
+                      </div>
+                    );
+                  }
+
                 if (f.type === "array") {
                   return (
                     <div key={f.name} className="mb-4">
