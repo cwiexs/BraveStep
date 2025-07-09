@@ -255,8 +255,9 @@ const sections = [
       {
         name: "bodyType",
         label: "form.bodyType",
-        type: "EnumSelect",
+        type: "enum",
         options: ["ectomorph", "mesomorph", "endomorph", "unknown" ],
+        component: EnumSelect,
         infoKey: "info.bodyType",
       },
       {
