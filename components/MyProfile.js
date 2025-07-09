@@ -98,7 +98,7 @@ const EnumSelectWithOther = ({
   name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey,
 }) => {
   const { t } = useTranslation();
-  const isOther = value === "";
+  const isOther = !options.includes(value);
 
   return (
     <div className="flex flex-col gap-2 w-full">
@@ -632,12 +632,16 @@ function MyProfile() {
   // Multiinput "other" logika
   const handleOtherValue = (field, value) => {
     setOtherValues(prev => ({ ...prev, [field]: value }));
-    setFields(prev => ({
-      ...prev,
-      [field]: value,
-      [`${field}Other`]: value,
-    }));
+
   };
+
+  const finalData = {
+  ...fields,
+  ...Object.keys(otherValues).reduce((acc, key) => {
+    acc[key] = otherValues[key];
+    return acc;
+  }, {})
+}
 
   // Ar yra pokyčių?
   const isChanged = useMemo(
