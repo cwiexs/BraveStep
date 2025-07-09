@@ -98,7 +98,7 @@ const EnumSelectWithOther = ({
   name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey,
 }) => {
   const { t } = useTranslation();
-  const isOther = value === "asdasd" && (otherValue !== undefined && otherValue !== "");
+  const isOther = value === "";
 
   return (
     <div className="flex flex-col gap-2 w-full">
