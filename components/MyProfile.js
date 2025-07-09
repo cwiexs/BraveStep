@@ -746,7 +746,7 @@ function MyProfile() {
                             handleChange(f.name, v);
                           }
                         }}
-                        options={f.options.filter(opt => f.name !== "gender" ? true : ["male", "female", "other"].includes(opt))}
+                        options={f.options.filter(opt => f.name !== "gender" ? true : ["male", "female"].includes(opt))}
                         otherValue={otherValues[f.name] || ""}
                         setOtherValue={v => handleOtherValue(f.name, v)}
                         labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
