@@ -136,7 +136,7 @@ const EnumSelectWithOther = ({
               setOtherValue(e.target.value);       // saugo į otherValues
               onChange(e.target.value);            // iš karto atnaujina ir pagrindinį field
             }}
-            placeholder={t("form.enterOther") || "Enter..."}
+            placeholder={t("form.enterOther") || "Enter... "}
           />
         )}
 
@@ -263,7 +263,7 @@ const sections = [
         name: "fitnessLevel",
         label: "form.fitnessLevel",
         type: "enum",
-        options: ["beginner", "intermediate", "advanced", "other"],
+        options: ["beginner", "intermediate", "advanced"],
         infoKey: "info.fitnessLevel",
       },
     ],
