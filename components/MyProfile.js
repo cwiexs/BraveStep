@@ -735,7 +735,7 @@ function MyProfile() {
                       <label className="block mb-1 font-medium text-blue-900">
                         {t(f.label)}
                       </label>
-                      <EnumSelectWithOther
+                      <EnumSelect
                         name={f.name}
                         value={val}
                         onChange={v => {
