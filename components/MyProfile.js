@@ -199,12 +199,6 @@ const sections = [
         type: "text",
         infoKey: "info.country",
       },
-      {
-        name: "profilePhotoUrl",
-        label: "form.profilePhotoUrl",
-        type: "text",
-        infoKey: "info.profilePhotoUrl",
-      },
     ],
   },
   {
