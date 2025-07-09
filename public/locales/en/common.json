@@ -281,8 +281,7 @@
       "ectomorph": "Ectomorph",
       "mesomorph": "Mesomorph",
       "endomorph": "Endomorph",
-      "unknown": "Unknown",
-      "other": "Other"
+      "unknown": "Unknown"
     },
     "fitnessLevel": {
       "beginner": "Beginner",
