@@ -161,7 +161,7 @@
   "info": {
     "name": "Enter your real name. E.g.: John.",
     "email": "This field cannot be edited.",
-    "phone": "Phone number. E.g.: +37061234567.",
+    "phone": "Phone number. E.g.: +447123456789.",
     "dateOfBirth": "Required for precise age, plan, and calorie calculations.",
     "gender": "Select your gender. If you select 'Other', specify below. E.g.: agender.",
     "city": "City of residence. E.g.: Vilnius.",

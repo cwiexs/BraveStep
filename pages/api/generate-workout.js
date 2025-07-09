@@ -125,16 +125,21 @@ const promptParts = [
 
 
 
-  for (const [key, value] of Object.entries(userData)) {
-    if (
-      value === null ||
-      value === undefined ||
-      (Array.isArray(value) && value.length === 0)
-    )
-      continue;
-    const desc = descriptions[key] ? `[${descriptions[key]}]` : "";
-    promptParts.push(`${key}: ${JSON.stringify(value)} ${desc}`);
-  }
+for (const [key, value] of Object.entries(userData)) {
+  if (
+    value === null ||
+    value === undefined ||
+    (Array.isArray(value) && value.length === 0)
+  )
+    continue;
+  const desc = descriptions[key] ? `[${descriptions[key]}]` : "";
+  promptParts.push(`${key}: ${JSON.stringify(value)} ${desc}`);
+}
+
+// Pridedame šiandienos datą, kad AI galėtų teisingai paskaičiuoti amžių
+const today = new Date().toISOString().slice(0, 10);
+promptParts.push(`today: "${today}" [The current date. Use this together with dateOfBirth to calculate the user's age.]`);
+
 
   promptParts.push(
     `IMPORTANT INSTRUCTIONS: 
