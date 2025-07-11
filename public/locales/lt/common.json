@@ -209,7 +209,6 @@
     "notifications": "Ar norite gauti el. pranešimus apie planų atnaujinimus?",
     "successDefinition": "Kas jums reiškia sėkmę?",
     "previousFitnessExperience": "Trumpai apie sportinę praeitį.",
-    "hasInsurance": "Ar turite sveikatos draudimą?",
     "smokes": "Pažymėkite, jei rūkote.",
     "alcohol": "Kaip dažnai vartojate alkoholį?",
     "stressLevel": "Įvertinkite streso lygį nuo 1 iki 10.",
@@ -291,6 +290,12 @@
       "advanced": "Patyręs",
       "other": "Kita"
     },
+    "form": {
+      "yes": "Taip",
+      "no": "Ne",
+      "smokes": "Ar rūkai?"
+    },
+
     "physicalActivityLevel": {
       "very_low": "Labai mažas",
       "low": "Mažas",

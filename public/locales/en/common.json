@@ -81,7 +81,6 @@
     "notifications": "Receive notifications",
     "successDefinition": "What is success to you?",
     "previousFitnessExperience": "Previous fitness experience",
-    "hasInsurance": "Do you have health insurance?",
     "smokes": "Do you smoke?",
     "alcohol": "Do you consume alcohol?",
     "stressLevel": "Stress level",
@@ -288,6 +287,11 @@
       "intermediate": "Intermediate",
       "advanced": "Advanced",
       "other": "Other"
+    },
+    "form": {
+      "yes": "Yes",
+      "no": "No",
+      "smokes": "Do you smoke?"
     },
     "physicalActivityLevel": {
       "very_low": "Very low",

@@ -820,23 +820,38 @@ const finalData = {
                   );
                 }
                 if (f.type === "boolean") {
-                  return (
-                    <div key={f.name} className="mb-4 flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        id={f.name}
-                        checked={!!val}
-                        onChange={e => handleChange(f.name, e.target.checked)}
-                        disabled={f.readOnly}
-                        className="w-5 h-5"
-                      />
-                      <label htmlFor={f.name} className="font-medium text-blue-900">
-                        {t(f.label)}
-                        <InfoTooltip infoKey={f.infoKey} />
-                      </label>
-                    </div>
-                  );
-                }
+  return (
+    <div key={f.name} className="mb-4">
+      <label className="block mb-1 font-medium text-blue-900">
+        {t(f.label)}
+        <InfoTooltip infoKey={f.infoKey} />
+      </label>
+      <div className="flex gap-6">
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name={f.name}
+            value="true"
+            checked={val === true}
+            onChange={() => handleChange(f.name, true)}
+          />
+          {t("form.yes")}
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name={f.name}
+            value="false"
+            checked={val === false}
+            onChange={() => handleChange(f.name, false)}
+          />
+          {t("form.no")}
+        </label>
+      </div>
+    </div>
+  );
+}
+
                 if (f.type === "select") {
                   return (
                     <div key={f.name} className="mb-4">
