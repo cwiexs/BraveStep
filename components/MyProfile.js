@@ -277,25 +277,25 @@ const sections = [
       {
         name: "healthConditions",
         label: "form.healthConditions",
-        type: "array",
+        type: "text",
         infoKey: "info.healthConditions",
       },
       {
         name: "allergies",
         label: "form.allergies",
-        type: "array",
+        type: "text",
         infoKey: "info.allergies",
       },
       {
         name: "foodRestrictions",
         label: "form.foodRestrictions",
-        type: "array",
+        type: "text",
         infoKey: "info.foodRestrictions",
       },
       {
         name: "medications",
         label: "form.medications",
-        type: "array",
+        type: "text",
         infoKey: "info.medications",
       },
       {
