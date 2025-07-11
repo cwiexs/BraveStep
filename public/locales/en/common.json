@@ -155,7 +155,11 @@
     "save": "Save",
     "select": "Select",
     "other": "Other...",
-    "enterOther": "Enter..."
+    "enterOther": "Enter...",
+    "yes": "Yes",
+    "no": "No"
+
+
   },
   "info": {
     "name": "Enter your real name. E.g.: John.",
@@ -288,11 +292,7 @@
       "advanced": "Advanced",
       "other": "Other"
     },
-    "form": {
-      "yes": "Yes",
-      "no": "No",
-      "smokes": "Do you smoke?"
-    },
+    
     "physicalActivityLevel": {
       "very_low": "Very low",
       "low": "Low",

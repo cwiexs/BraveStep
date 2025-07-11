@@ -156,7 +156,10 @@
     "save": "Išsaugoti",
     "select": "Pasirinkti",
     "other": "Kita...",
-    "enterOther": "Įrašykite..."
+    "enterOther": "Įrašykite...",
+    "yes": "Taip",
+    "no": "Ne"
+
   },
   "info": {
     "name": "Įrašykite tikrą vardą. Pvz.: Jonas.",
@@ -289,11 +292,6 @@
       "intermediate": "Pažengęs",
       "advanced": "Patyręs",
       "other": "Kita"
-    },
-    "form": {
-      "yes": "Taip",
-      "no": "Ne",
-      "smokes": "Ar rūkai?"
     },
 
     "physicalActivityLevel": {
