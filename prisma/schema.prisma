@@ -72,9 +72,9 @@ model User {
   weightKg                   Decimal?   @db.Decimal(5,2)
   bodyType                   BodyType?
   fitnessLevel               FitnessLevel?
-  healthConditions           String[]   @db.VarChar(100)
-  allergies                  String[]   @db.VarChar(100)
-  foodRestrictions           String[]   @db.VarChar(50)
+  healthConditions           String?   @db.VarChar(100)
+  allergies                  String?   @db.VarChar(100)
+  foodRestrictions           String?   @db.VarChar(50)
   jobType                    String?    @db.VarChar(50)
   workHoursPerDay            Float?
   workSchedule               WorkSchedule?

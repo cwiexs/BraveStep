@@ -598,8 +598,8 @@ function MyProfile() {
           const withArrays = { ...data };
           for (const sec of sections) {
             for (const f of sec.fields) {
-              if (f.type === "array") {
-                withArrays[f.name] = Array.isArray(data[f.name]) ? data[f.name] : [];
+              if (f.type === "array" && Array.isArray(data[f.name])) {
+  withArrays[f.name] = data[f.name].join(", ");
               }
             }
           }
