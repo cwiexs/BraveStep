@@ -276,7 +276,7 @@ const sections = [
       {
         name: "healthConditions",
         label: "form.healthConditions",
-        type: "array",
+        type: "input",
         infoKey: "info.healthConditions",
       },
       {
