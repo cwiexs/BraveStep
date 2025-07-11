@@ -71,7 +71,7 @@ model User {
   heightCm                   Int?       @db.SmallInt
   weightKg                   Decimal?   @db.Decimal(5,2)
   bodyType                   BodyType?
-  fitnessLevel               String[]   @db.VarChar(100)
+  fitnessLevel               FitnessLevel?
   healthConditions           String[]   @db.VarChar(100)
   allergies                  String[]   @db.VarChar(100)
   foodRestrictions           String[]   @db.VarChar(50)
