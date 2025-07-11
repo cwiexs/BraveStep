@@ -109,11 +109,10 @@ model User {
   successDefinition          String?    @db.VarChar(200)
   previousFitnessExperience  String?    @db.VarChar(200)
   planUpdateFrequency        PlanUpdateFrequency?
-  hasInsurance               Boolean?
   smokes                     Boolean?
   alcohol                    String?    @db.VarChar(50)
   stressLevel                Int?
-  medications                String[]   @db.VarChar(100)
+  medications                String?   @db.VarChar(100)
   smartWatch                 Boolean?
   goal                       String?    @db.VarChar(100)
   goalDeadline               DateTime?

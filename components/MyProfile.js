@@ -299,12 +299,6 @@ const sections = [
         infoKey: "info.medications",
       },
       {
-        name: "hasInsurance",
-        label: "form.hasInsurance",
-        type: "boolean",
-        infoKey: "info.hasInsurance",
-      },
-      {
         name: "smokes",
         label: "form.smokes",
         type: "boolean",
