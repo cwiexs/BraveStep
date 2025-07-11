@@ -126,7 +126,7 @@ const promptParts = [
   `For each day, start the plan with a unique motivational message for starting the workout, and finish each day with a unique motivational message for ending the workout. For every exercise, add a short, beginner-friendly description in the user's preferred language. If the exercise name is complex, briefly explain it.`,
   `STRUCTURE FORMAT: Organize the workout plan in a clear, machine-readable structure. For each day, start with a section like "=== DAY 1 ===". Inside each day, list each exercise using the following template:
 
-• Exercise Name: [Name]
+  Exercise Name: [Name]
   Reps: [Number of repetitions, or duration in seconds]
   Sets: [Number of sets]
   Rest between sets: [e.g., 30s]
