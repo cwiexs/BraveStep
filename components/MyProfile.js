@@ -266,6 +266,7 @@ const sections = [
         type: "enum",
         options: ["beginner", "intermediate", "advanced"],
         infoKey: "info.fitnessLevel",
+        noOther: true,
       },
     ],
   },
