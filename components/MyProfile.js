@@ -264,7 +264,7 @@ const sections = [
         name: "fitnessLevel",
         label: "form.fitnessLevel",
         type: "enum",
-        options: ["beginner", "intermediate", "advanced"],
+        options: ["beginner", "intermediate", "advanced", "other"],
         infoKey: "info.fitnessLevel",
         noOther: true,
       },
