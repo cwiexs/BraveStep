@@ -120,6 +120,9 @@ const promptParts = [
   `If all the provided data is realistic, logical, and safe, proceed to generate a highly personalized and safe workout plan according to the user's information.`,
   `Absolutely ALL workout plan instructions, exercise descriptions, motivational messages, and every part of your response MUST be in the user's preferred language, which is provided as 'preferredLanguage'. DO NOT mix languages. DO NOT use English if a different language is specified. If 'preferredLanguage' is missing, use English by default.`,
   `For every exercise, ALWAYS include the exact number of repetitions (or duration if applicable), and the number of sets (rounds). For example: "15 repetitions x 3 sets" or "30 seconds x 4 sets". These numbers must be realistic and based on the user's fitness level and goals. Do not skip or generalize this information.`,
+  `Also include the exact rest time between sets. For example: "Rest 30 seconds between sets."`,
+  `Also specify how long to rest between exercises. For example: "Rest 60 seconds before moving to the next exercise."`,
+  `At the beginning of each workout plan, clearly explain whether the exercises should be done as a circuit (all exercises once, then repeat the full round), or in straight sets (finish all sets of one exercise before moving on to the next). Choose the best option based on the user's fitness level, workout duration, and goals.`,
   `For each day, start the plan with a unique motivational message for starting the workout, and finish each day with a unique motivational message for ending the workout. For every exercise, add a short, beginner-friendly description in the user's preferred language. If the exercise name is complex, briefly explain it.`,
   `Here are the field descriptions and their values:`
 ];
