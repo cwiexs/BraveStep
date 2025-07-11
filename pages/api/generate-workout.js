@@ -124,6 +124,22 @@ const promptParts = [
   `Also specify how long to rest between exercises. For example: "Rest 60 seconds before moving to the next exercise."`,
   `At the beginning of each workout plan, clearly explain whether the exercises should be done as a circuit (all exercises once, then repeat the full round), or in straight sets (finish all sets of one exercise before moving on to the next). Choose the best option based on the user's fitness level, workout duration, and goals.`,
   `For each day, start the plan with a unique motivational message for starting the workout, and finish each day with a unique motivational message for ending the workout. For every exercise, add a short, beginner-friendly description in the user's preferred language. If the exercise name is complex, briefly explain it.`,
+  `STRUCTURE FORMAT: Organize the workout plan in a clear, machine-readable structure. For each day, start with a section like "=== DAY 1 ===". Inside each day, list each exercise using the following template:
+
+• Exercise Name: [Name]
+  Reps: [Number of repetitions, or duration in seconds]
+  Sets: [Number of sets]
+  Rest between sets: [e.g., 30s]
+  Rest after exercise: [e.g., 60s]
+  Description: [Short explanation in the user's preferred language]
+
+Always place the motivational message for the beginning and end of each day using:
+--- Motivation Start ---
+[Message]
+--- Motivation End ---
+
+This formatting helps later data parsing. NEVER skip or change this structure format.`,
+
   `Here are the field descriptions and their values:`
 ];
 
