@@ -213,7 +213,7 @@
     "successDefinition": "What does success mean to you?",
     "previousFitnessExperience": "Briefly about your sports background.",
     "hasInsurance": "Do you have health insurance?",
-    "smokes": "Tick if you smoke.",
+    "smokes": "Do you smoke? Choose the appropriate option.",
     "alcohol": "How often do you consume alcohol?",
     "stressLevel": "Rate your stress level from 1 to 10.",
     "medications": "Medications used (if any). Enter separated by commas.",
