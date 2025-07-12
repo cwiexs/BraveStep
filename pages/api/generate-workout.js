@@ -133,6 +133,29 @@ const promptParts = [
   `If any of the fields are unsafe, unrealistic, impossible, or make plan generation dangerous – DO NOT generate a plan.`,
   `Instead, return this exact structure: "Cannot create plan: [reason(s)]"`,
 
+  // 5.1. Adaptacija ribinėms, bet realioms vertėms
+  `HOWEVER, if a value is real but extreme (e.g., stress level 10/10, very high weight, poor sleep), DO NOT reject the request.`,
+  `Instead, adapt the plan to gently support the user's needs, focusing on recovery, calmness, and gradual progress.`,
+  `Always include a personalized comment at the beginning of the plan that acknowledges these challenges.`,
+  `Example: "This workout plan was carefully adapted for your high stress level. The focus is on calming, low-intensity movements to support your mental and physical balance."`,
+  `Also mention which specific input values influenced the adaptation.`,
+  `Example: "You mentioned high stress and short sleep. Therefore, we included more stretching and breath-based exercises."`,
+  `Do NOT exaggerate or overreact. Assume the user is doing their best. Be supportive and realistic.`,
+
+  // 5.2. Psichologiškai palaikančios motyvacinės žinutės
+  `If any of the user's values indicate emotional distress (e.g., stress level 9–10, very low sleep, high anxiety), you must also adapt the motivational messages.`,
+  `Motivational texts must be emotionally supportive, psychologically aware, and gently uplifting.`,
+  `Examples:
+- "Even if your mind feels overwhelmed today, this small step is already a victory."
+- "You may feel stuck in thoughts about the past or future. This workout is a way to return to the present moment."
+- "Everything is okay. You’re not alone in this. Let this be a soft beginning, not a pressure."`,
+  `Avoid aggressive or overly enthusiastic tones when stress is high. Focus instead on calm, warm, and grounding language.`,
+  `The goal of motivation is to help the user feel emotionally safe, seen, and gently guided — not pushed.`,
+  `Write motivational messages as if you truly care. Imagine you're speaking to a friend who is struggling but trying.`,
+  `Never judge. Always reassure.`,
+  `If stress is high, explicitly include at least one motivational message that addresses emotional balance, overthinking, or mental tension — even in subtle ways.`,
+
+
   // 6. Nepilnamečiams
   `If the user appears to be underage, DO NOT reject them.`,
   `Instead, generate an age-appropriate, fun, and gentle workout.`,
