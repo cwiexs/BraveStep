@@ -1,16 +1,16 @@
+// Updated rendering component for styled workout plan with tooltips
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useState, useEffect } from "react";
 import { parseWorkoutText } from "./utils/parseWorkoutText";
+import { Info } from "lucide-react";
 
 export default function Workouts() {
   const { data: session, status } = useSession();
   const { t } = useTranslation("workouts");
-
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // Užkrauna naujausią planą kai prisijungiama
   useEffect(() => {
     if (session) {
       fetch("/api/last-workout")
@@ -42,11 +42,21 @@ export default function Workouts() {
     return <div>{t("loading") || "Kraunasi..."}</div>;
   }
 
-  if (session) {
+  if (!session) {
     return (
       <div className="max-w-xl mx-auto mt-12 bg-white p-8 rounded-2xl shadow-lg text-center">
         <h1 className="text-3xl font-bold mb-6 text-blue-900">{t("title") || "Workouts"}</h1>
-        <p className="mb-4 text-lg">{t("welcomeLoggedIn") || "Sveikiname prisijungus! Galite generuoti naujus workout'us, peržiūrėti ankstesnius, pasirinkti el. pašto pranešimus ir t.t."}</p>
+        <p className="mb-4 text-lg">{t("welcomeGuest") || "Norėdami gauti personalizuotus workout'us, prisijunkite arba užsiregistruokite!"}</p>
+        <button className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-lg font-semibold shadow transition">{t("signInToGenerate") || "Prisijunkite, kad generuotumėte workout'ą"}</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-3xl mx-auto mt-12 bg-white p-8 rounded-2xl shadow-xl">
+      <h1 className="text-3xl font-bold mb-6 text-blue-900 text-center">{t("title") || "Workouts"}</h1>
+      <p className="mb-4 text-lg text-center">{t("welcomeLoggedIn") || "Galite generuoti naujus workout'us ar peržiūrėti ankstesnius."}</p>
+      <div className="text-center">
         <button
           onClick={handleGeneratePlan}
           className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
@@ -54,49 +64,49 @@ export default function Workouts() {
         >
           {loading ? "Generuojama..." : t("generateWorkout") || "Generuoti naują treniruotę"}
         </button>
-        {plan && (
-          <div className="mt-6 p-4 bg-gray-100 rounded text-left">
-            {plan && (
-          <div className="mt-6 p-4 bg-gray-100 rounded text-left space-y-6">
-            {(() => {
-              const parsed = parseWorkoutText(plan.text);
-
-              return (
-                <>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{parsed.introduction}</p>
-
-                  {parsed.days.map(day => (
-                    <div key={day.day} className="border p-4 rounded bg-white shadow">
-                      <h2 className="text-xl font-bold mb-2">Diena {day.day}</h2>
-                      <p className="italic text-green-700">💬 {day.motivationStart}</p>
-                      <ul className="mt-4 space-y-2">
-                        {day.exercises.map((ex, i) => (
-                          <li key={i} className="bg-gray-50 p-3 rounded border">
-                            <strong>{ex.name}</strong> – {ex.reps} pakart., {ex.sets} setai<br />
-                            Poilsis tarp setų: {ex.restBetweenSets} | Po pratimo: {ex.restAfterExercise}<br />
-                            <em className="text-sm text-gray-600">{ex.description}</em>
-                          </li>
-                        ))}
-                      </ul>
-                      <p className="italic text-blue-700 mt-4">🏁 {day.motivationEnd}</p>
-                    </div>
-                  ))}
-                </>
-              );
-            })()}
-          </div>
-        )}
-          </div>
-        )}
       </div>
-    );
-  }
 
-  return (
-    <div className="max-w-xl mx-auto mt-12 bg-white p-8 rounded-2xl shadow-lg text-center">
-      <h1 className="text-3xl font-bold mb-6 text-blue-900">{t("title") || "Workouts"}</h1>
-      <p className="mb-4 text-lg">{t("welcomeGuest") || "Norėdami gauti personalizuotus workout'us, prisijunkite arba užsiregistruokite! Visi workout'ai generuojami dirbtinio intelekto pagalba."}</p>
-      <button className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-lg font-semibold shadow transition">{t("signInToGenerate") || "Prisijunkite, kad generuotumėte workout'ą"}</button>
+      {plan && (
+        <div className="mt-10 space-y-10">
+          {(() => {
+            const parsed = parseWorkoutText(plan.text);
+
+            return (
+              <div>
+                <p className="text-md text-gray-800 whitespace-pre-wrap mb-6 bg-blue-50 p-4 rounded-xl">{parsed.introduction}</p>
+
+                {parsed.days.map(day => (
+                  <div key={day.day} className="bg-gray-50 border border-gray-300 rounded-xl p-6 shadow-sm">
+                    <h2 className="text-2xl font-semibold text-blue-900 mb-2">Diena {day.day}</h2>
+                    <p className="text-green-700 italic mb-3">💬 {day.motivationStart}</p>
+                    <div className="space-y-4">
+                      {day.exercises.map((ex, i) => (
+                        <div key={i} className="bg-white border border-gray-200 p-4 rounded-lg relative">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <p className="font-semibold text-gray-800">Pratimas {i + 1}</p>
+                              <p className="text-sm text-gray-700">{ex.reps}, {ex.sets}</p>
+                              <p className="text-sm text-gray-600">{ex.restBetweenSets}</p>
+                              <p className="text-sm text-gray-600">{ex.restAfterExercise}</p>
+                            </div>
+                            <div className="relative group cursor-pointer">
+                              <Info className="w-5 h-5 text-blue-500 mt-1" />
+                              <div className="absolute hidden group-hover:block bg-white border border-gray-300 p-3 text-sm text-gray-700 rounded-lg shadow-md w-64 right-0 z-10">
+                                {ex.description}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-blue-700 italic mt-4">🏁 {day.motivationEnd}</p>
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+        </div>
+      )}
     </div>
   );
 }
