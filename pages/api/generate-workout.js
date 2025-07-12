@@ -120,6 +120,15 @@ const promptParts = [
   `NEVER reject or misinterpret data due to unfamiliar language.`,
   `DO NOT generate responses in English if the user has provided a preferred language – use that language exclusively.`,
   `Ensure that the visible content contains only the user's preferred language. Do not mix words or sentences from different languages.`,
+  // 2.1 Kalbos aiškumas ir terminų vartojimas
+  `When generating content in the user's preferred language (especially Lithuanian), you MUST use natural and commonly used vocabulary, as found in local fitness guides, government health portals, or official sport websites.`,
+  `DO NOT translate fitness terms directly from English word-by-word.`,
+  `Examples:
+  - Instead of "komplektai", use "serijos" or "kartus".
+  - Instead of "darykite apskritimus", say "Sukite pečius ratu" or "Atlikite 10 ratų į vieną pusę, tada į kitą."`,
+  `Always try to match the style and terminology used in real fitness programs written by native speakers.`,
+  `You may reference stylistic examples from sportuok.lt, sveikata.gov.lt, or other native language fitness sites.`,
+  `If unsure, prefer simple, natural and human-sounding expressions over literal translations.`,
 
   // 3. Duomenų analizė
   `Carefully analyze all the provided user information for logic, realism, safety, and appropriateness.`,
