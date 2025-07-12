@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useState, useEffect } from "react";
-import parseWorkoutText from "./utils/parseWorkoutText";
+import { parseWorkoutText } from "./utils/parseWorkoutText";
 
 export default function Workouts() {
   const { data: session, status } = useSession();
@@ -10,6 +10,7 @@ export default function Workouts() {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Užkrauna naujausią planą kai prisijungiama
   useEffect(() => {
     if (session) {
       fetch("/api/last-workout")
@@ -54,26 +55,25 @@ export default function Workouts() {
           {loading ? "Generuojama..." : t("generateWorkout") || "Generuoti naują treniruotę"}
         </button>
         {plan && (
+          <div className="mt-6 p-4 bg-gray-100 rounded text-left">
+            {plan && (
           <div className="mt-6 p-4 bg-gray-100 rounded text-left space-y-6">
             {(() => {
               const parsed = parseWorkoutText(plan.text);
 
               return (
                 <>
-                  {parsed.introduction && <p className="text-sm text-gray-700 whitespace-pre-wrap">{parsed.introduction}</p>}
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{parsed.introduction}</p>
 
-                  {parsed.days.map((day, idx) => (
-                    <div key={idx} className="border p-4 rounded bg-white shadow">
-                      <h2 className="text-xl font-bold mb-2">{day.title}</h2>
+                  {parsed.days.map(day => (
+                    <div key={day.day} className="border p-4 rounded bg-white shadow">
+                      <h2 className="text-xl font-bold mb-2">Diena {day.day}</h2>
                       <p className="italic text-green-700">💬 {day.motivationStart}</p>
                       <ul className="mt-4 space-y-2">
                         {day.exercises.map((ex, i) => (
                           <li key={i} className="bg-gray-50 p-3 rounded border">
-                            <strong>{ex.name}</strong><br />
-                            {ex.reps}<br />
-                            {ex.sets}<br />
-                            {ex.restBetweenSets}<br />
-                            {ex.restAfterExercise}<br />
+                            <strong>{ex.name}</strong> – {ex.reps} pakart., {ex.sets} setai<br />
+                            Poilsis tarp setų: {ex.restBetweenSets} | Po pratimo: {ex.restAfterExercise}<br />
                             <em className="text-sm text-gray-600">{ex.description}</em>
                           </li>
                         ))}
@@ -81,16 +81,11 @@ export default function Workouts() {
                       <p className="italic text-blue-700 mt-4">🏁 {day.motivationEnd}</p>
                     </div>
                   ))}
-
-                  {parsed.missingFields && (
-                    <div className="mt-6 text-red-700 bg-red-50 p-4 rounded">
-                      <h3 className="font-semibold">Trūkstami duomenys:</h3>
-                      <pre className="whitespace-pre-wrap text-sm">{parsed.missingFields}</pre>
-                    </div>
-                  )}
                 </>
               );
             })()}
+          </div>
+        )}
           </div>
         )}
       </div>
