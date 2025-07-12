@@ -200,6 +200,19 @@ const promptParts = [
   // 11. Maksimalus pratimų skaičius
   `If allowed, always generate 5 to 10 unique and clearly described exercises.`,
   `Do NOT waste a slot with vague categories. Prioritize clear, useful movements.`,
+  // 11.1 Exercise specificity and logical alignment
+  `Every exercise MUST have a clear and specific name. NEVER use abstract or general terms such as "Stretching exercises", "Warm-up", or "Strength movements" without breaking them down into individual named exercises.`,
+  `For example, instead of:
+    @name: Stretching exercises
+  write:
+    @name: Cat pose (back stretch)
+    @name: Shoulder stretch standing by the wall`,
+  `Always use any available exercise slots to expand general categories into clearly named, separate exercises.`,
+  `Stretching exercises MUST be logically balanced with the main workout. If the main exercises target upper body muscles (e.g., push-ups, planks), then stretching should focus on shoulders, chest, and back. If the workout targets legs (e.g., squats, lunges), then stretching should include hamstrings, quadriceps, and calves.`,
+  `Warm-up exercises must also logically prepare the user for the targeted muscles. For example, do not include arm swings if the workout only targets legs.`,
+  `Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.`,
+  `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into 1–5 named stretches, each with its own title and description.`,
+
 
   // 12. STRUCTURED FORMAT WITH SYMBOLS
   `STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
@@ -225,7 +238,7 @@ The workout must follow the exact structure below and start with this format:
 !!motivation_end!!  
 [Motivational message for ending the workout – localized]
 
-Include 3 to 10 exercises. For each exercise, always use this full format:
+Include 3 to 15 exercises. For each exercise, always use this full format:
 
 @@exercise@@  
 @name: [Name of the exercise in the user's language]  
