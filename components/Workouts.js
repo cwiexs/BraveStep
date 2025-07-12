@@ -84,7 +84,7 @@ export default function Workouts() {
                         <div key={i} className="bg-white border border-gray-200 p-4 rounded-lg relative">
                           <div className="flex items-start justify-between">
                             <div>
-                              <p className="font-semibold text-gray-800">Pratimas {i + 1}</p>
+                              <p className="font-semibold text-gray-800">{ex.name ? ex.name : `Pratimas ${i + 1}`}</p>
                               <p className="text-sm text-gray-700">{ex.reps}, {ex.sets}</p>
                               <p className="text-sm text-gray-600">{ex.restBetweenSets}</p>
                               <p className="text-sm text-gray-600">{ex.restAfterExercise}</p>
