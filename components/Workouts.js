@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useState, useEffect } from "react";
-import { parseWorkoutText } from "../utils/parseWorkoutText";
+import { parseWorkoutText } from "./utils/parseWorkoutText";
 
 export default function Workouts() {
   const { data: session, status } = useSession();
