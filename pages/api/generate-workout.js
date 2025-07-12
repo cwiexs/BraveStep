@@ -184,32 +184,32 @@ const promptParts = [
   `Focus on what CAN be done, not what is missing.`,
 
   // 10. STRUKTŪROS FORMATAS SU SIMBOLIAIS
- `STRUCTURED OUTPUT FORMAT (USE SYMBOLS + TRANSLATABLE TEXT):
+`STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
-You must return the workout plan in a clearly structured and machine-readable format. Each structural part is marked by a symbol that starts and ends with special characters.
+You MUST return the workout plan in a clearly structured and machine-readable format.
 
-Each symbol MUST be followed by the *human-readable translation or text*, written in the user's preferred language.
+Use the following symbols ONLY to separate sections. Do NOT add other section names, bullets, or formatting.
+
+Each symbol must be followed by text in the user's preferred language.
 
 ---
 
 %%intro  
-[Short introductory paragraph in the user's language. Start with a word like "Įžanga", "Введение", "Introduction", etc.]
+[Short introductory paragraph in the user's preferred language]
 
 ##DAY 1##  
-[Human-readable day label, like "Pirmoji diena", "Day One", "Первый день", etc.]
-
 !!motivation_start!!  
-[Motivational message at the beginning of the workout – personalized and localised]
-
+[Motivational message for beginning the workout – localized]  
 !!motivation_end!!  
-[Motivational message at the end of the workout – positive and localised]
+[Motivational message for ending the workout – localized]
 
 @@exercise@@  
-@reps: [A full sentence, like: "Atlik 15 pakartojimų" or "Do 15 repetitions"]
-@sets: [Full sentence, like: "3 serijos" or "3 sets of each exercise"]
-@rest_sets: [Full sentence, like: "Ilsėkis 30 sekundžių tarp serijų" or "Rest 30 seconds between sets"]
-@rest_after: [Full sentence, like: "Ilsėkis 60 sekundžių prieš kitą pratimą" or "Rest 60 seconds before the next exercise"]
-@description: [Short, friendly description of the exercise in the user's language]
+@name: [Name of the exercise in the user's language]  
+@reps: [e.g., "Atlik 12 pakartojimų" or similar sentence]  
+@sets: [e.g., "3 serijos"]  
+@rest_sets: [e.g., "Ilsėkis 30 sekundžių tarp serijų"]  
+@rest_after: [e.g., "Ilsėkis 60 sekundžių prieš kitą pratimą"]  
+@description: [Short, beginner-friendly description in the user's language]
 
 @@exercise@@  
 ...
@@ -218,16 +218,17 @@ Each symbol MUST be followed by the *human-readable translation or text*, writte
 ...
 
 ##MISSING_FIELDS##  
-[If any fields were missing, list them here in user's language and explain how they would improve the plan]
+[Optional. List of any missing user data and explanation why it matters, in the user's language.]
 
 ---
 
 IMPORTANT RULES:
-- DO NOT translate or remove symbols like %%intro, ##DAY 1##, @@exercise@@, etc. They are used for parsing.
-- Symbols must be followed by human-readable content in the user's language.
-- All instructional text, motivational messages, and descriptions MUST be in the user's preferred language.
-- DO NOT mix languages. Use the user's language only.
-- DO NOT skip or rearrange the structure.`,
+- DO NOT translate or remove any of these symbols: %%intro, ##DAY 1##, !!motivation_start!!, @@exercise@@, @name:, etc.
+- These symbols are used for machine parsing. They must be present exactly as shown.
+- DO NOT use bullet points (•), dashes, headings, or alternative section titles.
+- The user's language should be used for all visible text, but symbols must remain in English.
+- DO NOT mix different formats or include summaries outside the symbol structure.
+- Return only structured content. This is not an example – this is the required format.`,
 
   // 11. Baigiamoji instrukcija
   `Make sure that every day has one starting motivational message and one ending motivational message.`,
