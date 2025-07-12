@@ -41,6 +41,7 @@ export function parseWorkoutText(planText) {
     }
     if (trimmed.startsWith("@@exercise@@")) {
       currentExercise = {
+        name: "",
         reps: "",
         sets: "",
         restBetweenSets: "",
@@ -65,7 +66,11 @@ export function parseWorkoutText(planText) {
     } else if (section === "exercise") {
       if (trimmed.startsWith("@reps:")) {
         currentExercise.reps = trimmed.replace("@reps:", "").trim();
-      } else if (trimmed.startsWith("@sets:")) {
+      }
+      else if (trimmed.startsWith("@name:")) {
+        currentExercise.name = trimmed.replace("@name:", "").trim();
+      }
+       else if (trimmed.startsWith("@sets:")) {
         currentExercise.sets = trimmed.replace("@sets:", "").trim();
       } else if (trimmed.startsWith("@rest_sets:")) {
         currentExercise.restBetweenSets = trimmed.replace("@rest_sets:", "").trim();
