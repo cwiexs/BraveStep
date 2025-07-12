@@ -1,3 +1,4 @@
+
 export function parseWorkoutText(planText) {
   const lines = planText.split("\n");
   const result = {
@@ -10,8 +11,10 @@ export function parseWorkoutText(planText) {
   let section = "intro";
 
   for (const line of lines) {
-    if (line.startsWith("===")) {
-      const dayMatch = line.match(/(\d+)/);
+    if (line.startsWith("%%intro")) {
+      section = "intro";
+    } else if (line.startsWith("##DAY")) {
+      const dayMatch = line.match(/##DAY (\d+)##/);
       if (dayMatch) {
         currentDay = {
           day: Number(dayMatch[1]),
@@ -20,39 +23,41 @@ export function parseWorkoutText(planText) {
           exercises: []
         };
         result.days.push(currentDay);
-        section = "day";
       }
-    } else if (line.includes("--- Motivation Start ---")) {
+    } else if (line.startsWith("!!motivation_start!!")) {
       section = "motivationStart";
-    } else if (line.includes("--- Motivation End ---")) {
+    } else if (line.startsWith("!!motivation_end!!")) {
       section = "motivationEnd";
-    } else if (line.startsWith("• Exercise Name:")) {
+    } else if (line.startsWith("@@exercise@@")) {
       currentExercise = {
-        name: line.split(":")[1].trim(),
+        name: "",
         reps: "",
         sets: "",
         restBetweenSets: "",
         restAfterExercise: "",
         description: ""
       };
-      currentDay.exercises.push(currentExercise);
-    } else if (line.includes("Reps:")) {
-      currentExercise.reps = line.split(":")[1].trim();
-    } else if (line.includes("Sets:")) {
-      currentExercise.sets = line.split(":")[1].trim();
-    } else if (line.includes("Rest between sets:")) {
-      currentExercise.restBetweenSets = line.split(":")[1].trim();
-    } else if (line.includes("Rest after exercise:")) {
-      currentExercise.restAfterExercise = line.split(":")[1].trim();
-    } else if (line.includes("Description:")) {
-      currentExercise.description = line.split(":")[1].trim();
+      if (currentDay) currentDay.exercises.push(currentExercise);
+      section = "exercise";
+    } else if (line.startsWith("@reps:")) {
+      if (currentExercise) currentExercise.reps = line.replace("@reps:", "").trim();
+    } else if (line.startsWith("@sets:")) {
+      if (currentExercise) currentExercise.sets = line.replace("@sets:", "").trim();
+    } else if (line.startsWith("@rest_sets:")) {
+      if (currentExercise) currentExercise.restBetweenSets = line.replace("@rest_sets:", "").trim();
+    } else if (line.startsWith("@rest_after:")) {
+      if (currentExercise) currentExercise.restAfterExercise = line.replace("@rest_after:", "").trim();
+    } else if (line.startsWith("@description:")) {
+      if (currentExercise) currentExercise.description = line.replace("@description:", "").trim();
     } else {
       if (section === "intro") {
         result.introduction += line + "\n";
       } else if (section === "motivationStart") {
-        currentDay.motivationStart += line + " ";
+        if (currentDay) currentDay.motivationStart += line + " ";
       } else if (section === "motivationEnd") {
-        currentDay.motivationEnd += line + " ";
+        if (currentDay) currentDay.motivationEnd += line + " ";
+      } else if (section === "exercise" && currentExercise && !currentExercise.name) {
+        currentExercise.name = line.trim();
       }
     }
   }
