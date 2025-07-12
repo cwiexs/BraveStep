@@ -1,5 +1,5 @@
 import React from 'react';
-import parseWorkoutText from './parseWorkoutText';
+import parseWorkoutText from './utils/parseWorkoutText';
 
 const Workouts = ({ workoutText }) => {
   if (!workoutText) return null;
