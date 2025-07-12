@@ -1,9 +1,9 @@
-
 export function parseWorkoutText(planText) {
   const lines = planText.split("\n");
   const result = {
     introduction: "",
-    days: []
+    days: [],
+    missingFields: ""
   };
 
   let currentDay = null;
@@ -11,54 +11,71 @@ export function parseWorkoutText(planText) {
   let section = "intro";
 
   for (const line of lines) {
-    if (line.startsWith("%%intro")) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith("%%intro")) {
       section = "intro";
-    } else if (line.startsWith("##DAY")) {
-      const dayMatch = line.match(/##DAY (\d+)##/);
-      if (dayMatch) {
+      continue;
+    }
+    if (trimmed.startsWith("##DAY ")) {
+      const dayNumber = trimmed.match(/##DAY (\d+)##/);
+      if (dayNumber) {
         currentDay = {
-          day: Number(dayMatch[1]),
+          day: parseInt(dayNumber[1]),
           motivationStart: "",
           motivationEnd: "",
           exercises: []
         };
         result.days.push(currentDay);
+        section = "day";
       }
-    } else if (line.startsWith("!!motivation_start!!")) {
+      continue;
+    }
+    if (trimmed.startsWith("!!motivation_start!!")) {
       section = "motivationStart";
-    } else if (line.startsWith("!!motivation_end!!")) {
+      continue;
+    }
+    if (trimmed.startsWith("!!motivation_end!!")) {
       section = "motivationEnd";
-    } else if (line.startsWith("@@exercise@@")) {
+      continue;
+    }
+    if (trimmed.startsWith("@@exercise@@")) {
       currentExercise = {
-        name: "",
         reps: "",
         sets: "",
         restBetweenSets: "",
         restAfterExercise: "",
         description: ""
       };
-      if (currentDay) currentDay.exercises.push(currentExercise);
+      currentDay.exercises.push(currentExercise);
       section = "exercise";
-    } else if (line.startsWith("@reps:")) {
-      if (currentExercise) currentExercise.reps = line.replace("@reps:", "").trim();
-    } else if (line.startsWith("@sets:")) {
-      if (currentExercise) currentExercise.sets = line.replace("@sets:", "").trim();
-    } else if (line.startsWith("@rest_sets:")) {
-      if (currentExercise) currentExercise.restBetweenSets = line.replace("@rest_sets:", "").trim();
-    } else if (line.startsWith("@rest_after:")) {
-      if (currentExercise) currentExercise.restAfterExercise = line.replace("@rest_after:", "").trim();
-    } else if (line.startsWith("@description:")) {
-      if (currentExercise) currentExercise.description = line.replace("@description:", "").trim();
-    } else {
-      if (section === "intro") {
-        result.introduction += line + "\n";
-      } else if (section === "motivationStart") {
-        if (currentDay) currentDay.motivationStart += line + " ";
-      } else if (section === "motivationEnd") {
-        if (currentDay) currentDay.motivationEnd += line + " ";
-      } else if (section === "exercise" && currentExercise && !currentExercise.name) {
-        currentExercise.name = line.trim();
+      continue;
+    }
+    if (trimmed.startsWith("##MISSING_FIELDS##")) {
+      section = "missingFields";
+      continue;
+    }
+
+    if (section === "intro") {
+      result.introduction += trimmed + "\n";
+    } else if (section === "motivationStart") {
+      currentDay.motivationStart += trimmed + " ";
+    } else if (section === "motivationEnd") {
+      currentDay.motivationEnd += trimmed + " ";
+    } else if (section === "exercise") {
+      if (trimmed.startsWith("@reps:")) {
+        currentExercise.reps = trimmed.replace("@reps:", "").trim();
+      } else if (trimmed.startsWith("@sets:")) {
+        currentExercise.sets = trimmed.replace("@sets:", "").trim();
+      } else if (trimmed.startsWith("@rest_sets:")) {
+        currentExercise.restBetweenSets = trimmed.replace("@rest_sets:", "").trim();
+      } else if (trimmed.startsWith("@rest_after:")) {
+        currentExercise.restAfterExercise = trimmed.replace("@rest_after:", "").trim();
+      } else if (trimmed.startsWith("@description:")) {
+        currentExercise.description = trimmed.replace("@description:", "").trim();
       }
+    } else if (section === "missingFields") {
+      result.missingFields += trimmed + "\n";
     }
   }
 
