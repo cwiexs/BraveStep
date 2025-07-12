@@ -119,6 +119,7 @@ const promptParts = [
   `Your first task is to detect and internally translate ALL field values into English before processing them.`,
   `NEVER reject or misinterpret data due to unfamiliar language.`,
   `DO NOT generate responses in English if the user has provided a preferred language – use that language exclusively.`,
+  `Ensure that the visible content contains only the user's preferred language. Do not mix words or sentences from different languages.`,
 
   // 3. Duomenų analizė
   `Carefully analyze all the provided user information for logic, realism, safety, and appropriateness.`,
@@ -138,7 +139,6 @@ const promptParts = [
   `Use this format exactly: %%intro\n[Explanation in user's language why the plan was not created]\n##MISSING_FIELDS##\n[List any missing or unsafe fields in user's language]`,
   `Make sure this explanation is human-readable and supportive. It must never be empty or technical.`,
   `Even if no plan is created, the user must understand why and what they can do next.`,
-
 
   // 5.1. Adaptacija ribinėms, bet realioms vertėms
   `HOWEVER, if a value is real but extreme (e.g., stress level 10/10, very high weight, poor sleep), DO NOT reject the request.`,
@@ -162,7 +162,6 @@ const promptParts = [
   `Never judge. Always reassure.`,
   `If stress is high, explicitly include at least one motivational message that addresses emotional balance, overthinking, or mental tension — even in subtle ways.`,
 
-
   // 6. Nepilnamečiams
   `If the user appears to be underage, DO NOT reject them.`,
   `Instead, generate an age-appropriate, fun, and gentle workout.`,
@@ -183,8 +182,18 @@ const promptParts = [
   `If the user has minimal equipment (e.g., only a mat), ALWAYS provide a full workout using bodyweight exercises and floor exercises.`,
   `Focus on what CAN be done, not what is missing.`,
 
-// 10. STRUCTURED FORMAT WITH SYMBOLS  
-`STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
+  // 10. DĖL BENDRINIŲ AR NEAIŠKIŲ PRATIMŲ
+  `NEVER use general labels like "Dynamic warm-up" without breaking them down into specific exercises.`,
+  `For example, replace "Dynamic warm-up" with a list like: "Neck circles, arm swings, jumping jacks, leg swings, and high knees – 30 seconds each."`,
+  `Each listed item MUST be translated into the user's preferred language.`,
+  `NEVER mix language fragments (e.g., don't show "1 kartas" or "no rest" if preferred language is not English). Translate all timing, repetitions, rest, and descriptions fully.`,
+
+  // 11. Maksimalus pratimų skaičius
+  `If allowed, always generate 5 to 10 unique and clearly described exercises.`,
+  `Do NOT waste a slot with vague categories. Prioritize clear, useful movements.`,
+
+  // 12. STRUCTURED FORMAT WITH SYMBOLS
+  `STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
 You MUST return the workout plan in a clearly structured and machine-readable format.
 
@@ -236,15 +245,14 @@ IMPORTANT RULES:
 - DO NOT return any summaries, explanations, or formatting outside the structured block.  
 - This is not an example. This is the exact format that MUST be followed.`,
 
-  // 11. Baigiamoji instrukcija
+  // 13. Baigiamoji instrukcija
   `Make sure that every day has one starting motivational message and one ending motivational message.`,
   `For every exercise, include short explanation that is friendly for beginners.`,
   `Only use the user’s preferred language for all content.`,
 
-  // 12. Bus pridėti duomenys apie vartotoją
+  // 14. Vartotojo duomenų sekcija
   `Here are the field descriptions and their values:`
 ];
-
 
 
 
