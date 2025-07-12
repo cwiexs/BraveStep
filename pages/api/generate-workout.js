@@ -184,7 +184,8 @@ const promptParts = [
   `Focus on what CAN be done, not what is missing.`,
 
   // 10. STRUKTŪROS FORMATAS SU SIMBOLIAIS
-`STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
+`// 10. STRUKTŪROS FORMATAS SU SIMBOLIAIS  
+STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
 You MUST return the workout plan in a clearly structured and machine-readable format.
 
@@ -197,11 +198,18 @@ Each symbol must be followed by text in the user's preferred language.
 %%intro  
 [Short introductory paragraph in the user's preferred language]
 
-##DAY 1##  
+Generate a weekly workout plan of **up to 5 workout days per week**, based on the user's goals or experience level.  
+Each workout day must follow the **exact same structure** and start with this format:
+
+##DAY N##  
+(where N is 1, 2, 3, 4, or 5 — generate from 1 to 5 days total)
+
 !!motivation_start!!  
 [Motivational message for beginning the workout – localized]  
 !!motivation_end!!  
 [Motivational message for ending the workout – localized]
+
+Each workout day must include **3 to 5 exercises**. For each exercise, always use this full format:
 
 @@exercise@@  
 @name: [Name of the exercise in the user's language]  
@@ -214,21 +222,23 @@ Each symbol must be followed by text in the user's preferred language.
 @@exercise@@  
 ...
 
-##DAY 2##  
-...
+Repeat this structure consistently for all workout days you generate.
+
+At the end, include this only if needed:
 
 ##MISSING_FIELDS##  
 [Optional. List of any missing user data and explanation why it matters, in the user's language.]
 
 ---
 
-IMPORTANT RULES:
-- DO NOT translate or remove any of these symbols: %%intro, ##DAY 1##, !!motivation_start!!, @@exercise@@, @name:, etc.
-- These symbols are used for machine parsing. They must be present exactly as shown.
-- DO NOT use bullet points (•), dashes, headings, or alternative section titles.
-- The user's language should be used for all visible text, but symbols must remain in English.
-- DO NOT mix different formats or include summaries outside the symbol structure.
-- Return only structured content. This is not an example – this is the required format.`,
+IMPORTANT RULES:  
+- DO NOT translate or remove any of these symbols: %%intro, ##DAY 1##, !!motivation_start!!, @@exercise@@, @name:, etc.  
+- These symbols are used for machine parsing. They must appear **exactly** as shown.  
+- DO NOT use bullet points (•), dashes, extra spacing, or alternative section titles.  
+- The user's language must be used for all visible text.  
+- Symbols and structure must remain in English.  
+- DO NOT return any summaries, explanations, or formatting outside the structured block.  
+- This is not an example. This is the exact format that MUST be followed.`,
 
   // 11. Baigiamoji instrukcija
   `Make sure that every day has one starting motivational message and one ending motivational message.`,
