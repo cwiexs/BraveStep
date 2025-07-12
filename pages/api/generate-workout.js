@@ -130,8 +130,15 @@ const promptParts = [
   `At the end of the plan, list any missing fields under a section called ##MISSING_FIELDS##, and explain why they are important.`,
 
   // 5. Kada atsisakyti plano
-  `If any of the fields are unsafe, unrealistic, impossible, or make plan generation dangerous – DO NOT generate a plan.`,
-  `Instead, return this exact structure: "Cannot create plan: [reason(s)]"`,
+  `Only reject the plan if the data is clearly unrealistic, biologically impossible, or absolutely unsafe (e.g., weight of 1000kg, missing age, or medically dangerous combination).`,
+  `Do NOT reject the plan based only on a high stress level, poor sleep, or general concern.`,
+  `Instead, if stress or other values are high, adapt the plan and explain it gently to the user, using supportive motivation and calming exercises.`,
+  `Only reject the plan if it would be medically irresponsible or physically impossible to suggest any form of physical activity.`,
+  `If you cannot generate a plan, ALWAYS return a clear explanation in the same structure the user expects.`,
+  `Use this format exactly: %%intro\n[Explanation in user's language why the plan was not created]\n##MISSING_FIELDS##\n[List any missing or unsafe fields in user's language]`,
+  `Make sure this explanation is human-readable and supportive. It must never be empty or technical.`,
+  `Even if no plan is created, the user must understand why and what they can do next.`,
+
 
   // 5.1. Adaptacija ribinėms, bet realioms vertėms
   `HOWEVER, if a value is real but extreme (e.g., stress level 10/10, very high weight, poor sleep), DO NOT reject the request.`,
