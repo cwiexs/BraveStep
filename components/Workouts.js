@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useState, useEffect } from "react";
-import ReactMarkdown from "react-markdown";
+import { parseWorkoutText } from "../utils/parseWorkoutText";
 
 export default function Workouts() {
   const { data: session, status } = useSession();
@@ -56,7 +56,36 @@ export default function Workouts() {
         </button>
         {plan && (
           <div className="mt-6 p-4 bg-gray-100 rounded text-left">
-            <ReactMarkdown className="prose prose-sm max-w-none">{plan.text}</ReactMarkdown>
+            {plan && (
+          <div className="mt-6 p-4 bg-gray-100 rounded text-left space-y-6">
+            {(() => {
+              const parsed = parseWorkoutText(plan.text);
+
+              return (
+                <>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{parsed.introduction}</p>
+
+                  {parsed.days.map(day => (
+                    <div key={day.day} className="border p-4 rounded bg-white shadow">
+                      <h2 className="text-xl font-bold mb-2">Diena {day.day}</h2>
+                      <p className="italic text-green-700">💬 {day.motivationStart}</p>
+                      <ul className="mt-4 space-y-2">
+                        {day.exercises.map((ex, i) => (
+                          <li key={i} className="bg-gray-50 p-3 rounded border">
+                            <strong>{ex.name}</strong> – {ex.reps} pakart., {ex.sets} setai<br />
+                            Poilsis tarp setų: {ex.restBetweenSets} | Po pratimo: {ex.restAfterExercise}<br />
+                            <em className="text-sm text-gray-600">{ex.description}</em>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="italic text-blue-700 mt-4">🏁 {day.motivationEnd}</p>
+                    </div>
+                  ))}
+                </>
+              );
+            })()}
+          </div>
+        )}
           </div>
         )}
       </div>
