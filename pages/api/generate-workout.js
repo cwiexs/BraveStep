@@ -183,9 +183,8 @@ const promptParts = [
   `If the user has minimal equipment (e.g., only a mat), ALWAYS provide a full workout using bodyweight exercises and floor exercises.`,
   `Focus on what CAN be done, not what is missing.`,
 
-  // 10. STRUKTŪROS FORMATAS SU SIMBOLIAIS
-`// 10. STRUKTŪROS FORMATAS SU SIMBOLIAIS  
-STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
+// 10. STRUCTURED FORMAT WITH SYMBOLS  
+`STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
 You MUST return the workout plan in a clearly structured and machine-readable format.
 
@@ -198,31 +197,28 @@ Each symbol must be followed by text in the user's preferred language.
 %%intro  
 [Short introductory paragraph in the user's preferred language]
 
-Generate a weekly workout plan of **up to 5 workout days per week**, based on the user's goals or experience level.  
-Each workout day must follow the **exact same structure** and start with this format:
+Generate ONLY ONE full workout day based on the user's goals or experience level.  
+The workout must follow the exact structure below and start with this format:
 
-##DAY N##  
-(where N is 1, 2, 3, 4, or 5 — generate from 1 to 5 days total)
+##DAY 1##  
 
 !!motivation_start!!  
 [Motivational message for beginning the workout – localized]  
 !!motivation_end!!  
 [Motivational message for ending the workout – localized]
 
-Each workout day must include **3 to 5 exercises**. For each exercise, always use this full format:
+Include 3 to 10 exercises. For each exercise, always use this full format:
 
 @@exercise@@  
 @name: [Name of the exercise in the user's language]  
-@reps: [e.g., "Atlik 12 pakartojimų" or similar sentence]  
-@sets: [e.g., "3 serijos"]  
-@rest_sets: [e.g., "Ilsėkis 30 sekundžių tarp serijų"]  
-@rest_after: [e.g., "Ilsėkis 60 sekundžių prieš kitą pratimą"]  
+@reps: [e.g., "Do 12 repetitions" or similar sentence]  
+@sets: [e.g., "3 sets"]  
+@rest_sets: [e.g., "Rest 30 seconds between sets"]  
+@rest_after: [e.g., "Rest 60 seconds before the next exercise"]  
 @description: [Short, beginner-friendly description in the user's language]
 
 @@exercise@@  
 ...
-
-Repeat this structure consistently for all workout days you generate.
 
 At the end, include this only if needed:
 
@@ -233,7 +229,7 @@ At the end, include this only if needed:
 
 IMPORTANT RULES:  
 - DO NOT translate or remove any of these symbols: %%intro, ##DAY 1##, !!motivation_start!!, @@exercise@@, @name:, etc.  
-- These symbols are used for machine parsing. They must appear **exactly** as shown.  
+- These symbols are used for machine parsing. They must appear exactly as shown.  
 - DO NOT use bullet points (•), dashes, extra spacing, or alternative section titles.  
 - The user's language must be used for all visible text.  
 - Symbols and structure must remain in English.  
