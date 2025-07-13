@@ -38,10 +38,7 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
 }
 
   // 4. Kalbos nustatymas
-  let languageString = "English";
-   if (preferredLanguage?.toLowerCase() === "EN") languageString = "English";
-  if (preferredLanguage?.toLowerCase() === "lt") languageString = "Lithuanian";
-  if (preferredLanguage?.toLowerCase() === "ru") languageString = "Russian";
+
 
   // 5. Visų laukų aprašymai
   const descriptions = {
