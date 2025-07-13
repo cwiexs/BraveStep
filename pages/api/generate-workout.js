@@ -22,9 +22,13 @@ export default async function handler(req, res) {
   }
 
   // 3. Atmetam jautrius laukus
-const {
+  const {
   password,
   email,
+  id,
+  created_at,
+  updated_at,
+  preferredLanguage,
   ...userData
 } = user;
 
@@ -33,6 +37,10 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
   userData.weightKg = Number(String(userData.weightKg).replace(",", "."));
 }
 
+  // 4. Kalbos nustatymas
+  let languageString = "English";
+  if (preferredLanguage?.toLowerCase() === "lt") languageString = "Lithuanian";
+  if (preferredLanguage?.toLowerCase() === "ru") languageString = "Russian";
 
   // 5. Visų laukų aprašymai
   const descriptions = {
@@ -110,7 +118,7 @@ const promptParts = [
   `IMPORTANT: All field values (especially equipmentAvailable, goal, bodyType, etc.) may be provided in different natural languages (e.g., Lithuanian, Polish, French, German, etc.).`,
   `Your first task is to detect and internally translate ALL field values into English before processing them.`,
   `NEVER reject or misinterpret data due to unfamiliar language.`,
-  `If the user has provided a preferred language, you MUST generate the response in that language. If no preferred language is specified, generate the response in English.`,
+  `DO NOT generate responses in English if the user has provided a preferred language – use that language exclusively.`,
   `Ensure that the visible content contains only the user's preferred language. Do not mix words or sentences from different languages.`,
   // 2.1 Kalbos aiškumas ir terminų vartojimas
   `When generating content in the user's preferred language (especially Lithuanian), you MUST use natural and commonly used vocabulary, as found in local fitness guides, government health portals, or official sport websites.`,
