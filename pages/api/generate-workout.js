@@ -25,7 +25,6 @@ export default async function handler(req, res) {
   const {
   password,
   email,
-  id,
   ...userData
 } = user;
 
