@@ -26,9 +26,6 @@ export default async function handler(req, res) {
   password,
   email,
   id,
-  created_at,
-  updated_at,
-  preferredLanguage,
   ...userData
 } = user;
 
@@ -36,8 +33,6 @@ export default async function handler(req, res) {
 if (userData.weightKg !== undefined && userData.weightKg !== null) {
   userData.weightKg = Number(String(userData.weightKg).replace(",", "."));
 }
-
-  // 4. Kalbos nustatymas
 
 
   // 5. Visų laukų aprašymai
@@ -295,7 +290,6 @@ promptParts.push(`today: "${today}" [The current date. Use this together with da
   promptParts.push(
     `IMPORTANT INSTRUCTIONS: 
 - NEVER generate a workout plan if there are any doubts about the safety, realism, or appropriateness of the input data. 
-- ALWAYS give a clear, structured response in ${languageString}. 
 - If you generate a workout plan: For EVERY DAY, start with a unique motivational message to encourage starting the workout, and finish with a unique motivational message for the end of the workout. For EVERY EXERCISE, add a short, beginner-friendly description. If any exercise has a complicated name, explain it briefly. The weekly structure must match the client's schedule, available equipment, and goal. If any data is missing, make your best professional assumptions.`
   );
 
