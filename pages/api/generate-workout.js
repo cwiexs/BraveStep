@@ -22,12 +22,12 @@ export default async function handler(req, res) {
   }
 
   // 3. Atmetam jautrius laukus
- const {
+const {
   password,
   email,
+  preferredLanguage,
   ...userData
 } = user;
-
 
 // Konvertuoja weightKg į skaičių, jei buvo tekstas
 if (userData.weightKg !== undefined && userData.weightKg !== null) {
