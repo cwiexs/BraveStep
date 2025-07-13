@@ -25,7 +25,6 @@ export default async function handler(req, res) {
 const {
   password,
   email,
-  preferredLanguage,
   ...userData
 } = user;
 
@@ -34,10 +33,6 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
   userData.weightKg = Number(String(userData.weightKg).replace(",", "."));
 }
 
-  // 4. Kalbos nustatymas
-  let languageString = "English";
-  if (preferredLanguage?.toLowerCase() === "lt") languageString = "Lithuanian";
-  if (preferredLanguage?.toLowerCase() === "ru") languageString = "Russian";
 
   // 5. Visų laukų aprašymai
   const descriptions = {
