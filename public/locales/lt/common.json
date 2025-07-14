@@ -324,6 +324,18 @@
   "unknown": "Nežinoma: Jei nežinai savo kūno tipo, spausk „Noriu sužinoti“ ir perskaityk aprašymus."
 },
 "wantToKnow": "Noriu sužinoti",
-"bodyTypeDescriptionsTitle": "Kūno tipų aprašymai"
+"bodyTypeDescriptionsTitle": "Kūno tipų aprašymai",
+
+"form.alcoholUsage": "Ar vartojate alkoholį?",
+"form.option.yes": "Taip",
+"form.option.no": "Ne",
+"info.alcoholUsage": "Pažymėkite, ar vartojate alkoholinius gėrimus.",
+
+"form.alcoholAmount": "Kiek paprastai išgeriate?",
+"form.alcoholAmount.light": "1–2 vienetai (pvz., vienas bokalas alaus ar viena taurė vyno)",
+"form.alcoholAmount.moderate": "3–4 vienetai (pvz., du bokalai alaus ar dvi taurės vyno)",
+"form.alcoholAmount.heavy": "5 ir daugiau vienetų arba stiprus alkoholis",
+"info.alcoholAmount": "Pasirinkite, kiek dažniausiai suvartojate per vieną kartą."
+
 
 }

@@ -323,6 +323,18 @@
   "unknown": "Unknown: Not sure about your body type? Click 'Want to know' to read descriptions."
 },
 "wantToKnow": "Want to know",
-"bodyTypeDescriptionsTitle": "Body Type Descriptions"
+"bodyTypeDescriptionsTitle": "Body Type Descriptions",
+
+"form.alcoholUsage": "Do you consume alcohol?",
+"form.option.yes": "Yes",
+"form.option.no": "No",
+"info.alcoholUsage": "Please indicate whether you consume alcohol.",
+
+"form.alcoholAmount": "How much do you usually drink?",
+"form.alcoholAmount.light": "1–2 units (e.g., one beer or one glass of wine)",
+"form.alcoholAmount.moderate": "3–4 units (e.g., two beers or two glasses of wine)",
+"form.alcoholAmount.heavy": "5+ units or strong alcohol",
+"info.alcoholAmount": "Choose the typical amount you consume in one session."
+
 
 }
