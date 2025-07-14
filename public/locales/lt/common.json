@@ -158,7 +158,16 @@
     "other": "Kita...",
     "enterOther": "Įrašykite...",
     "yes": "Taip",
-    "no": "Ne"
+    "no": "Ne",
+    "alcoholUsage": "Ar vartojate alkoholį?",
+    "alcoholAmount": "Kiek dažnai ar daug vartojate?",
+        "option": {
+          "yes": "Taip",
+          "no": "Ne",
+          "light": "Nedaug (pvz., taurė vyno per savaitę)",
+          "moderate": "Vidutiniškai (pvz., 1–3 kartus per savaitę)",
+          "heavy": "Daug (pvz., 4+ kartus per savaitę)"
+        }
 
   },
   "info": {
@@ -218,7 +227,10 @@
     "medications": "Naudojami vaistai (jei yra).",
     "goalDeadline": "Kada norėtumėte pasiekti tikslą?",
     "wantsRestRecommendations": "Pažymėkite, jei norite gauti patarimų dėl poilsio.",
-    "accessLevel": "Automatiškai priskiriamas. Nekoreguojamas rankiniu būdu."
+    "accessLevel": "Automatiškai priskiriamas. Nekoreguojamas rankiniu būdu.",
+    "alcoholUsage": "Tai padeda mums suprasti jūsų gyvenimo būdą.",
+    "alcoholAmount": "Nurodykite savo įprastą alkoholio vartojimą, kad gautumėte tikslesnes rekomendacijas."
+
   },
   "section": {
     "personal": "Asmeninė informacija",
@@ -324,18 +336,8 @@
   "unknown": "Nežinoma: Jei nežinai savo kūno tipo, spausk „Noriu sužinoti“ ir perskaityk aprašymus."
 },
 "wantToKnow": "Noriu sužinoti",
-"bodyTypeDescriptionsTitle": "Kūno tipų aprašymai",
+"bodyTypeDescriptionsTitle": "Kūno tipų aprašymai"
 
-"form.alcoholUsage": "Ar vartojate alkoholį?",
-"form.option.yes": "Taip",
-"form.option.no": "Ne",
-"info.alcoholUsage": "Pažymėkite, ar vartojate alkoholinius gėrimus.",
-
-"form.alcoholAmount": "Kiek paprastai išgeriate?",
-"form.alcoholAmount.light": "1–2 vienetai (pvz., vienas bokalas alaus ar viena taurė vyno)",
-"form.alcoholAmount.moderate": "3–4 vienetai (pvz., du bokalai alaus ar dvi taurės vyno)",
-"form.alcoholAmount.heavy": "5 ir daugiau vienetų arba stiprus alkoholis",
-"info.alcoholAmount": "Pasirinkite, kiek dažniausiai suvartojate per vieną kartą."
 
 
 }

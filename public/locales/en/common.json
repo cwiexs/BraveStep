@@ -157,7 +157,16 @@
     "other": "Other...",
     "enterOther": "Enter...",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "alcoholUsage": "Do you consume alcohol?",
+    "alcoholAmount": "How much do you usually drink?",
+        "option": {
+        "yes": "Yes",
+        "no": "No",
+        "light": "Light (e.g., a glass of wine/week)",
+        "moderate": "Moderate (e.g., 1–3 drinks/week)",
+        "heavy": "Heavy (e.g., 4+ drinks/week)"
+      }
 
 
   },
@@ -219,7 +228,10 @@
     "medications": "Medications used (if any). ",
     "goalDeadline": "When would you like to reach your goal?",
     "wantsRestRecommendations": "Tick if you want to receive rest advice.",
-    "accessLevel": "Automatically assigned. Cannot be edited manually."
+    "accessLevel": "Automatically assigned. Cannot be edited manually.",
+    "alcoholUsage": "This helps us understand lifestyle factors.",
+    "alcoholAmount": "Let us know your usual alcohol consumption for better recommendations."
+
   },
   "section": {
     "personal": "Personal information",
@@ -323,18 +335,8 @@
   "unknown": "Unknown: Not sure about your body type? Click 'Want to know' to read descriptions."
 },
 "wantToKnow": "Want to know",
-"bodyTypeDescriptionsTitle": "Body Type Descriptions",
+"bodyTypeDescriptionsTitle": "Body Type Descriptions"
 
-"form.alcoholUsage": "Do you consume alcohol?",
-"form.option.yes": "Yes",
-"form.option.no": "No",
-"info.alcoholUsage": "Please indicate whether you consume alcohol.",
-
-"form.alcoholAmount": "How much do you usually drink?",
-"form.alcoholAmount.light": "1–2 units (e.g., one beer or one glass of wine)",
-"form.alcoholAmount.moderate": "3–4 units (e.g., two beers or two glasses of wine)",
-"form.alcoholAmount.heavy": "5+ units or strong alcohol",
-"info.alcoholAmount": "Choose the typical amount you consume in one session."
 
 
 }
