@@ -735,6 +735,8 @@ const finalData = {
             >
               {sec.fields.map(f => {
                 const val = fields[f.name] ?? "";
+                // Jei yra visibleIf ir ji grąžina false — nerodom šio lauko
+                if (f.visibleIf && !f.visibleIf(fields)) return null;
                 // Gender — paprastas select be "other"
                 if (f.type === "enum" && f.name === "gender") {
                   return (
