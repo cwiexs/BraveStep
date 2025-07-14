@@ -313,9 +313,14 @@ const sections = [
       {
         name: "stressLevel",
         label: "form.stressLevel",
-        type: "number",
+        type: "select",
+        options: Array.from({ length: 10 }, (_, i) => ({
+          value: (i + 1).toString(),
+          label: (i + 1).toString()
+        })),
         infoKey: "info.stressLevel",
       },
+
       {
         name: "familyStatus",
         label: "form.familyStatus",
