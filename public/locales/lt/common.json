@@ -159,6 +159,8 @@
     "enterOther": "Įrašykite...",
     "yes": "Taip",
     "no": "Ne",
+    "options.yes": "Taip",
+    "options.no": "Ne",
     "alcoholUsage": "Ar vartojate alkoholį?",
     "form.alcoholAmount.light": "Nedaug (pvz., iki 4 alkoholio vienetų per savaitę – 1–2 taurės vyno)",
     "form.alcoholAmount.moderate": "Vidutiniškai (5–14 vienetų per savaitę – pvz., 2–6 gėrimai paskirstyti savaitėje)",
