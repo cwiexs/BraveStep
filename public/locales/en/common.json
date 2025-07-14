@@ -165,9 +165,6 @@
     "alcoholAmount.light": "Light (e.g., up to 4 alcohol units/week – like 1–2 glasses of wine)",
     "alcoholAmount.moderate": "Moderate (5–14 units/week – e.g., 2–6 drinks spread across the week)",
     "alcoholAmount.heavy": "Heavy (more than 14 units/week – frequent or large quantity consumption)"
-
-
-
   },
   "info": {
     "name": "Enter your real name. E.g.: John.",
