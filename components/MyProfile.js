@@ -316,7 +316,7 @@ const sections = [
 },
 {
   name: "alcoholAmount",
-  label: "form.alcoholAmount",
+  label: "form.alcoholAmountLabel",
   type: "select",
   options: [
     { value: "light", label: "form.alcoholAmount.light" },
