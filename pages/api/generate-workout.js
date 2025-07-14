@@ -88,7 +88,7 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
     hasInsurance: "Ignore for training purposes.",
     smokes: "Does the client smoke? Consider when setting cardio intensity.",
     alcohol: "Alcohol consumption – for general health context.",
-    stressLevel: "Current stress level – adjust training volume if high.",
+    stressLevel: "Current stress level (1 = very low, 10 = extremely high). The higher the number, the more important it is to reduce training volume and prioritize recovery. If this field is empty, recommend the user to fill it in, as it significantly affects workout intensity and mental balance.",
     medications: "List of medications – watch out for drug-exercise interactions.",
     smartWatch: "Ignore unless relevant for tracking.",
     goal: "Main fitness goal – the workout plan must focus on this.",
