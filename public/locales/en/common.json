@@ -160,9 +160,9 @@
     "no": "No",
     "alcoholUsage": "Do you consume alcohol?",
     "alcoholAmount": "How much do you usually drink?",
-    "alcoholAmount.light": "Light (e.g., a glass of wine or up to 150 ml of light alcohol per week)",
-    "alcoholAmount.moderate": "Moderate (e.g., 1–3 times a week, 1–2 drinks, up to 300 ml total)",
-    "alcoholAmount.heavy": "Heavy (e.g., more than 3 times/week or high quantities – over 500 ml of strong alcohol per week)"
+    "form.alcoholAmount.light": "Light (e.g., up to 4 alcohol units/week – like 1–2 glasses of wine)",
+    "form.alcoholAmount.moderate": "Moderate (5–14 units/week – e.g., 2–6 drinks spread across the week)",
+    "form.alcoholAmount.heavy": "Heavy (more than 14 units/week – frequent or large quantity consumption)"
 
 
 

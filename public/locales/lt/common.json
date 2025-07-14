@@ -160,12 +160,9 @@
     "yes": "Taip",
     "no": "Ne",
     "alcoholUsage": "Ar vartojate alkoholį?",
-    "alcoholAmount": "Kiek dažnai ar daug vartojate?",
-    "alcoholAmount.light": "Nedaug (pvz., taurė vyno arba iki 150 ml silpno alkoholio per savaitę)",
-    "alcoholAmount.moderate": "Vidutiniškai (pvz., 1–3 kartus per savaitę po 1–2 gėrimus, iki 300 ml)",
-    "alcoholAmount.heavy": "Daug (pvz., daugiau nei 3 kartus per savaitę arba dideli kiekiai – virš 500 ml stipraus alkoholio per savaitę)"
-
-
+    "form.alcoholAmount.light": "Nedaug (pvz., iki 4 alkoholio vienetų per savaitę – 1–2 taurės vyno)",
+    "form.alcoholAmount.moderate": "Vidutiniškai (5–14 vienetų per savaitę – pvz., 2–6 gėrimai paskirstyti savaitėje)",
+    "form.alcoholAmount.heavy": "Daug (daugiau nei 14 vienetų per savaitę – dažnas ar didelių kiekių vartojimas)"
 
 
   },

@@ -87,7 +87,7 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
     planUpdateFrequency: "How often the plan should be updated (weekly, monthly, etc.).",
     hasInsurance: "Ignore for training purposes.",
     smokes: "Does the client smoke? Consider when setting cardio intensity.",
-    alcohol: "Alcohol consumption – for general health context. Light: up to 1 glass of wine (150ml) or 1 beer (330ml) per week. Moderate: up to 3 standard drinks per week (e.g., 50ml spirits or 150ml wine per drink). Heavy: more than 3 drinks per week or high-volume drinking in one sitting.",
+    alcohol: "Alcohol consumption – for general health assessment. Follow standard classification based on alcohol units per week: Light – up to 4 alcohol units per week (e.g., 1–2 glasses of wine or 1–2 beers); Moderate – between 5 and 14 units per week (e.g., 2–6 drinks, such as wine, beer, or spirits); Heavy – more than 14 units per week or high-volume drinking in a short time. Use UK Chief Medical Officers' guidelines as reference.",
     stressLevel: "Current stress level (1 = very low, 10 = extremely high). The higher the number, the more important it is to reduce training volume and prioritize recovery. If this field is empty, recommend the user to fill it in, as it significantly affects workout intensity and mental balance.",
     medications: "List of medications – watch out for drug-exercise interactions.",
     smartWatch: "Ignore unless relevant for tracking.",
