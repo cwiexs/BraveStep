@@ -349,25 +349,25 @@ const sections = [
       {
         name: "favoriteFoods",
         label: "form.favoriteFoods",
-        type: "array",
+        type: "text",
         infoKey: "info.favoriteFoods",
       },
       {
         name: "dislikedFoods",
         label: "form.dislikedFoods",
-        type: "array",
+        type: "text",
         infoKey: "info.dislikedFoods",
       },
       {
         name: "cuisinePreference",
         label: "form.cuisinePreference",
-        type: "array",
+        type: "text",
         infoKey: "info.cuisinePreference",
       },
       {
         name: "supplements",
         label: "form.supplements",
-        type: "array",
+        type: "text",
         infoKey: "info.supplements",
       },
       {
@@ -593,7 +593,6 @@ function MyProfile() {
           for (const sec of sections) {
             for (const f of sec.fields) {
               if (f.type === "array" && Array.isArray(data[f.name])) {
-  withArrays[f.name] = data[f.name].join(", ");
               }
             }
           }

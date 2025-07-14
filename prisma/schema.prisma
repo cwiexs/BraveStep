@@ -95,10 +95,10 @@ model User {
   workoutLocation            WorkoutLocation?
   equipmentAvailable         String[]   @db.VarChar(50)
   dietType                   String?    @db.VarChar(50)
-  favoriteFoods              String[]   @db.VarChar(50)
-  dislikedFoods              String[]   @db.VarChar(50)
-  cuisinePreference          String[]   @db.VarChar(50)
-  supplements                String[]   @db.VarChar(50)
+  favoriteFoods              String?   @db.VarChar(50)
+  dislikedFoods              String?   @db.VarChar(50)
+  cuisinePreference          String?   @db.VarChar(50)
+  supplements                String?   @db.VarChar(50)
   eatingHabits               String?    @db.VarChar(100)
   coffeePerDay               Int?
   teaPerDay                  Int?
