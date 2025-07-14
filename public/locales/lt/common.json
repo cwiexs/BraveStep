@@ -162,6 +162,7 @@
     "option.yes": "Taip",
     "option.no": "Ne",
     "alcoholUsage": "Ar vartojate alkoholį?",
+    "alcoholAmount": "Kiek maždaug geriate?",
     "alcoholAmount.light": "Nedaug (pvz., iki 4 alkoholio vienetų per savaitę – 1–2 taurės vyno)",
     "alcoholAmount.moderate": "Vidutiniškai (5–14 vienetų per savaitę – pvz., 2–6 gėrimai paskirstyti savaitėje)",
     "alcoholAmount.heavy": "Daug (daugiau nei 14 vienetų per savaitę – dažnas ar didelių kiekių vartojimas)"
