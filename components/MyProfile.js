@@ -305,11 +305,28 @@ const sections = [
         infoKey: "info.smokes",
       },
       {
-        name: "alcohol",
-        label: "form.alcohol",
-        type: "text",
-        infoKey: "info.alcohol",
-      },
+  name: "alcoholUsage",
+  label: "form.alcoholUsage",
+  type: "select",
+  options: [
+    { value: "yes", label: "form.option.yes" },
+    { value: "no", label: "form.option.no" }
+  ],
+  infoKey: "info.alcoholUsage"
+},
+{
+  name: "alcoholAmount",
+  label: "form.alcoholAmount",
+  type: "select",
+  options: [
+    { value: "light", label: "form.alcoholAmount.light" },
+    { value: "moderate", label: "form.alcoholAmount.moderate" },
+    { value: "heavy", label: "form.alcoholAmount.heavy" }
+  ],
+  visibleIf: (values) => values.alcoholUsage === "yes", 
+  infoKey: "info.alcoholAmount"
+},
+
       {
         name: "stressLevel",
         label: "form.stressLevel",
