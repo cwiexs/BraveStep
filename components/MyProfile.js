@@ -758,20 +758,21 @@ return (
                 if (f.visibleIf && !f.visibleIf(fields)) return null;
                 // NAUJA LOGIKA: customButton tipas
                 if (f.type === "customButton") {
-                  const t = f.infoKey === "info.eatingHabitsTest" ? tEatingHabits : tCommon;
+                    const t = f.infoKey === "info.eatingHabitsTest" ? tEatingHabits : tCommon;
 
-                  return (
-                    <div key={f.name} className="mb-4">
-                      <button
-                        type="button"
-                        onClick={() => handleCustomAction(f.customAction)}
-                        className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                      >
-                        {t(f.label)}
-                      </button>
-                    </div>
-                  );
-                }
+                    return (
+                      <div key={f.name} className="mb-4">
+                        <button
+                          type="button"
+                          onClick={() => handleCustomAction(f.customAction)}
+                          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+                        >
+                          {t(f.label)}
+                        </button>
+                      </div>
+                    );
+                  }
+
 
 
                 // Kiti enumai — su "other"
