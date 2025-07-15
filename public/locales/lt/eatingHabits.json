@@ -1,6 +1,7 @@
 {
   "form": {
     "eatingHabitsTest": "Atlikti mitybos įpročių testą",
+    "eatingHabitsTestButton": "Pradėti mitybos įpročių testą",
     "submit": "Pateikti",
     "eatingHabitsQuestions": {
       "burgerIsHealthy": "Burgeris yra sveikas maistas, nes jame yra mėsos ir daržovių",

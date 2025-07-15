@@ -1,6 +1,7 @@
 {
   "form": {
-    "eatingHabitsTest": "Take Eating Habits Test",
+    "eatingHabitsTest": "Take the Eating Habits Test",
+    "eatingHabitsTestButton": "Start the Eating Habits Test",
     "submit": "Submit",
     "eatingHabitsQuestions": {
       "burgerIsHealthy": "A burger is healthy food because it contains meat and vegetables",

@@ -90,7 +90,6 @@
     "accessLevel": "Access level"
   },
   "form": {
-        "eatingHabitsTest": "Take Eating Habits Test",
     "name": "Name",
     "email": "Email",
     "phone": "Phone",
