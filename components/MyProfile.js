@@ -1002,6 +1002,14 @@ const finalData = {
                   <span className="text-red-700 ml-4">{error}</span>
                 )}
               </div>
+<Modal
+    open={eatingHabitsModalOpen}
+    onClose={() => setEatingHabitsModalOpen(false)}
+    title={t("form.eatingHabitsTestTitle")}
+  >
+    <EatingHabitsTest onClose={() => setEatingHabitsModalOpen(false)} />
+  </Modal>
+
             </form>
 
 
