@@ -6,6 +6,4 @@ module.exports = {
       ? require('path').resolve('./public/locales')
       : '/locales',
   },
-  ns: ['common', 'eatingHabits'],
-  defaultNS: 'common',
 };

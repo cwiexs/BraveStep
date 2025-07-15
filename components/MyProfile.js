@@ -3,7 +3,6 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { CheckCircle2, Info } from "lucide-react";
-import EatingHabitsModal from "./EatingHabitsModal";
 
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
@@ -26,14 +25,9 @@ const Modal = ({ open, onClose, title, children }) => {
 
 // Info tooltip komponentas (suderintas su lokalizacija)
 const InfoTooltip = ({ infoKey }) => {
-  const { t: tCommon } = useTranslation("common"); // Bendra vertimų namespace
-  const { t: tEatingHabits } = useTranslation("eatingHabits"); // eatingHabits namespace
+  const { t } = useTranslation();
   const [show, setShow] = useState(false);
   if (!infoKey) return null;
-
-  // Pasirink tinkamą vertimų namespace pagal infoKey
-  const t = infoKey === "info.eatingHabitsTest" ? tEatingHabits : tCommon;
-
   return (
     <span className="relative ml-2">
       <button
@@ -368,13 +362,6 @@ const sections = [
         infoKey: "info.mealsPerDay"
       },
       {
-        name: "eatingHabitsTest", 
-        label: "form.eatingHabitsTest",
-        type: "customButton",
-        customAction: "openEatingHabitsModal",
-        infoKey: "info.eatingHabitsTest",
-      },
-      {
         name: "eatsOutOften",
         label: "form.eatsOutOften",
         type: "boolean",
@@ -607,9 +594,7 @@ const sections = [
 // ———— KOMPONENTAS ————
 function MyProfile() {
   const [bodyTypeModalOpen, setBodyTypeModalOpen] = useState(false);
-  const [eatingHabitsModalOpen, setEatingHabitsModalOpen] = useState(false);
   const { t } = useTranslation();
-  const { t: tEatingHabits } = useTranslation("eatingHabits");
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -723,7 +708,7 @@ const finalData = {
 
   if (status === "loading") return <div>{t("loading")}...</div>;
 
-return (
+  return (
     <div className="max-w-3xl mx-auto mt-8 mb-16 bg-white rounded-2xl shadow-lg p-6">
       <h1 className="text-blue-900 font-medium flex justify-center hover:text-blue-700 rounded px-4 py-2 text-3xl transition mb-10">{t("form.myProfile")}</h1>
       <div className="flex gap-2 mb-6 flex-wrap">
@@ -755,26 +740,26 @@ return (
             >
               {sec.fields.map(f => {
                 const val = fields[f.name] ?? "";
+                // Jei yra visibleIf ir ji grąžina false — nerodom šio lauko
                 if (f.visibleIf && !f.visibleIf(fields)) return null;
-                // NAUJA LOGIKA: customButton tipas
-                if (f.type === "customButton") {
-                    const t = f.infoKey === "info.eatingHabitsTest" ? tEatingHabits : tCommon;
-
-                    return (
-                      <div key={f.name} className="mb-4">
-                        <button
-                          type="button"
-                          onClick={() => handleCustomAction(f.customAction)}
-                          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                        >
-                          {t(f.label)}
-                        </button>
-                      </div>
-                    );
-                  }
-
-
-
+                // Gender — paprastas select be "other"
+                if (f.type === "enum" && f.name === "gender") {
+                  return (
+                    <div key={f.name} className="mb-4">
+                      <label className="block mb-1 font-medium text-blue-900">
+                        {t(f.label)}
+                      </label>
+                      <SimpleEnumSelect
+                        name={f.name}
+                        value={val}
+                        onChange={v => handleChange(f.name, v)}
+                        options={f.options}
+                        labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+                        infoKey={f.infoKey}
+                      />
+                    </div>
+                  );
+                }
                 // Kiti enumai — su "other"
                 if (f.type === "enum") {
   const isSimple = f.name === "gender" || f.noOther;
@@ -945,7 +930,7 @@ return (
                   </div>
                 );
               })}
-<div className="flex items-center gap-4 mt-8">
+              <div className="flex items-center gap-4 mt-8">
                 <button
                   type="submit"
                   className={`bg-blue-700 text-white rounded px-7 py-2 font-bold shadow transition ${
@@ -969,39 +954,8 @@ return (
             </form>
           )
       )}
-      <Modal
-        open={bodyTypeModalOpen}
-        onClose={() => setBodyTypeModalOpen(false)}
-        title={t("bodyTypeDescriptionsTitle")}
-      >
-        <div className="space-y-4">
-          <div>
-            <b>{t("enum.bodyType.ectomorph")}:</b>
-            <span className="ml-2">{t("bodyTypeInfo.ectomorph")}</span>
-          </div>
-          <div>
-            <b>{t("enum.bodyType.mesomorph")}:</b>
-            <span className="ml-2">{t("bodyTypeInfo.mesomorph")}</span>
-          </div>
-          <div>
-            <b>{t("enum.bodyType.endomorph")}:</b>
-            <span className="ml-2">{t("bodyTypeInfo.endomorph")}</span>
-          </div>
-        </div>
-      </Modal>
-      <Modal
-        open={eatingHabitsModalOpen}
-        onClose={() => setEatingHabitsModalOpen(false)}
-        title={tEatingHabits("form.eatingHabitsTest")}
-      >
-        <EatingHabitsModal
-          onSubmit={(answers) => {
-            console.log("Submitted answers:", answers); // Laikina logika testavimui
-            setEatingHabitsModalOpen(false);
-          }}
-        />
-      </Modal>
     </div>
   );
 }
+
 export default MyProfile;
