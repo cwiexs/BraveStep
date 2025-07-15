@@ -6,6 +6,6 @@ module.exports = {
       ? require('path').resolve('./public/locales')
       : '/locales',
   },
-  ns: ['common', 'eatingHabits'], // Pridėtas eatingHabits namespace
+  ns: ['common', 'eatingHabitsTranslations'], // Pridėtas eatingHabits namespace
   defaultNS: 'common', // Nustatomas default namespace
 };

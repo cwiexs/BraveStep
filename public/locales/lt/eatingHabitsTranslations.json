@@ -1,0 +1,19 @@
+{
+  "form": {
+    "eatingHabitsTest": "Atlikti mitybos įpročių testą",
+    "submit": "Pateikti",
+    "eatingHabitsQuestions": {
+      "burgerIsHealthy": "Burgeris yra sveikas maistas, nes jame yra mėsos ir daržovių",
+      "buysFreshVeggies": "Perku šviežias daržoves bent 3 kartus per savaitę",
+      "fastFoodOften": "Vakarienei dažnai renkuosi greitą maistą (pvz., picą, kebabą)",
+      "eatsBreakfastDaily": "Kiekvieną dieną valgau pusryčius",
+      "avoidsSugar": "Aktyviai vengiu saldžių maisto produktų ir gėrimų",
+      "prefersHomeCooking": "Renkuosi namuose gamintą maistą, o ne valgymą restoranuose",
+      "eatsProcessedFoods": "Dažnai valgau perdirbtą arba supakuotą maistą"
+    }
+  },
+  "instructions": "Prašome įvertinti šiuos teiginius apie jūsų mitybos įpročius skalėje nuo 1 (Visiškai nesutinku) iki 5 (Visiškai sutinku).",
+  "info": {
+    "eatingHabitsTest": "Atlikite šį testą, kad gautumėte išsamią savo mitybos įpročių analizę ir personalizuotas rekomendacijas."
+  }
+}
