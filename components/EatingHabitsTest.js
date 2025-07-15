@@ -80,12 +80,12 @@ function EatingHabitsTest({ onClose }) {
               <h4 className="font-semibold mb-1">{cat.label}</h4>
               <div className="space-y-4">
                 {cat.q.map(q => (
-                  <div key={q.key} className="flex flex-col md:flex-row md:items-center gap-2">
-                    <span className="min-w-[240px]">{t(`test.q_${q.key}`)}</span>
-                    <div className="flex gap-3">
-                      {options.map(opt => (
+                  <div key={q.key} className="flex flex-col gap-2">
+                    <span className="mb-1 font-medium">{t(`test.q_${q.key}`)}</span>
+                    <div className="flex flex-row flex-wrap gap-2">
+                        {options.map(opt => (
                         <label key={opt} className="flex flex-col items-center cursor-pointer">
-                          <input
+                            <input
                             type="radio"
                             name={q.key}
                             value={opt}
@@ -93,20 +93,22 @@ function EatingHabitsTest({ onClose }) {
                             onChange={() => setAnswers(a => ({ ...a, [q.key]: opt }))}
                             className="sr-only"
                             required={true}
-                          />
-                          <span
-                            className={`w-7 h-7 flex items-center justify-center rounded-full border-2 ${
-                              answers[q.key] === opt
+                            />
+                            <span
+                            className={`w-8 h-8 flex items-center justify-center rounded-full border-2 text-base
+                                ${answers[q.key] === opt
                                 ? "bg-blue-500 text-white border-blue-700"
                                 : "bg-white text-blue-900 border-blue-400"
-                            }`}
-                          >
+                                }`}
+                            >
                             {opt}
-                          </span>
+                            </span>
                         </label>
-                      ))}
+                        ))}
                     </div>
-                  </div>
+                    </div>
+
+
                 ))}
               </div>
             </div>
