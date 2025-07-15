@@ -24,8 +24,6 @@ const Modal = ({ open, onClose, title, children }) => {
 };
 
 // Info tooltip komponentas (suderintas su lokalizacija)
-const [eatingTestModalOpen, setEatingTestModalOpen] = useState(false);
-
 const InfoTooltip = ({ infoKey }) => {
   const { t } = useTranslation();
   const [show, setShow] = useState(false);
@@ -364,10 +362,10 @@ const sections = [
         infoKey: "info.mealsPerDay"
       },
       {
-        name: "eatingHabitsTest",
-        label: "form.eatingHabitsTest",
-        type: "customModalButton",
-        infoKey: "info.eatingHabitsTest"
+        name: "eatsOutOften",
+        label: "form.eatsOutOften",
+        type: "boolean",
+        infoKey: "info.eatsOutOften",
       },
       {
         name: "dietType",
@@ -741,36 +739,6 @@ const finalData = {
               }}
             >
               {sec.fields.map(f => {
-  if (f.type === "customModalButton") {
-    const modalOpenState = f.name === "eatingHabitsTest" ? eatingTestModalOpen : false;
-    const setModalOpen = f.name === "eatingHabitsTest" ? setEatingTestModalOpen : () => {};
-
-    return (
-      <div key={f.name} className="mb-4">
-        <label className="block mb-1 font-medium text-blue-900">
-          {t(f.label)}
-          <InfoTooltip infoKey={f.infoKey} />
-        </label>
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
-        >
-          {t("form.startTest")}
-        </button>
-        <Modal
-          open={modalOpenState}
-          onClose={() => setModalOpen(false)}
-          title={t("form.eatingHabitsTestTitle")}
-        >
-          <div className="space-y-4">
-            <p>{t("form.eatingHabitsTestDescription")}</p>
-          </div>
-        </Modal>
-      </div>
-    );
-  }
-
                 const val = fields[f.name] ?? "";
                 // Jei yra visibleIf ir ji grąžina false — nerodom šio lauko
                 if (f.visibleIf && !f.visibleIf(fields)) return null;
@@ -989,7 +957,5 @@ const finalData = {
     </div>
   );
 }
-
-
 
 export default MyProfile;
