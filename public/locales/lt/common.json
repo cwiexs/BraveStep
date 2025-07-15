@@ -55,7 +55,7 @@
     "bedTime": "Miego laikas",
     "sleepHours": "Miego valandų per naktį",
     "familyStatus": "Šeiminė padėtis",
-    "mealsPerDay": "Kiek kartų per dieną paprastai valgote?",
+    "mealsPerDay": "Valgių per dieną",
     "eatsOutOften": "Dažnai valgote ne namie?",
     "favoriteActivities": "Mėgstamos veiklos",
     "gymMember": "Sporto klubo narys?",
@@ -115,7 +115,7 @@
     "bedTime": "Miego laikas",
     "sleepHours": "Miego valandų per naktį",
     "familyStatus": "Šeiminė padėtis",
-    "mealsPerDay": "Kiek kartų per dieną paprastai valgote?",
+    "mealsPerDay": "Valgių per dieną",
     "eatsOutOften": "Dažnai valgote ne namie?",
     "favoriteActivities": "Mėgstamos veiklos",
     "gymMember": "Sporto klubo narys?",
@@ -194,7 +194,7 @@
     "bedTime": "Kada dažniausiai einate miegoti. Pvz.: 22:30.",
     "sleepHours": "Kiek miegate per naktį? Pvz.: 7.5.",
     "familyStatus": "Pvz.: vedęs, vienišas, su vaikais.",
-    "mealsPerDay": "Tai padeda mums suprasti jūsų mitybos įpročius ir pateikti geresnes rekomendacijas.",
+    "mealsPerDay": "Vidutiniškai per dieną valgote kartų. Pvz.: 3.",
     "eatsOutOften": "Pažymėkite, jei dažnai valgote kavinėse.",
     "favoriteActivities": "Sportas, hobiai, laisvalaikis.",
     "gymMember": "Pažymėkite, jei turite narystę sporto klube.",
@@ -335,13 +335,7 @@
   "unknown": "Nežinoma: Jei nežinai savo kūno tipo, spausk „Noriu sužinoti“ ir perskaityk aprašymus."
 },
 "wantToKnow": "Noriu sužinoti",
-"bodyTypeDescriptionsTitle": "Kūno tipų aprašymai",
-
-"form.eatingHabitsTest": "Valgymo įpročių testas",
-"info.eatingHabitsTest": "Trumpas testas, padėsiantis geriau suprasti tavo valgymo įpročius.",
-"form.takeEatingHabitsTest": "Atlikti testą",
-"form.eatingHabitsTestModalTitle": "Valgymo įpročių testas",
-"form.eatingHabitsTestComingSoon": "Testas netrukus čia atsiras."
+"bodyTypeDescriptionsTitle": "Kūno tipų aprašymai"
 
 
 

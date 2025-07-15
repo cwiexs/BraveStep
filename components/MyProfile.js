@@ -6,25 +6,6 @@ import { CheckCircle2, Info } from "lucide-react";
 
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
-  
-      {showModal && (
-        <Modal onClose={() => setShowModal(false)}>
-          <div className="p-6 bg-white rounded shadow relative w-full max-w-md mx-auto">
-            <button onClick={() => setShowModal(false)} className="absolute top-2 right-2 text-gray-500 hover:text-black text-xl">&times;</button>
-            {modalContent === "eatingHabits" && (
-              <div>
-                <h2 className="text-lg font-bold mb-4">{t("evaluateEatingHabits")}</h2>
-                <p>{t("modalTestComingSoon")}</p>
-                <button className="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                  {t("finishTest")}
-                </button>
-              </div>
-            )}
-          </div>
-        </Modal>
-      )}
-
-
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
       <div className="bg-white rounded-xl p-8 max-w-lg w-full shadow-xl relative">
@@ -372,13 +353,8 @@ const sections = [
       {
         name: "mealsPerDay",
         label: "form.mealsPerDay",
-        type: "select",
-        options: Array.from({ length: 10 }, (_, i) => ({
-          value: (i + 1).toString(),
-          label: (i + 1).toString(),
-        })),
-        section: "nutrition",
-        infoKey: "info.mealsPerDay"
+        type: "number",
+        infoKey: "info.mealsPerDay",
       },
       {
         name: "eatsOutOften",
