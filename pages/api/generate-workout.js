@@ -58,7 +58,7 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
     bedTime: "Usual bedtime – for optimal recovery and workout timing.",
     sleepHours: "Average sleep duration – adjust training volume accordingly.",
     familyStatus: "Information about family status, if relevant for schedule or motivation.",
-    mealsPerDay: "How many meals per day – only use for nutrition context.",
+    mealsPerDay: "Number of main meals per day – use this value when tailoring nutrition plans or calculating daily energy needs. Can also help adjust training intensity or meal timing strategies in fitness programs.",
     eatsOutOften: "If the client eats out often – may affect diet planning.",
     favoriteActivities: "Preferred sports or activities – increase motivation by including them if possible.",
     gymMember: "Is the client a gym member? Only assign gym-based workouts if true.",
