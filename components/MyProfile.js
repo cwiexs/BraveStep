@@ -26,9 +26,14 @@ const Modal = ({ open, onClose, title, children }) => {
 
 // Info tooltip komponentas (suderintas su lokalizacija)
 const InfoTooltip = ({ infoKey }) => {
-  const { t } = useTranslation();
+  const { t: tCommon } = useTranslation("common"); // Bendra vertimų namespace
+  const { t: tEatingHabits } = useTranslation("eatingHabits"); // eatingHabits namespace
   const [show, setShow] = useState(false);
   if (!infoKey) return null;
+
+  // Pasirink tinkamą vertimų namespace pagal infoKey
+  const t = infoKey === "info.eatingHabitsTest" ? tEatingHabits : tCommon;
+
   return (
     <span className="relative ml-2">
       <button
