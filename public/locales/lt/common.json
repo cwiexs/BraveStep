@@ -343,7 +343,7 @@
 "info.eatingHabitsTest": "Tai yra trumpas testas, kuris padės įsivertinti savo mitybos įpročius.",
 
 "test.introTitle": "Kaip atlikti testą?",
-"test.introText": "Atsakykite į kiekvieną klausimą pasirinkdami skaičių nuo 1 iki 5 pagal tai, kaip dažnai arba kiek stipriai sutinkate su teiginiu. Vertinant testą, galima matyti, kuriose srityse Jūsų mitybos įpročiai yra stipriausi arba silpniausi. Tai svarbu, nes objektyvus įvertinimas padeda suprasti savo mitybos įpročius ir lengviau juos tobulinti.",
+"test.introText": "Atsakykite į kiekvieną klausimą pasirinkdami skaičių nuo 1 iki 5, kur 1 reiškia 'visiškai nesutinku' (niekada), o 5 reiškia 'visiškai sutinku' (visada arba labai dažnai). Šis testas padeda pamatyti, kurios jūsų mitybos įpročių sritys yra stipriausios arba silpniausios. Tai svarbu, nes objektyvus įvertinimas padeda geriau suprasti savo mitybos įpročius ir juos tobulinti.",
 "test.cat_planning": "Valgymo planavimas ir reguliarumas",
 "test.cat_choices": "Sveikų pasirinkimų darymas",
 "test.cat_emotional": "Emocinis ir socialinis valgymas",

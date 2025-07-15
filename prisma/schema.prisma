@@ -83,7 +83,6 @@ model User {
   sleepHours                 Float?
   familyStatus               String?    @db.VarChar(50)
   mealsPerDay                Int?       @db.SmallInt
-  eatsOutOften               Boolean?
   favoriteActivities         String[]   @db.VarChar(50)
   gymMember                  Boolean?
   physicalActivityLevel      PhysicalActivityLevel?
@@ -99,7 +98,6 @@ model User {
   dislikedFoods              String?   @db.VarChar(50)
   cuisinePreference          String?   @db.VarChar(50)
   supplements                String?   @db.VarChar(50)
-  eatingHabits               String?    @db.VarChar(100)
   coffeePerDay               Int?
   teaPerDay                  Int?
   sugarPerDay                Int?

@@ -339,7 +339,7 @@
 "info.eatingHabitsTest": "This is a short test that will help you assess your eating habits.",
 
 "test.introTitle": "How to take the test?",
-"test.introText": "Answer each question by choosing a number from 1 to 5 according to how often or strongly you agree with the statement. The test helps you see which areas of your eating habits are the strongest or weakest. This is important because an objective assessment helps you better understand your eating patterns and improve them.",
+"test.introText": "Answer each question by choosing a number from 1 to 5, where 1 means 'strongly disagree' (never) and 5 means 'strongly agree' (always or very often). This test helps you see which areas of your eating habits are the strongest or weakest. This is important because an objective assessment helps you better understand your eating patterns and improve them.",
 "test.cat_planning": "Meal planning and regularity",
 "test.cat_choices": "Healthy choices",
 "test.cat_emotional": "Emotional and social eating",

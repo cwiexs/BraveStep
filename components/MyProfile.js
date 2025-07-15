@@ -373,12 +373,6 @@ const sections = [
         infoKey: "info.mealsPerDay",
       },
       {
-        name: "eatsOutOften",
-        label: "form.eatsOutOften",
-        type: "boolean",
-        infoKey: "info.eatsOutOften",
-      },
-      {
         name: "dietType",
         label: "form.dietType",
         type: "text",
@@ -407,12 +401,6 @@ const sections = [
         label: "form.supplements",
         type: "text",
         infoKey: "info.supplements",
-      },
-      {
-        name: "eatingHabits",
-        label: "form.eatingHabits",
-        type: "text",
-        infoKey: "info.eatingHabits",
       },
       {
         name: "coffeePerDay",
