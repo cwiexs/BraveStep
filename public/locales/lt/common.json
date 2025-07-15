@@ -337,12 +337,11 @@
 "wantToKnow": "Noriu sužinoti",
 "bodyTypeDescriptionsTitle": "Kūno tipų aprašymai",
 
-"form.eatingHabitsTest": "Mitybos įpročių testas",
-"form.startTest": "Atlikti testą",
-"form.eatingHabitsTestTitle": "Mitybos įpročių testas",
-"form.eatingHabitsTestDescription": "Šiame lange ateityje bus pateikiamas testas, padedantis įvertinti Jūsų mitybos įpročius.",
-"info.eatingHabitsTest": "Paspaudus mygtuką galėsite atlikti mitybos testą."
-
+"form.eatingHabitsTest": "Valgymo įpročių testas",
+"info.eatingHabitsTest": "Trumpas testas, padėsiantis geriau suprasti tavo valgymo įpročius.",
+"form.takeEatingHabitsTest": "Atlikti testą",
+"form.eatingHabitsTestModalTitle": "Valgymo įpročių testas",
+"form.eatingHabitsTestComingSoon": "Testas netrukus čia atsiras."
 
 
 

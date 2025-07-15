@@ -333,11 +333,12 @@
 "wantToKnow": "Want to know",
 "bodyTypeDescriptionsTitle": "Body Type Descriptions",
 
-"form.eatingHabitsTest": "Eating Habits Test",
-"form.startTest": "Start Test",
-"form.eatingHabitsTestTitle": "Eating Habits Test",
-"form.eatingHabitsTestDescription": "This window will soon contain a test to assess your dietary habits.",
-"info.eatingHabitsTest": "Click the button to complete a nutrition assessment test."
+"form.eatingHabitsTest": "Eating habits test",
+"info.eatingHabitsTest": "A short test to better understand your eating habits.",
+"form.takeEatingHabitsTest": "Take the test",
+"form.eatingHabitsTestModalTitle": "Eating Habits Test",
+"form.eatingHabitsTestComingSoon": "The test will appear here soon."
+
 
 
 
