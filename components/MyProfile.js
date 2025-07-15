@@ -353,8 +353,13 @@ const sections = [
       {
         name: "mealsPerDay",
         label: "form.mealsPerDay",
-        type: "number",
-        infoKey: "info.mealsPerDay",
+        type: "select",
+        options: Array.from({ length: 10 }, (_, i) => ({
+          value: (i + 1).toString(),
+          label: (i + 1).toString(),
+        })),
+        section: "nutrition",
+        infoKey: "info.mealsPerDay"
       },
       {
         name: "eatsOutOften",
