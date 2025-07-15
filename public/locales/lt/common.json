@@ -335,7 +335,14 @@
   "unknown": "Nežinoma: Jei nežinai savo kūno tipo, spausk „Noriu sužinoti“ ir perskaityk aprašymus."
 },
 "wantToKnow": "Noriu sužinoti",
-"bodyTypeDescriptionsTitle": "Kūno tipų aprašymai"
+"bodyTypeDescriptionsTitle": "Kūno tipų aprašymai",
+
+"form.eatingHabitsTestLabel": "Mitybos įpročių testas",
+"form.takeEatingHabitsTest": "Atlikti mitybos testą",
+"form.eatingHabitsTestTitle": "Įvertinkite savo mitybos įpročius"
+
+
+
 
 
 
