@@ -10,7 +10,7 @@ const Modal = ({ open, onClose, title, children }) => {
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
       <div
-        className="bg-white rounded-xl p-8 max-w-lg w-full shadow-xl relative flex flex-col"
+        className="bg-white rounded-xl p-8 max-w-lg md:max-w-xl lg:max-w-2xl w-full shadow-xl relative flex flex-col"
         style={{ maxHeight: "90vh" }}
       >
         {/* Uždarymo mygtukas */}
