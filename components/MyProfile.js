@@ -6,6 +6,18 @@ import { CheckCircle2, Info } from "lucide-react";
 
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
+  
+      {showEatingTest && (
+        <Modal onClose={() => setShowEatingTest(false)}>
+          <div className="p-4 bg-white rounded shadow">
+            <h2 className="text-xl font-semibold mb-4">{t("eatingHabitsTest.title")}</h2>
+            <p>{t("eatingHabitsTest.description")}</p>
+            {/* čia bus įterptas testas */}
+          </div>
+        </Modal>
+      )}
+
+
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
       <div className="bg-white rounded-xl p-8 max-w-lg w-full shadow-xl relative">
