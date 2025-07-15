@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { CheckCircle2, Info } from "lucide-react";
+import EatingHabitsTest from "./EatingHabitsTest";
 
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
@@ -589,6 +590,7 @@ const sections = [
 // ———— KOMPONENTAS ————
 function MyProfile() {
   const [bodyTypeModalOpen, setBodyTypeModalOpen] = useState(false);
+  const [eatingHabitsModalOpen, setEatingHabitsModalOpen] = useState(false); 
   const { t } = useTranslation();
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -733,37 +735,27 @@ const finalData = {
                 if (isChanged && !loading) handleSave();
               }}
             >
-              {sec.fields.map(f => {
-                const val = fields[f.name] ?? "";
-                // Jei yra visibleIf ir ji grąžina false — nerodom šio lauko
-                if (f.visibleIf && !f.visibleIf(fields)) return null;
-                // Gender — paprastas select be "other"
-                if (f.type === "enum" && f.name === "gender") {
-                  return (
-                    <div key={f.name} className="mb-4">
-                      <label className="block mb-1 font-medium text-blue-900">
-                        {t(f.label)}
-                      </label>
-                      <SimpleEnumSelect
-                        name={f.name}
-                        value={val}
-                        onChange={v => handleChange(f.name, v)}
-                        options={f.options}
-                        labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-                        infoKey={f.infoKey}
-                      />
-                    </div>
-                  );
-                }
-                // Kiti enumai — su "other"
-                if (f.type === "enum") {
-  const isSimple = f.name === "gender" || f.noOther;
-  return (
-    <div key={f.name} className="mb-4">
-      <label className="block mb-1 font-medium text-blue-900">
-        {t(f.label)}
-      </label>
-      {isSimple ? (
+
+
+
+
+
+
+
+
+{sec.fields.map(f => {
+  const val = fields[f.name] ?? "";
+
+  // Jei yra visibleIf ir ji grąžina false — nerodom šio lauko
+  if (f.visibleIf && !f.visibleIf(fields)) return null;
+
+  // Gender — paprastas select be "other"
+  if (f.type === "enum" && f.name === "gender") {
+    return (
+      <div key={f.name} className="mb-4">
+        <label className="block mb-1 font-medium text-blue-900">
+          {t(f.label)}
+        </label>
         <SimpleEnumSelect
           name={f.name}
           value={val}
@@ -772,59 +764,123 @@ const finalData = {
           labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
           infoKey={f.infoKey}
         />
-      ) : (
-        <EnumSelectWithOther
-          name={f.name}
-          value={val}
-          onChange={v => {
-            if (v === "") {
-              handleChange(f.name, otherValues[f.name] || "");
-            } else {
-              handleChange(f.name, v);
-            }
-          }}
-          options={f.options.filter(opt => opt !== "other")}
-          otherValue={otherValues[f.name] || ""}
-          setOtherValue={v => handleOtherValue(f.name, v)}
-          labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-          infoKey={f.infoKey}
-        />
-      )}
-      {/* PAPILDOMA: */}
-      {f.name === "bodyType" && val === "unknown" && (
-        <div className="mt-3">
+      </div>
+    );
+  }
+
+  // **ČIA: jei tai nutrition/mealsPerDay – rodom lauką ir mygtuką**
+  if (sec.key === "nutrition" && f.name === "mealsPerDay") {
+    return (
+      <React.Fragment key={f.name}>
+        {/* mealsPerDay laukelis */}
+        <div className="mb-4">
+          <label className="block mb-1 font-medium text-blue-900">
+            {t(f.label)}
+            <InfoTooltip infoKey={f.infoKey} />
+          </label>
+          <input
+            type="number"
+            name={f.name}
+            value={val}
+            onChange={e => handleChange(f.name, e.target.value)}
+            className="w-full border rounded px-3 py-2"
+            placeholder={t(f.label)}
+          />
+        </div>
+        {/* Mygtukas po mealsPerDay */}
+        <div className="mb-4">
+          <label className="block mb-1 font-medium text-blue-900">
+            {t("form.eatingHabitsTestLabel")}
+          </label>
           <button
             type="button"
-            onClick={() => setBodyTypeModalOpen(true)}
+            onClick={() => setEatingHabitsModalOpen(true)}
             className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
           >
-            {t("wantToKnow")}
+            {t("form.takeEatingHabitsTest")}
           </button>
         </div>
-      )}
-      <Modal
-        open={bodyTypeModalOpen}
-        onClose={() => setBodyTypeModalOpen(false)}
-        title={t("bodyTypeDescriptionsTitle")}
-      >
-        <div className="space-y-4">
-          <div>
-            <b>{t("enum.bodyType.ectomorph")}:</b>
-            <span className="ml-2">{t("bodyTypeInfo.ectomorph")}</span>
+      </React.Fragment>
+    );
+  }
+
+  // Kiti enumai — su "other"
+  if (f.type === "enum") {
+    const isSimple = f.name === "gender" || f.noOther;
+    return (
+      <div key={f.name} className="mb-4">
+        <label className="block mb-1 font-medium text-blue-900">
+          {t(f.label)}
+        </label>
+        {isSimple ? (
+          <SimpleEnumSelect
+            name={f.name}
+            value={val}
+            onChange={v => handleChange(f.name, v)}
+            options={f.options}
+            labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+            infoKey={f.infoKey}
+          />
+        ) : (
+          <EnumSelectWithOther
+            name={f.name}
+            value={val}
+            onChange={v => {
+              if (v === "") {
+                handleChange(f.name, otherValues[f.name] || "");
+              } else {
+                handleChange(f.name, v);
+              }
+            }}
+            options={f.options.filter(opt => opt !== "other")}
+            otherValue={otherValues[f.name] || ""}
+            setOtherValue={v => handleOtherValue(f.name, v)}
+            labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+            infoKey={f.infoKey}
+          />
+        )}
+        {/* PAPILDOMA: */}
+        {f.name === "bodyType" && val === "unknown" && (
+          <div className="mt-3">
+            <button
+              type="button"
+              onClick={() => setBodyTypeModalOpen(true)}
+              className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
+            >
+              {t("wantToKnow")}
+            </button>
           </div>
-          <div>
-            <b>{t("enum.bodyType.mesomorph")}:</b>
-            <span className="ml-2">{t("bodyTypeInfo.mesomorph")}</span>
+        )}
+        <Modal
+          open={bodyTypeModalOpen}
+          onClose={() => setBodyTypeModalOpen(false)}
+          title={t("bodyTypeDescriptionsTitle")}
+        >
+          <div className="space-y-4">
+            <div>
+              <b>{t("enum.bodyType.ectomorph")}:</b>
+              <span className="ml-2">{t("bodyTypeInfo.ectomorph")}</span>
+            </div>
+            <div>
+              <b>{t("enum.bodyType.mesomorph")}:</b>
+              <span className="ml-2">{t("bodyTypeInfo.mesomorph")}</span>
+            </div>
+            <div>
+              <b>{t("enum.bodyType.endomorph")}:</b>
+              <span className="ml-2">{t("bodyTypeInfo.endomorph")}</span>
+            </div>
           </div>
-          <div>
-            <b>{t("enum.bodyType.endomorph")}:</b>
-            <span className="ml-2">{t("bodyTypeInfo.endomorph")}</span>
-          </div>
-        </div>
-      </Modal>
-    </div>
-  );
-}
+        </Modal>
+      </div>
+    );
+  }
+
+
+
+
+
+
+
 
 
                 if (f.type === "array") {
@@ -947,6 +1003,9 @@ const finalData = {
                 )}
               </div>
             </form>
+
+
+
           )
       )}
     </div>
