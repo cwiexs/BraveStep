@@ -340,7 +340,53 @@
 "form.eatingHabitsTestLabel": "Mitybos įpročių testas",
 "form.takeEatingHabitsTest": "Atlikti mitybos testą",
 "form.eatingHabitsTestTitle": "Įvertinkite savo mitybos įpročius",
-"info.eatingHabitsTest": "Tai yra trumpas testas, kuris padės įsivertinti savo mitybos įpročius."
+"info.eatingHabitsTest": "Tai yra trumpas testas, kuris padės įsivertinti savo mitybos įpročius.",
+
+"test.introTitle": "Kaip atlikti testą?",
+"test.introText": "Atsakykite į kiekvieną klausimą pasirinkdami skaičių nuo 1 iki 5 pagal tai, kaip dažnai arba kiek stipriai sutinkate su teiginiu. Vertinant testą, galima matyti, kuriose srityse Jūsų mitybos įpročiai yra stipriausi arba silpniausi. Tai svarbu, nes objektyvus įvertinimas padeda suprasti savo mitybos įpročius ir lengviau juos tobulinti.",
+"test.cat_planning": "Valgymo planavimas ir reguliarumas",
+"test.cat_choices": "Sveikų pasirinkimų darymas",
+"test.cat_emotional": "Emocinis ir socialinis valgymas",
+"test.cat_unhealthy": "Nesveiki įpročiai",
+"test.cat_attitude": "Maisto suvokimas ir nuostatos",
+"test.cat_supplements": "Papildomi klausimai apie gyvenimo būdą",
+"test.submit": "Pateikti",
+"test.cancel": "Atšaukti",
+"test.thank_you": "Ačiū, kad užpildėte testą!",
+
+"test.q_plan_meals": "Planuoju savo valgius iš anksto (pvz., savaitės meniu).",
+"test.q_eat_regularly": "Valgau reguliariai, tuo pačiu metu kiekvieną dieną.",
+"test.q_late_eating": "Dažnai valgau vėlai vakare arba naktį.",
+"test.q_overeating": "Dažnai suvalgau daugiau nei planavau, nes nejaučiu sotumo arba tiesiog norisi dar.",
+
+"test.q_eat_vegetables": "Valgau daržoves bent kartą per dieną.",
+"test.q_eat_fruits": "Valgau vaisius kaip užkandį vietoj saldumynų ar traškučių.",
+"test.q_cook_from_scratch": "Gaminu maistą namuose nuo nulio (pvz., iš šviežių ingredientų).",
+"test.q_try_healthy_recipes": "Mėgstu eksperimentuoti su naujais sveikesniais receptais (pvz., salotomis, daržovių patiekalais).",
+"test.q_read_labels": "Perku maistą, atkreipdamas dėmesį į maistingumo etiketes (pvz., cukraus, riebalų kiekį).",
+"test.q_eat_fast": "Dažnai valgau labai greitai, beveik nekramtydamas ir nejausdamas tikro skonio.",
+"test.q_drink_water": "Kasdien išgeriu bent 6–8 stiklines vandens (arbatos ar kavos neskaitant).",
+"test.q_choose_eco": "Renkantis maistą, man svarbu, kad jis būtų ekologiškas arba natūralus.",
+
+"test.q_emotional_eating": "Dažnai valgau, kai jaučiu stresą, nuobodulį ar kitas emocijas.",
+"test.q_mood_affects_eating": "Mano mityba priklauso nuo mano nuotaikos ar dienos užimtumo.",
+"test.q_social_overeat": "Dažnai valgau daugiau ar nesveikiau, kai esu draugijoje ar švenčių metu.",
+"test.q_restrict_binge": "Būna dienų, kai sąmoningai riboju maistą, o po to persivalgau.",
+"test.q_feel_guilt": "Jaučiu kaltę, jei suvalgau ką nors, ką laikau nesveiku.",
+
+"test.q_eat_fast_food": "Dažnai valgau maistą, kuris yra greitai paruošiamas (pvz., šaldyti produktai, pusgaminiai).",
+"test.q_drink_sugary": "Vartoju saldintus gazuotus gėrimus (pvz., kolą, sprite).",
+"test.q_eat_with_screens": "Dažnai valgau prie televizoriaus, kompiuterio ar telefono.",
+"test.q_eat_outside": "Dažnai valgau ne namuose (pvz., kavinėse, restoranuose ar užkandinėse).",
+
+"test.q_think_fast_food_ok": "Manau, kad greitas maistas (pvz., kebabas, pica, mėsainiai) yra pakankamai sveikas, jei valgomas saikingai.",
+"test.q_taste_over_nutrition": "Renkantis maistą, svarbiausia man yra skonis, o ne maistinė vertė.",
+"test.q_think_healthy_hard": "Manau, kad sveika mityba yra per brangi arba per sudėtinga.",
+"test.q_mindless_eating": "Dažnai valgau automatiškai, nekreipdamas dėmesio į skonį ar kiek suvalgiau.",
+"test.q_think_balanced": "Manau, kad mano mityba yra pakankamai subalansuota ir sveika.",
+
+"test.q_take_supplements": "Vartoju maisto papildus (pvz., vitaminus, baltymų miltelius)."
+
 
 
 
