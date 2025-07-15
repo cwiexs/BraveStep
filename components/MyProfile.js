@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { CheckCircle2, Info } from "lucide-react";
+import EatingHabitsModal from "./EatingHabitsModal";
 
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
@@ -362,6 +363,13 @@ const sections = [
         infoKey: "info.mealsPerDay"
       },
       {
+        name: "eatingHabitsTest", 
+        label: "form.eatingHabitsTest",
+        type: "customButton",
+        customAction: "openEatingHabitsModal",
+        infoKey: "info.eatingHabitsTest",
+      },
+      {
         name: "eatsOutOften",
         label: "form.eatsOutOften",
         type: "boolean",
@@ -594,7 +602,9 @@ const sections = [
 // ———— KOMPONENTAS ————
 function MyProfile() {
   const [bodyTypeModalOpen, setBodyTypeModalOpen] = useState(false);
+  const [eatingHabitsModalOpen, setEatingHabitsModalOpen] = useState(false);
   const { t } = useTranslation();
+  const { t: tEatingHabits } = useTranslation("eatingHabits");
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -708,7 +718,7 @@ const finalData = {
 
   if (status === "loading") return <div>{t("loading")}...</div>;
 
-  return (
+return (
     <div className="max-w-3xl mx-auto mt-8 mb-16 bg-white rounded-2xl shadow-lg p-6">
       <h1 className="text-blue-900 font-medium flex justify-center hover:text-blue-700 rounded px-4 py-2 text-3xl transition mb-10">{t("form.myProfile")}</h1>
       <div className="flex gap-2 mb-6 flex-wrap">
@@ -740,23 +750,26 @@ const finalData = {
             >
               {sec.fields.map(f => {
                 const val = fields[f.name] ?? "";
-                // Jei yra visibleIf ir ji grąžina false — nerodom šio lauko
                 if (f.visibleIf && !f.visibleIf(fields)) return null;
-                // Gender — paprastas select be "other"
-                if (f.type === "enum" && f.name === "gender") {
+                // NAUJA LOGIKA: customButton tipas
+                if (f.type === "customButton") {
                   return (
                     <div key={f.name} className="mb-4">
                       <label className="block mb-1 font-medium text-blue-900">
-                        {t(f.label)}
+                        {tEatingHabits(f.label)}
+                        <InfoTooltip infoKey={f.infoKey} />
                       </label>
-                      <SimpleEnumSelect
-                        name={f.name}
-                        value={val}
-                        onChange={v => handleChange(f.name, v)}
-                        options={f.options}
-                        labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-                        infoKey={f.infoKey}
-                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (f.customAction === "openEatingHabitsModal") {
+                            setEatingHabitsModalOpen(true);
+                          }
+                        }}
+                        className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
+                      >
+                        {tEatingHabits(f.label)}
+                      </button>
                     </div>
                   );
                 }
@@ -930,7 +943,7 @@ const finalData = {
                   </div>
                 );
               })}
-              <div className="flex items-center gap-4 mt-8">
+<div className="flex items-center gap-4 mt-8">
                 <button
                   type="submit"
                   className={`bg-blue-700 text-white rounded px-7 py-2 font-bold shadow transition ${
@@ -954,8 +967,39 @@ const finalData = {
             </form>
           )
       )}
+      <Modal
+        open={bodyTypeModalOpen}
+        onClose={() => setBodyTypeModalOpen(false)}
+        title={t("bodyTypeDescriptionsTitle")}
+      >
+        <div className="space-y-4">
+          <div>
+            <b>{t("enum.bodyType.ectomorph")}:</b>
+            <span className="ml-2">{t("bodyTypeInfo.ectomorph")}</span>
+          </div>
+          <div>
+            <b>{t("enum.bodyType.mesomorph")}:</b>
+            <span className="ml-2">{t("bodyTypeInfo.mesomorph")}</span>
+          </div>
+          <div>
+            <b>{t("enum.bodyType.endomorph")}:</b>
+            <span className="ml-2">{t("bodyTypeInfo.endomorph")}</span>
+          </div>
+        </div>
+      </Modal>
+      <Modal
+        open={eatingHabitsModalOpen}
+        onClose={() => setEatingHabitsModalOpen(false)}
+        title={tEatingHabits("form.eatingHabitsTest")}
+      >
+        <EatingHabitsModal
+          onSubmit={(answers) => {
+            console.log("Submitted answers:", answers); // Laikina logika testavimui
+            setEatingHabitsModalOpen(false);
+          }}
+        />
+      </Modal>
     </div>
   );
 }
-
 export default MyProfile;
