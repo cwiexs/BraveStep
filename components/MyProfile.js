@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -19,19 +18,7 @@ const Modal = ({ open, onClose, title, children }) => {
         </button>
         <h2 className="text-xl font-bold mb-4 text-blue-900">{title}</h2>
         {children}
-      
-      <Modal show={showEatingTest} onClose={() => setShowEatingTest(false)} title={t('evaluateEatingHabits')}>
-        <div className="space-y-4">
-          <p>{t('modalTestComingSoon')}</p>
-          <div className="flex justify-end">
-            <Button type="button" variant="default" onClick={() => setShowEatingTest(false)}>
-              {t('finishTest')}
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-</div>
+      </div>
     </div>
   );
 };
