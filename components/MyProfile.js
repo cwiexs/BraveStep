@@ -3,7 +3,6 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { CheckCircle2, Info } from "lucide-react";
-import React, { useState } from "react";
 
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
@@ -23,10 +22,6 @@ const Modal = ({ open, onClose, title, children }) => {
     </div>
   );
 };
-
-
-const [eatingHabitsTestModalOpen, setEatingHabitsTestModalOpen] = useState(false);
-
 
 // Info tooltip komponentas (suderintas su lokalizacija)
 const InfoTooltip = ({ infoKey }) => {
@@ -365,12 +360,6 @@ const sections = [
         })),
         section: "nutrition",
         infoKey: "info.mealsPerDay"
-      },
-      {
-        name: "eatingHabitsTest",
-        label: "form.eatingHabitsTest",
-        type: "customModal",
-        infoKey: "info.eatingHabitsTest",
       },
       {
         name: "eatsOutOften",
@@ -859,64 +848,37 @@ const finalData = {
                   );
                 }
                 if (f.type === "boolean") {
-                      return (
-                        <div key={f.name} className="mb-4">
-                          <label className="block mb-1 font-medium text-blue-900">
-                            {t(f.label)}
-                            <InfoTooltip infoKey={f.infoKey} />
-                          </label>
-                          <div className="flex gap-6">
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name={f.name}
-                                value="true"
-                                checked={val === true}
-                                onChange={() => handleChange(f.name, true)}
-                              />
-                              {t("form.yes")}
-                            </label>
-                            <label className="flex items-center gap-2">
-                              <input
-                                type="radio"
-                                name={f.name}
-                                value="false"
-                                checked={val === false}
-                                onChange={() => handleChange(f.name, false)}
-                              />
-                              {t("form.no")}
-                            </label>
-                          </div>
-                        </div>
-                      );
-                    }
-
-                  if (f.type === "customModal" && f.name === "eatingHabitsTest") {
-                    return (
-                      <div key={f.name} className="mb-4">
-                        <label className="block mb-1 font-medium text-blue-900">
-                          {t(f.label)}
-                          <InfoTooltip infoKey={f.infoKey} />
-                        </label>
-                        <button
-                          type="button"
-                          onClick={() => setEatingHabitsTestModalOpen(true)}
-                          className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
-                        >
-                          {t("form.takeEatingHabitsTest")}
-                        </button>
-
-                        <Modal
-                          open={eatingHabitsTestModalOpen}
-                          onClose={() => setEatingHabitsTestModalOpen(false)}
-                          title={t("form.eatingHabitsTestModalTitle")}
-                        >
-                          <p>{t("form.eatingHabitsTestComingSoon")}</p>
-                        </Modal>
-                      </div>
-                    );
-                  }
-  
+  return (
+    <div key={f.name} className="mb-4">
+      <label className="block mb-1 font-medium text-blue-900">
+        {t(f.label)}
+        <InfoTooltip infoKey={f.infoKey} />
+      </label>
+      <div className="flex gap-6">
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name={f.name}
+            value="true"
+            checked={val === true}
+            onChange={() => handleChange(f.name, true)}
+          />
+          {t("form.yes")}
+        </label>
+        <label className="flex items-center gap-2">
+          <input
+            type="radio"
+            name={f.name}
+            value="false"
+            checked={val === false}
+            onChange={() => handleChange(f.name, false)}
+          />
+          {t("form.no")}
+        </label>
+      </div>
+    </div>
+  );
+}
 
                 if (f.type === "select") {
                   return (
