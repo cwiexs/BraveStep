@@ -757,27 +757,22 @@ return (
                 const val = fields[f.name] ?? "";
                 if (f.visibleIf && !f.visibleIf(fields)) return null;
                 // NAUJA LOGIKA: customButton tipas
-                if (f.type === "customButton") {
-                  return (
-                    <div key={f.name} className="mb-4">
-                      <label className="block mb-1 font-medium text-blue-900">
-                        {tEatingHabits(f.label)}
-                        <InfoTooltip infoKey={f.infoKey} />
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (f.customAction === "openEatingHabitsModal") {
-                            setEatingHabitsModalOpen(true);
-                          }
-                        }}
-                        className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
-                      >
-                        {tEatingHabits(f.label)}
-                      </button>
-                    </div>
-                  );
-                }
+if (f.type === "customButton") {
+  const t = f.infoKey === "info.eatingHabitsTest" ? tEatingHabits : tCommon;
+
+  return (
+    <div key={f.name} className="mb-4">
+      <button
+        type="button"
+        onClick={() => handleCustomAction(f.customAction)}
+        className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
+      >
+        {t(f.label)}
+      </button>
+    </div>
+  );
+}
+
                 // Kiti enumai — su "other"
                 if (f.type === "enum") {
   const isSimple = f.name === "gender" || f.noOther;
