@@ -59,7 +59,18 @@ const InfoTooltip = ({ infoKey }) => {
         <Info size={14} />
       </button>
       {show && (
-        <span className="absolute z-50 left-6 top-1 w-64 bg-white border border-blue-300 rounded shadow-lg text-xs text-gray-700 p-3">
+        <span
+          className={`
+            absolute z-50
+            left-1/2 top-full mt-2 -translate-x-1/2
+            w-64
+            bg-white border border-blue-300 rounded shadow-lg
+            text-xs text-gray-700 p-3
+            md:left-6 md:top-1 md:mt-0 md:-translate-x-0
+            transition-all
+          `}
+          style={{ wordBreak: "break-word" }}
+        >
           {t(infoKey)}
         </span>
       )}
