@@ -741,6 +741,36 @@ const finalData = {
               }}
             >
               {sec.fields.map(f => {
+  if (f.type === "customModalButton") {
+    const modalOpenState = f.name === "eatingHabitsTest" ? eatingTestModalOpen : false;
+    const setModalOpen = f.name === "eatingHabitsTest" ? setEatingTestModalOpen : () => {};
+
+    return (
+      <div key={f.name} className="mb-4">
+        <label className="block mb-1 font-medium text-blue-900">
+          {t(f.label)}
+          <InfoTooltip infoKey={f.infoKey} />
+        </label>
+        <button
+          type="button"
+          onClick={() => setModalOpen(true)}
+          className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
+        >
+          {t("form.startTest")}
+        </button>
+        <Modal
+          open={modalOpenState}
+          onClose={() => setModalOpen(false)}
+          title={t("form.eatingHabitsTestTitle")}
+        >
+          <div className="space-y-4">
+            <p>{t("form.eatingHabitsTestDescription")}</p>
+          </div>
+        </Modal>
+      </div>
+    );
+  }
+
                 const val = fields[f.name] ?? "";
                 // Jei yra visibleIf ir ji grąžina false — nerodom šio lauko
                 if (f.visibleIf && !f.visibleIf(fields)) return null;
