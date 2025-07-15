@@ -335,7 +335,9 @@
 
 "form.eatingHabitsTestLabel": "Eating Habits Test",
 "form.takeEatingHabitsTest": "Take Eating Habits Test",
-"form.eatingHabitsTestTitle": "Test your eating habits"
+"form.eatingHabitsTestTitle": "Test your eating habits",
+"info.eatingHabitsTest": "This is a short test that will help you assess your eating habits."
+
 
 
 

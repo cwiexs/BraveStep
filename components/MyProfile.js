@@ -791,6 +791,7 @@ const finalData = {
         <div className="mb-4">
           <label className="block mb-1 font-medium text-blue-900">
             {t("form.eatingHabitsTestLabel")}
+            <InfoTooltip infoKey="info.eatingHabitsTest" />
           </label>
           <button
             type="button"
