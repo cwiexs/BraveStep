@@ -9,7 +9,11 @@ const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-40 flex items-center justify-center">
-      <div className="bg-white rounded-xl p-8 max-w-lg w-full shadow-xl relative">
+      <div
+        className="bg-white rounded-xl p-8 max-w-lg w-full shadow-xl relative flex flex-col"
+        style={{ maxHeight: "90vh" }}
+      >
+        {/* Uždarymo mygtukas */}
         <button
           onClick={onClose}
           className="absolute top-3 right-4 text-xl text-gray-400 hover:text-blue-600"
@@ -17,12 +21,23 @@ const Modal = ({ open, onClose, title, children }) => {
         >
           ×
         </button>
+        {/* Antraštė */}
         <h2 className="text-xl font-bold mb-4 text-blue-900">{title}</h2>
-        {children}
+        {/* Slankus turinys */}
+        <div
+          style={{
+            overflowY: "auto",
+            flex: 1,
+            maxHeight: "65vh", // reguliuok pagal poreikį!
+          }}
+        >
+          {children}
+        </div>
       </div>
     </div>
   );
 };
+
 
 // Info tooltip komponentas (suderintas su lokalizacija)
 const InfoTooltip = ({ infoKey }) => {
