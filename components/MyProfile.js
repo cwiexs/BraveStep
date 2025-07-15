@@ -3,6 +3,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { CheckCircle2, Info } from "lucide-react";
+import React, { useState } from "react";
 
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
@@ -23,8 +24,9 @@ const Modal = ({ open, onClose, title, children }) => {
   );
 };
 
-// eatingHabitsTestModalOpen
+
 const [eatingHabitsTestModalOpen, setEatingHabitsTestModalOpen] = useState(false);
+
 
 // Info tooltip komponentas (suderintas su lokalizacija)
 const InfoTooltip = ({ infoKey }) => {
@@ -888,7 +890,7 @@ const finalData = {
                         </div>
                       );
                     }
-                    
+
                   if (f.type === "customModal" && f.name === "eatingHabitsTest") {
                     return (
                       <div key={f.name} className="mb-4">
