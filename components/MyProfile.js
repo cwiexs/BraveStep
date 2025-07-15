@@ -24,6 +24,8 @@ const Modal = ({ open, onClose, title, children }) => {
 };
 
 // Info tooltip komponentas (suderintas su lokalizacija)
+const [eatingTestModalOpen, setEatingTestModalOpen] = useState(false);
+
 const InfoTooltip = ({ infoKey }) => {
   const { t } = useTranslation();
   const [show, setShow] = useState(false);
@@ -362,10 +364,10 @@ const sections = [
         infoKey: "info.mealsPerDay"
       },
       {
-        name: "eatsOutOften",
-        label: "form.eatsOutOften",
-        type: "boolean",
-        infoKey: "info.eatsOutOften",
+        name: "eatingHabitsTest",
+        label: "form.eatingHabitsTest",
+        type: "customModalButton",
+        infoKey: "info.eatingHabitsTest"
       },
       {
         name: "dietType",
@@ -954,6 +956,33 @@ const finalData = {
             </form>
           )
       )}
+    </div>
+  );
+}
+if (f.type === "customModalButton") {
+  return (
+    <div key={f.name} className="mb-4">
+      <label className="block mb-1 font-medium text-blue-900">
+        {t(f.label)}
+        <InfoTooltip infoKey={f.infoKey} />
+      </label>
+      <button
+        type="button"
+        onClick={() => setEatingTestModalOpen(true)}
+        className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
+      >
+        {t("form.startTest")}
+      </button>
+      <Modal
+        open={eatingTestModalOpen}
+        onClose={() => setEatingTestModalOpen(false)}
+        title={t("form.eatingHabitsTestTitle")}
+      >
+        <div className="space-y-4">
+          <p>{t("form.eatingHabitsTestDescription")}</p>
+          {/* Čia bus testas – kol kas tik placeholder */}
+        </div>
+      </Modal>
     </div>
   );
 }

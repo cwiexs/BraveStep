@@ -331,7 +331,13 @@
   "unknown": "Unknown: Not sure about your body type? Click 'Want to know' to read descriptions."
 },
 "wantToKnow": "Want to know",
-"bodyTypeDescriptionsTitle": "Body Type Descriptions"
+"bodyTypeDescriptionsTitle": "Body Type Descriptions",
+
+"form.eatingHabitsTest": "Eating Habits Test",
+"form.startTest": "Start Test",
+"form.eatingHabitsTestTitle": "Eating Habits Test",
+"form.eatingHabitsTestDescription": "This window will soon contain a test to assess your dietary habits.",
+"info.eatingHabitsTest": "Click the button to complete a nutrition assessment test."
 
 
 
