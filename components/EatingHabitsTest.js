@@ -19,20 +19,20 @@ const questions = [
   { key: "social_overeat", category: "emotional" },
   { key: "restrict_binge", category: "emotional" },
   { key: "feel_guilt", category: "emotional" },
+  { key: "boredom_eating", category: "emotional" },
   { key: "eat_fast_food", category: "unhealthy" },
   { key: "drink_sugary", category: "unhealthy" },
   { key: "eat_with_screens", category: "unhealthy" },
   { key: "eat_outside", category: "unhealthy" },
+  { key: "snacking_unplanned", category: "unhealthy" },
   { key: "think_fast_food_ok", category: "attitude" },
   { key: "taste_over_nutrition", category: "attitude" },
   { key: "think_healthy_hard", category: "attitude" },
   { key: "mindless_eating", category: "attitude" },
   { key: "think_balanced", category: "attitude" },
-  { key: "take_supplements", category: "supplements" },
-  { key: "boredom_eating", category: "emotional" },
-  { key: "snacking_unplanned", category: "unhealthy" },
   { key: "appearance_over_nutrition", category: "attitude" },
   { key: "fail_diet_plans", category: "attitude" },
+  { key: "take_supplements", category: "supplements" }
 ];
 
 const categoryColors = {
@@ -65,7 +65,7 @@ export default function EatingHabitsTest() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           answers,
-          preferredLanguage: "lt",
+          preferredLanguage: "en",
         }),
       });
       if (!res.ok) {
@@ -86,15 +86,6 @@ export default function EatingHabitsTest() {
     setAnswers(prev => ({ ...prev, [key]: value }));
   };
 
-  const categories = [
-    { key: "planning", label: t("test.cat_planning") },
-    { key: "choices", label: t("test.cat_choices") },
-    { key: "emotional", label: t("test.cat_emotional") },
-    { key: "unhealthy", label: t("test.cat_unhealthy") },
-    { key: "attitude", label: t("test.cat_attitude") },
-    { key: "supplements", label: t("test.cat_supplements") },
-  ];
-
   return (
     <div>
       <h3 className="text-2xl font-bold mb-3 text-blue-800">{t("test.introTitle")}</h3>
@@ -107,78 +98,66 @@ export default function EatingHabitsTest() {
         />
       </div>
 
-      <div>
-        {categories.map(cat => {
-          const qs = questions.filter(q => q.category === cat.key);
-          return (
-            <div key={cat.key} className="mb-6">
-              <div className={`inline-block px-3 py-1 mb-4 rounded-full font-semibold ${categoryColors[cat.key]} shadow-sm`}>
-                {cat.label}
-              </div>
-              <div className="space-y-6">
-                {qs.map(q => {
-                  const index = questions.findIndex(item => item.key === q.key) + 1;
-                  return (
-                    <div key={q.key} className="bg-white border rounded-xl shadow-md p-5 flex flex-col gap-2">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="font-bold text-lg text-blue-900">{index} / {total}</span>
-                      </div>
-                      <span className="mb-2 font-medium text-gray-800">{t(`test.q_${q.key}`)}</span>
-                      <div className="flex flex-row gap-3 mt-2 justify-center">
-                        {[1, 2, 3, 4, 5].map(opt => (
-                          <label key={opt} className="flex flex-col items-center cursor-pointer group" title={opt}>
-                            <input
-                              type="radio"
-                              name={q.key}
-                              value={opt}
-                              checked={answers[q.key] === opt}
-                              onChange={() => handleAnswer(q.key, opt)}
-                              className="sr-only"
-                              required
-                              disabled={loading}
-                            />
-                            <span
-                              className={`w-10 h-10 flex items-center justify-center rounded-full border-2 text-lg font-semibold
-                                ${answers[q.key] === opt
-                                  ? "bg-blue-500 text-white border-blue-700 scale-110"
-                                  : "bg-gray-100 text-blue-900 border-blue-300 group-hover:border-blue-500"
-                                } transition-all duration-150`}
-                            >
-                              {opt}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+      <div className="space-y-6">
+        {questions.map((q, idx) => (
+          <div key={q.key} className="bg-white border rounded-xl shadow-md p-5 flex flex-col gap-2">
+            <div className="flex justify-between items-center mb-2">
+              <span className="font-bold text-lg text-blue-900">{idx + 1} / {total}</span>
+              <span className={`px-3 py-1 rounded-full font-semibold text-sm shadow-sm ${categoryColors[q.category]}`}>
+                {t(`test.cat_${q.category}`)}
+              </span>
             </div>
-          );
-        })}
-
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-center mt-10">
-          <button
-            type="button"
-            onClick={handleGenerateReport}
-            disabled={filled < total || loading}
-            className="bg-blue-700 text-white rounded px-10 py-3 font-bold shadow-lg transition hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-          >
-            {loading ? t("test.generating") : t("test.submit")}
-          </button>
-        </div>
-
-        {error && (
-          <div className="mt-6 text-red-700 bg-red-100 border border-red-300 rounded-lg p-4 text-center font-semibold text-lg">
-            {error}
+            <span className="mb-2 font-medium text-gray-800">{t(`test.q_${q.key}`)}</span>
+            <div className="flex flex-row gap-3 mt-2 justify-center">
+              {[1, 2, 3, 4, 5].map(opt => (
+                <label key={opt} className="flex flex-col items-center cursor-pointer group" title={opt}>
+                  <input
+                    type="radio"
+                    name={q.key}
+                    value={opt}
+                    checked={answers[q.key] === opt}
+                    onChange={() => handleAnswer(q.key, opt)}
+                    className="sr-only"
+                    required
+                    disabled={loading}
+                  />
+                  <span
+                    className={`w-10 h-10 flex items-center justify-center rounded-full border-2 text-lg font-semibold
+                      ${answers[q.key] === opt
+                        ? "bg-blue-500 text-white border-blue-700 scale-110"
+                        : "bg-gray-100 text-blue-900 border-blue-300 group-hover:border-blue-500"
+                      } transition-all duration-150`}
+                  >
+                    {opt}
+                  </span>
+                </label>
+              ))}
+            </div>
           </div>
-        )}
-        {report && (
-          <div className="mt-10 bg-gray-50 border border-gray-300 rounded-xl p-6 shadow-sm whitespace-pre-wrap">
-            {report}
-          </div>
-        )}
+        ))}
       </div>
+
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-center mt-10">
+        <button
+          type="button"
+          onClick={handleGenerateReport}
+          disabled={filled < total || loading}
+          className="bg-blue-700 text-white rounded px-10 py-3 font-bold shadow-lg transition hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+        >
+          {loading ? t("test.generating") : t("test.submit")}
+        </button>
+      </div>
+
+      {error && (
+        <div className="mt-6 text-red-700 bg-red-100 border border-red-300 rounded-lg p-4 text-center font-semibold text-lg">
+          {error}
+        </div>
+      )}
+      {report && (
+        <div className="mt-10 bg-gray-50 border border-gray-300 rounded-xl p-6 shadow-sm whitespace-pre-wrap">
+          {report}
+        </div>
+      )}
     </div>
   );
 }
