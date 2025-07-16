@@ -53,41 +53,44 @@ function EatingHabitsTest({ onClose, onComplete }) {
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+  const [error, setError] = useState(null); // naujas error state
 
   const options = [1, 2, 3, 4, 5];
   const filled = Object.keys(answers).length;
   const total = questions.length;
   const percent = Math.round((filled / total) * 100);
 
-  // Pateikimo funkcija su async POST ir callbacku tėvui
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setDone(false);
+    setError(null);
     try {
       const resp = await fetch('/api/generate-eating-habits-report', {
         method: 'POST',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers }),
       });
-      if (!resp.ok) throw new Error('Serverio klaida');
-      // Tikimės grąžins objektą su report ir date
+      if (!resp.ok) {
+        // Perskaityk pilną klaidos tekstą ir parodyk
+        const errText = await resp.text();
+        setError("Serverio klaida: " + errText);
+        setLoading(false);
+        return;
+      }
       const data = await resp.json();
       setDone(true);
 
-      // Iškviečia tėvui atnaujinti datą
       if (onComplete && typeof onComplete === "function") {
-        // Tarkime, data grąžinta kaip ISO stringas
         onComplete(data.date || new Date().toISOString());
       }
 
-      // Po 1,5 s uždarom modalą (rodoma „Atlikta, ačiū“)
       setTimeout(() => {
         setLoading(false);
         onClose();
       }, 1500);
     } catch (e) {
-      alert(t("test.submit_error") + ": " + (e.message || e));
+      setError("Tinklo arba serverio klaida: " + (e.message || e));
       setLoading(false);
     }
   };
@@ -169,7 +172,7 @@ function EatingHabitsTest({ onClose, onComplete }) {
             </div>
           );
         })}
-        <div className="flex flex-col md:flex-row gap-4 items-center justify-center mt-10">
+ <div className="flex flex-col md:flex-row gap-4 items-center justify-center mt-10">
           <button
             type="submit"
             disabled={filled < total || loading}
@@ -177,9 +180,9 @@ function EatingHabitsTest({ onClose, onComplete }) {
           >
             {loading
               ? done
-                ? t("test.completed")   // pvz.: „Atlikta, ačiū!“
-                : t("test.generating")  // pvz.: „Analizė generuojama...“
-              : t("test.submit")}       // pvz.: „Pateikti testą“
+                ? t("test.completed")
+                : t("test.generating")
+              : t("test.submit")}
           </button>
           <button
             type="button"
@@ -190,6 +193,12 @@ function EatingHabitsTest({ onClose, onComplete }) {
             {t("test.cancel")}
           </button>
         </div>
+        {/* Klaidos pranešimas */}
+        {error && (
+          <div className="mt-6 text-red-700 bg-red-100 border border-red-300 rounded-lg p-4 text-center font-semibold text-lg">
+            {error}
+          </div>
+        )}
         {loading && !done && (
           <div className="mt-6 text-blue-600 text-center font-semibold text-lg animate-pulse">
             {t("test.generating")}
