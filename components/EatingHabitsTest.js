@@ -48,7 +48,7 @@ export default function EatingHabitsTest() {
   const { t } = useTranslation();
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(false);
-  const [report, setReport] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const [error, setError] = useState(null);
 
   const filled = Object.keys(answers).length;
@@ -58,7 +58,7 @@ export default function EatingHabitsTest() {
   const handleGenerateReport = async () => {
     setLoading(true);
     setError(null);
-    setReport(null);
+    setSuccessMessage(null);
     try {
       const res = await fetch("/api/generate-eating-habits-report", {
         method: "POST",
@@ -73,8 +73,7 @@ export default function EatingHabitsTest() {
         setError("Serverio klaida: " + errText);
         return;
       }
-      const data = await res.json();
-      setReport(data.report);
+      setSuccessMessage(t("test.successMessage")); // <- tekstas, kurį pateiksi i18n faile
     } catch (e) {
       setError("Tinklo klaida: " + e.message);
     } finally {
@@ -153,9 +152,9 @@ export default function EatingHabitsTest() {
           {error}
         </div>
       )}
-      {report && (
-        <div className="mt-10 bg-gray-50 border border-gray-300 rounded-xl p-6 shadow-sm whitespace-pre-wrap">
-          {report}
+      {successMessage && (
+        <div className="mt-6 text-green-700 bg-green-100 border border-green-300 rounded-lg p-4 text-center font-semibold text-lg">
+          {successMessage}
         </div>
       )}
     </div>

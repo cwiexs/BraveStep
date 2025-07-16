@@ -398,7 +398,9 @@
 "test.cancel": "Cancel",
 "test.submit_error": "Failed to submit answers",
 "test.last_done": "Last completed:",
-"test.not_done": "Test not completed yet"
+"test.not_done": "Test not completed yet",
+
+"successMessage": "The test was successfully generated!"
 
 
 

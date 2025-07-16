@@ -402,7 +402,9 @@
 "test.cancel": "Atšaukti",
 "test.submit_error": "Nepavyko pateikti atsakymų",
 "test.last_done": "Paskutinį kartą atliktas:",
-"test.not_done": "Testas dar neatliktas"
+"test.not_done": "Testas dar neatliktas",
+
+"successMessage": "Testas sėkmingai sugeneruotas!"
 
 
 
