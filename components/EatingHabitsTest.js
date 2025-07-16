@@ -29,10 +29,8 @@ function EatingHabitsTest({ onClose }) {
 
       const data = await resp.json();
       setDone(true);
-      setTimeout(() => {
-        setLoading(false);
-        onClose();
-      }, 1500);
+      setLoading(false);
+    setDone(true);
     } catch (e) {
       setError("Tinklo arba serverio klaida: " + (e.message || e));
       setLoading(false);
