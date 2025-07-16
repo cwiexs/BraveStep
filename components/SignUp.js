@@ -69,6 +69,9 @@ export default function SignUp({ onSignIn }) {
   return (
     <div className="w-full flex flex-col items-center justify-center min-h-[400px]">
       <h2 className="text-blue-900 font-medium hover:text-blue-700 rounded px-4 py-2 text-3xl transition">{t('signUp')}</h2>
+      <p className="text-blue-800 font-semibold text-sm mb-2 text-center">
+        {t('joinInvitation')}
+      </p>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs">
         <input
           type="email"
