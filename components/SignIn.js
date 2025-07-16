@@ -73,7 +73,7 @@ export default function SignIn({ onClose, onSignUp }) {
       <div className="mt-4 text-sm">
         {t("dontHaveAccount")}{" "}
         <button className="text-blue-700 underline" onClick={onSignUp}>
-          {t("signUp")}
+          {t("createAccount")}
         </button>
       </div>
     </div>
