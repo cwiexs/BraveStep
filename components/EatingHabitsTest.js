@@ -179,7 +179,7 @@ function EatingHabitsTest({ onClose, onComplete }) {
  <div className="flex flex-col md:flex-row gap-4 items-center justify-center mt-10">
           <button
             type="submit"
-            disabled={filled < total || loading}
+            disabled={loading}
             className="bg-blue-700 text-white rounded px-10 py-3 font-bold shadow-lg transition hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
           >
             {loading
