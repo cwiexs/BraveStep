@@ -62,6 +62,10 @@ function EatingHabitsTest({ onClose, onComplete }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+
+    //tikrinam 
+    console.log("SUBMITO FUNKCIJA TRIGGERINTA", answers);
     setLoading(true);
     setDone(false);
     setError(null);
@@ -188,7 +192,7 @@ function EatingHabitsTest({ onClose, onComplete }) {
             type="button"
             onClick={onClose}
             className="px-8 py-3 bg-gray-200 rounded text-blue-900 font-semibold hover:bg-gray-300 transition text-lg shadow"
-            disabled={loading}
+            // disabled={loading}
           >
             {t("test.cancel")}
           </button>
