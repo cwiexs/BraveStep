@@ -352,8 +352,6 @@
 "test.cat_unhealthy": "Unhealthy habits",
 "test.cat_attitude": "Food awareness and attitudes",
 "test.cat_supplements": "Additional lifestyle questions",
-"test.submit": "Submit",
-"test.cancel": "Cancel",
 "test.thank_you": "Thank you for completing the test!",
 
 "test.q_plan_meals": "I plan my meals in advance (e.g., weekly menu).",
@@ -392,7 +390,16 @@
 "test.q_boredom_eating": "I often eat out of boredom, even when I'm not hungry.",
 "test.q_snacking_unplanned": "I often snack unplanned between main meals.",
 "test.q_appearance_over_nutrition": "I often choose food based on appearance rather than nutrition.",
-"test.q_fail_diet_plans": "I often try to follow a diet but quickly return to old habits."
+"test.q_fail_diet_plans": "I often try to follow a diet but quickly return to old habits.",
+
+"test.submit": "Submit test",
+"test.generating": "Generating analysis...",
+"test.completed": "Completed, thank you!",
+"test.cancel": "Cancel",
+"test.submit_error": "Failed to submit answers",
+"test.last_done": "Last completed:",
+"test.not_done": "Test not completed yet"
+
 
 
 

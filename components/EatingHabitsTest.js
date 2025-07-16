@@ -1,52 +1,42 @@
 import React, { useState } from "react";
 import { useTranslation } from "next-i18next";
 
-// Klausimų sąrašas (visi teiginiai turi būti aprašyti vertimuose test.q_<key>)
+// Klausimų sąrašas (nekeičiama dalis)
 const questions = [
-  // I. Valgymo planavimas ir reguliarumas
-  { key: "plan_meals", category: "planning" },         // Aš planuoju savo valgymus iš anksto.
-  { key: "eat_regularly", category: "planning" },      // Aš valgau reguliariai, panašiu laiku kiekvieną dieną.
-  { key: "late_eating", category: "planning" },        // Aš dažnai valgau vėlai vakare arba naktį.
-  { key: "overeating", category: "planning" },         // Aš dažnai persivalgau, kai valgau.
-
-  // II. Sveikų pasirinkimų darymas
-  { key: "eat_vegetables", category: "choices" },      // Aš dažnai renkuosi daržoves savo racione.
-  { key: "eat_fruits", category: "choices" },          // Aš dažnai valgau vaisius.
-  { key: "cook_from_scratch", category: "choices" },   // Aš dažnai gaminu maistą iš šviežių produktų.
-  { key: "try_healthy_recipes", category: "choices" }, // Aš mėgstu išbandyti sveikesnius receptus.
-  { key: "read_labels", category: "choices" },         // Aš dažnai skaitau produktų etiketes.
-  { key: "eat_fast", category: "choices" },            // Aš dažnai valgau greitai, neskirdamas laiko maistui.
-  { key: "drink_water", category: "choices" },         // Aš pakankamai geriu vandens kasdien.
-  { key: "choose_eco", category: "choices" },          // Aš stengiuosi rinktis ekologišką ar tvarų maistą.
-
-  // III. Emocinis ir socialinis valgymas
-  { key: "emotional_eating", category: "emotional" },  // Aš dažnai valgau dėl emocijų (liūdesio, streso, nuobodulio).
-  { key: "mood_affects_eating", category: "emotional" }, // Mano nuotaika dažnai lemia, ką ar kiek valgau.
-  { key: "social_overeat", category: "emotional" },    // Bendraudamas su kitais aš dažnai valgau daugiau nei norėčiau.
-  { key: "restrict_binge", category: "emotional" },    // Aš dažnai riboju maistą, o vėliau persivalgau.
-  { key: "feel_guilt", category: "emotional" },        // Po valgymo dažnai jaučiu kaltę arba priekaištus sau.
-
-  // IV. Nesveiki įpročiai
-  { key: "eat_fast_food", category: "unhealthy" },     // Aš dažnai valgau greitą maistą ar užkandžius.
-  { key: "drink_sugary", category: "unhealthy" },      // Aš dažnai geriu saldžius gėrimus (limonadus, sultis).
-  { key: "eat_with_screens", category: "unhealthy" },  // Dažnai valgau žiūrėdamas televizorių ar naršydamas telefone.
-  { key: "eat_outside", category: "unhealthy" },       // Dažnai valgau ne namuose, kavinėse ar restoranuose.
-
-  // V. Maisto suvokimas ir nuostatos
-  { key: "think_fast_food_ok", category: "attitude" },     // Manau, kad greitas maistas nėra blogas, jei valgau kartais.
-  { key: "taste_over_nutrition", category: "attitude" },   // Skonis man svarbiau už maistingumą.
-  { key: "think_healthy_hard", category: "attitude" },     // Man atrodo, kad sveikai maitintis yra sudėtinga.
-  { key: "mindless_eating", category: "attitude" },        // Dažnai valgau nesusimąstydamas, net nepajusdamas alkio.
-  { key: "think_balanced", category: "attitude" },         // Man svarbu išlaikyti mitybos balansą ir įvairovę.
-
-  // VI. Papildomi klausimai apie gyvenimo būdą
-  { key: "take_supplements", category: "supplements" },    // Aš reguliariai vartoju maisto papildus ar vitaminus.
-
-  // Papildomi – jei nori
-  { key: "boredom_eating", category: "emotional" },        // Aš dažnai valgau iš nuobodulio, net jei nesu alkanas.
-  { key: "snacking_unplanned", category: "unhealthy" },    // Aš dažnai užkandžiauju neplanuotai tarp pagrindinių valgymų.
-  { key: "appearance_over_nutrition", category: "attitude" }, // Dažnai renkuosi maistą pagal išvaizdą, ne pagal naudą.
-  { key: "fail_diet_plans", category: "attitude" },        // Dažnai bandau laikytis dietos, bet greitai grįžtu prie senų įpročių.
+  // ... (visas tavo klausimų masyvas iš failo - nekeičiam)
+  // (liko taip pat, kaip tavo faile)
+  // ...
+  { key: "plan_meals", category: "planning" },         
+  { key: "eat_regularly", category: "planning" },      
+  { key: "late_eating", category: "planning" },        
+  { key: "overeating", category: "planning" },         
+  { key: "eat_vegetables", category: "choices" },      
+  { key: "eat_fruits", category: "choices" },          
+  { key: "cook_from_scratch", category: "choices" },   
+  { key: "try_healthy_recipes", category: "choices" }, 
+  { key: "read_labels", category: "choices" },         
+  { key: "eat_fast", category: "choices" },            
+  { key: "drink_water", category: "choices" },         
+  { key: "choose_eco", category: "choices" },          
+  { key: "emotional_eating", category: "emotional" },  
+  { key: "mood_affects_eating", category: "emotional" },
+  { key: "social_overeat", category: "emotional" },    
+  { key: "restrict_binge", category: "emotional" },    
+  { key: "feel_guilt", category: "emotional" },        
+  { key: "eat_fast_food", category: "unhealthy" },     
+  { key: "drink_sugary", category: "unhealthy" },      
+  { key: "eat_with_screens", category: "unhealthy" },  
+  { key: "eat_outside", category: "unhealthy" },       
+  { key: "think_fast_food_ok", category: "attitude" },     
+  { key: "taste_over_nutrition", category: "attitude" },   
+  { key: "think_healthy_hard", category: "attitude" },     
+  { key: "mindless_eating", category: "attitude" },        
+  { key: "think_balanced", category: "attitude" },         
+  { key: "take_supplements", category: "supplements" },    
+  { key: "boredom_eating", category: "emotional" },        
+  { key: "snacking_unplanned", category: "unhealthy" },    
+  { key: "appearance_over_nutrition", category: "attitude" },
+  { key: "fail_diet_plans", category: "attitude" },        
 ];
 
 const categoryColors = {
@@ -58,21 +48,50 @@ const categoryColors = {
   supplements: "bg-gray-100 text-gray-700",
 };
 
-function EatingHabitsTest({ onClose }) {
+function EatingHabitsTest({ onClose, onComplete }) {
   const { t } = useTranslation();
   const [answers, setAnswers] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [done, setDone] = useState(false);
+
   const options = [1, 2, 3, 4, 5];
   const filled = Object.keys(answers).length;
   const total = questions.length;
   const percent = Math.round((filled / total) * 100);
 
-  const handleSubmit = e => {
+  // Pateikimo funkcija su async POST ir callbacku tėvui
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(t("test.thank_you"));
-    onClose();
+    setLoading(true);
+    setDone(false);
+    try {
+      const resp = await fetch('/api/generate-eating-habits-report', {
+        method: 'POST',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers }),
+      });
+      if (!resp.ok) throw new Error('Serverio klaida');
+      // Tikimės grąžins objektą su report ir date
+      const data = await resp.json();
+      setDone(true);
+
+      // Iškviečia tėvui atnaujinti datą
+      if (onComplete && typeof onComplete === "function") {
+        // Tarkime, data grąžinta kaip ISO stringas
+        onComplete(data.date || new Date().toISOString());
+      }
+
+      // Po 1,5 s uždarom modalą (rodoma „Atlikta, ačiū“)
+      setTimeout(() => {
+        setLoading(false);
+        onClose();
+      }, 1500);
+    } catch (e) {
+      alert(t("test.submit_error") + ": " + (e.message || e));
+      setLoading(false);
+    }
   };
 
-  // Kategorijų aprašai (pritaikyti stiliui ir kategorijų tvarkai)
   const categories = [
     { key: "planning", label: t("test.cat_planning") },
     { key: "choices", label: t("test.cat_choices") },
@@ -87,7 +106,6 @@ function EatingHabitsTest({ onClose }) {
       <h3 className="text-2xl font-bold mb-3 text-blue-800">{t("test.introTitle")}</h3>
       <p className="mb-6 text-gray-700">{t("test.introText")}</p>
 
-      {/* Progreso juosta */}
       <div className="w-full h-4 bg-gray-200 rounded mb-8">
         <div
           className="h-4 bg-blue-500 rounded transition-all duration-300"
@@ -114,7 +132,6 @@ function EatingHabitsTest({ onClose }) {
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-bold text-lg text-blue-900">{globalIndex} / {total}</span>
                       </div>
-                      {/* Klausimas pateikiamas kaip teiginys */}
                       <span className="mb-2 font-medium text-gray-800 break-words">{t(`test.q_${q.key}`)}</span>
                       <div className="flex flex-row gap-3 mt-2 justify-center">
                         {options.map(opt => (
@@ -131,6 +148,7 @@ function EatingHabitsTest({ onClose }) {
                               onChange={() => setAnswers(a => ({ ...a, [q.key]: opt }))}
                               className="sr-only"
                               required={true}
+                              disabled={loading}
                             />
                             <span
                               className={`w-10 h-10 flex items-center justify-center rounded-full border-2 text-lg font-semibold
@@ -154,19 +172,34 @@ function EatingHabitsTest({ onClose }) {
         <div className="flex flex-col md:flex-row gap-4 items-center justify-center mt-10">
           <button
             type="submit"
-            disabled={filled < total}
+            disabled={filled < total || loading}
             className="bg-blue-700 text-white rounded px-10 py-3 font-bold shadow-lg transition hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
           >
-            {t("test.submit")}
+            {loading
+              ? done
+                ? t("test.completed")   // pvz.: „Atlikta, ačiū!“
+                : t("test.generating")  // pvz.: „Analizė generuojama...“
+              : t("test.submit")}       // pvz.: „Pateikti testą“
           </button>
           <button
             type="button"
             onClick={onClose}
             className="px-8 py-3 bg-gray-200 rounded text-blue-900 font-semibold hover:bg-gray-300 transition text-lg shadow"
+            disabled={loading}
           >
             {t("test.cancel")}
           </button>
         </div>
+        {loading && !done && (
+          <div className="mt-6 text-blue-600 text-center font-semibold text-lg animate-pulse">
+            {t("test.generating")}
+          </div>
+        )}
+        {done && (
+          <div className="mt-6 text-green-600 text-center font-bold text-xl">
+            {t("test.completed")}
+          </div>
+        )}
       </form>
     </div>
   );

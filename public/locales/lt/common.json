@@ -356,8 +356,6 @@
 "test.cat_unhealthy": "Nesveiki įpročiai",
 "test.cat_attitude": "Maisto suvokimas ir nuostatos",
 "test.cat_supplements": "Papildomi klausimai apie gyvenimo būdą",
-"test.submit": "Pateikti",
-"test.cancel": "Atšaukti",
 "test.thank_you": "Ačiū, kad užpildėte testą!",
 
 "test.q_plan_meals": "Planuoju savo valgius iš anksto (pvz., savaitės meniu).",
@@ -396,7 +394,16 @@
 "test.q_boredom_eating": "Dažnai valgau iš nuobodulio, net jei nesu alkanas.",
 "test.q_snacking_unplanned": "Dažnai užkandžiauju neplanuotai tarp pagrindinių valgymų.",
 "test.q_appearance_over_nutrition": "Dažnai renkuosi maistą pagal išvaizdą, ne pagal naudą.",
-"test.q_fail_diet_plans": "Dažnai bandau laikytis dietos, bet greitai grįžtu prie senų įpročių."
+"test.q_fail_diet_plans": "Dažnai bandau laikytis dietos, bet greitai grįžtu prie senų įpročių.",
+
+"test.submit": "Pateikti testą",
+"test.generating": "Analizė generuojama...",
+"test.completed": "Atlikta, ačiū!",
+"test.cancel": "Atšaukti",
+"test.submit_error": "Nepavyko pateikti atsakymų",
+"test.last_done": "Paskutinį kartą atliktas:",
+"test.not_done": "Testas dar neatliktas"
+
 
 
 
