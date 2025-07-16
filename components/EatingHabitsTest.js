@@ -17,7 +17,7 @@ function EatingHabitsTest() {
     setResponseText("");
 
     try {
-      const resp = await fetch("/api/generate-eating-habits-report", {
+      const resp = await fetch("/pages/api/generate-eating-habits-report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers }),
