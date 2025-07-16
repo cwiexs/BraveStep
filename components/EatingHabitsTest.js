@@ -1,43 +1,54 @@
 import React, { useState } from "react";
 import { useTranslation } from "next-i18next";
 
+// Klausimų sąrašas (visi teiginiai turi būti aprašyti vertimuose test.q_<key>)
 const questions = [
   // I. Valgymo planavimas ir reguliarumas
-  { key: "plan_meals", category: "planning" },
-  { key: "eat_regularly", category: "planning" },
-  { key: "late_eating", category: "planning" },
-  { key: "overeating", category: "planning" },
+  { key: "plan_meals", category: "planning" },         // Aš planuoju savo valgymus iš anksto.
+  { key: "eat_regularly", category: "planning" },      // Aš valgau reguliariai, panašiu laiku kiekvieną dieną.
+  { key: "late_eating", category: "planning" },        // Aš dažnai valgau vėlai vakare arba naktį.
+  { key: "overeating", category: "planning" },         // Aš dažnai persivalgau, kai valgau.
+
   // II. Sveikų pasirinkimų darymas
-  { key: "eat_vegetables", category: "choices" },
-  { key: "eat_fruits", category: "choices" },
-  { key: "cook_from_scratch", category: "choices" },
-  { key: "try_healthy_recipes", category: "choices" },
-  { key: "read_labels", category: "choices" },
-  { key: "eat_fast", category: "choices" },
-  { key: "drink_water", category: "choices" },
-  { key: "choose_eco", category: "choices" },
+  { key: "eat_vegetables", category: "choices" },      // Aš dažnai renkuosi daržoves savo racione.
+  { key: "eat_fruits", category: "choices" },          // Aš dažnai valgau vaisius.
+  { key: "cook_from_scratch", category: "choices" },   // Aš dažnai gaminu maistą iš šviežių produktų.
+  { key: "try_healthy_recipes", category: "choices" }, // Aš mėgstu išbandyti sveikesnius receptus.
+  { key: "read_labels", category: "choices" },         // Aš dažnai skaitau produktų etiketes.
+  { key: "eat_fast", category: "choices" },            // Aš dažnai valgau greitai, neskirdamas laiko maistui.
+  { key: "drink_water", category: "choices" },         // Aš pakankamai geriu vandens kasdien.
+  { key: "choose_eco", category: "choices" },          // Aš stengiuosi rinktis ekologišką ar tvarų maistą.
+
   // III. Emocinis ir socialinis valgymas
-  { key: "emotional_eating", category: "emotional" },
-  { key: "mood_affects_eating", category: "emotional" },
-  { key: "social_overeat", category: "emotional" },
-  { key: "restrict_binge", category: "emotional" },
-  { key: "feel_guilt", category: "emotional" },
+  { key: "emotional_eating", category: "emotional" },  // Aš dažnai valgau dėl emocijų (liūdesio, streso, nuobodulio).
+  { key: "mood_affects_eating", category: "emotional" }, // Mano nuotaika dažnai lemia, ką ar kiek valgau.
+  { key: "social_overeat", category: "emotional" },    // Bendraudamas su kitais aš dažnai valgau daugiau nei norėčiau.
+  { key: "restrict_binge", category: "emotional" },    // Aš dažnai riboju maistą, o vėliau persivalgau.
+  { key: "feel_guilt", category: "emotional" },        // Po valgymo dažnai jaučiu kaltę arba priekaištus sau.
+
   // IV. Nesveiki įpročiai
-  { key: "eat_fast_food", category: "unhealthy" },
-  { key: "drink_sugary", category: "unhealthy" },
-  { key: "eat_with_screens", category: "unhealthy" },
-  { key: "eat_outside", category: "unhealthy" },
+  { key: "eat_fast_food", category: "unhealthy" },     // Aš dažnai valgau greitą maistą ar užkandžius.
+  { key: "drink_sugary", category: "unhealthy" },      // Aš dažnai geriu saldžius gėrimus (limonadus, sultis).
+  { key: "eat_with_screens", category: "unhealthy" },  // Dažnai valgau žiūrėdamas televizorių ar naršydamas telefone.
+  { key: "eat_outside", category: "unhealthy" },       // Dažnai valgau ne namuose, kavinėse ar restoranuose.
+
   // V. Maisto suvokimas ir nuostatos
-  { key: "think_fast_food_ok", category: "attitude" },
-  { key: "taste_over_nutrition", category: "attitude" },
-  { key: "think_healthy_hard", category: "attitude" },
-  { key: "mindless_eating", category: "attitude" },
-  { key: "think_balanced", category: "attitude" },
+  { key: "think_fast_food_ok", category: "attitude" },     // Manau, kad greitas maistas nėra blogas, jei valgau kartais.
+  { key: "taste_over_nutrition", category: "attitude" },   // Skonis man svarbiau už maistingumą.
+  { key: "think_healthy_hard", category: "attitude" },     // Man atrodo, kad sveikai maitintis yra sudėtinga.
+  { key: "mindless_eating", category: "attitude" },        // Dažnai valgau nesusimąstydamas, net nepajusdamas alkio.
+  { key: "think_balanced", category: "attitude" },         // Man svarbu išlaikyti mitybos balansą ir įvairovę.
+
   // VI. Papildomi klausimai apie gyvenimo būdą
-  { key: "take_supplements", category: "supplements" },
+  { key: "take_supplements", category: "supplements" },    // Aš reguliariai vartoju maisto papildus ar vitaminus.
+
+  // Papildomi – jei nori
+  { key: "boredom_eating", category: "emotional" },        // Aš dažnai valgau iš nuobodulio, net jei nesu alkanas.
+  { key: "snacking_unplanned", category: "unhealthy" },    // Aš dažnai užkandžiauju neplanuotai tarp pagrindinių valgymų.
+  { key: "appearance_over_nutrition", category: "attitude" }, // Dažnai renkuosi maistą pagal išvaizdą, ne pagal naudą.
+  { key: "fail_diet_plans", category: "attitude" },        // Dažnai bandau laikytis dietos, bet greitai grįžtu prie senų įpročių.
 ];
 
-// Spalvos kiekvienai kategorijai
 const categoryColors = {
   planning: "bg-blue-100 text-blue-700",
   choices: "bg-green-100 text-green-700",
@@ -55,22 +66,13 @@ function EatingHabitsTest({ onClose }) {
   const total = questions.length;
   const percent = Math.round((filled / total) * 100);
 
-  // Pagal klausimų kategoriją grąžina jų skaičių
-  const getCategoryIndex = (category, index) => {
-    let idx = 1;
-    for (let i = 0; i < index; i++) {
-      if (questions[i].category === category) idx++;
-    }
-    return idx;
-  };
-
   const handleSubmit = e => {
     e.preventDefault();
     alert(t("test.thank_you"));
     onClose();
   };
 
-  // Suskirstome klausimus pagal kategorijas, kad būtų galima priskirti kategorijos pavadinimą ir spalvą
+  // Kategorijų aprašai (pritaikyti stiliui ir kategorijų tvarkai)
   const categories = [
     { key: "planning", label: t("test.cat_planning") },
     { key: "choices", label: t("test.cat_choices") },
@@ -103,7 +105,6 @@ function EatingHabitsTest({ onClose }) {
               </div>
               <div className="space-y-6">
                 {qs.map((q, qIdx) => {
-                  // Bendra klausimo numeracija (pagal bendrą sąrašą)
                   const globalIndex = questions.findIndex(item => item.key === q.key) + 1;
                   return (
                     <div
@@ -112,8 +113,8 @@ function EatingHabitsTest({ onClose }) {
                     >
                       <div className="flex justify-between items-center mb-2">
                         <span className="font-bold text-lg text-blue-900">{globalIndex} / {total}</span>
-                        {/* Galima pridėti ir pavadinimą ar subkategoriją */}
                       </div>
+                      {/* Klausimas pateikiamas kaip teiginys */}
                       <span className="mb-2 font-medium text-gray-800 break-words">{t(`test.q_${q.key}`)}</span>
                       <div className="flex flex-row gap-3 mt-2 justify-center">
                         {options.map(opt => (
@@ -143,7 +144,6 @@ function EatingHabitsTest({ onClose }) {
                           </label>
                         ))}
                       </div>
-                      {/* Optional: Aprašas po klausimu */}
                     </div>
                   );
                 })}

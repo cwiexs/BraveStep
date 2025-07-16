@@ -391,7 +391,13 @@
 "test.q_mindless_eating": "Dažnai valgau automatiškai, nekreipdamas dėmesio į skonį ar kiek suvalgiau.",
 "test.q_think_balanced": "Manau, kad mano mityba yra pakankamai subalansuota ir sveika.",
 
-"test.q_take_supplements": "Vartoju maisto papildus (pvz., vitaminus, baltymų miltelius)."
+"test.q_take_supplements": "Vartoju maisto papildus (pvz., vitaminus, baltymų miltelius).",
+
+"test.q_boredom_eating": "Dažnai valgau iš nuobodulio, net jei nesu alkanas.",
+"test.q_snacking_unplanned": "Dažnai užkandžiauju neplanuotai tarp pagrindinių valgymų.",
+"test.q_appearance_over_nutrition": "Dažnai renkuosi maistą pagal išvaizdą, ne pagal naudą.",
+"test.q_fail_diet_plans": "Dažnai bandau laikytis dietos, bet greitai grįžtu prie senų įpročių."
+
 
 
 

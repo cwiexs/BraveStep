@@ -387,7 +387,13 @@
 "test.q_mindless_eating": "I often eat automatically, without noticing the taste or how much I've eaten.",
 "test.q_think_balanced": "I think my diet is sufficiently balanced and healthy.",
 
-"test.q_take_supplements": "I take food supplements (e.g., vitamins, protein powders)."
+"test.q_take_supplements": "I take food supplements (e.g., vitamins, protein powders).",
+
+"test.q_boredom_eating": "I often eat out of boredom, even when I'm not hungry.",
+"test.q_snacking_unplanned": "I often snack unplanned between main meals.",
+"test.q_appearance_over_nutrition": "I often choose food based on appearance rather than nutrition.",
+"test.q_fail_diet_plans": "I often try to follow a diet but quickly return to old habits."
+
 
 
 
