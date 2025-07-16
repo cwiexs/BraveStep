@@ -177,6 +177,7 @@ function EatingHabitsTest({ onClose, onComplete }) {
           );
         })}
  <div className="flex flex-col md:flex-row gap-4 items-center justify-center mt-10">
+    <button type="submit">Pateikti testą</button>
           <button
             type="submit"
             disabled={loading}
