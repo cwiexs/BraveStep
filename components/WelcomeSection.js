@@ -1,3 +1,4 @@
+
 import { useTranslation } from 'next-i18next';
 import Image from 'next/image';
 
@@ -5,40 +6,42 @@ export default function WelcomeSection({ onSignIn, onSignUp }) {
   const { t } = useTranslation('common');
 
   return (
-    <header className="flex flex-col md:flex-row items-center justify-between py-12 px-6 bg-[#F8FBFA] rounded-xl shadow-lg">
-      {/* Kairėje – tekstinė dalis */}
-      <div className="flex-1 mb-10 md:mb-0 flex flex-col items-start md:items-start text-left">
-        <h1 className="text-5xl font-extrabold text-green-700 tracking-wide mb-4">
+    <header className="flex flex-col md:flex-row items-center justify-between py-8 px-2">
+      {/* Kairėje – tekstinė dalis su išverčiamais šūkiais */}
+      <div className="flex-1 mb-10 md:mb-0 flex flex-col items-start md:items-center md:text-left">
+        {/* Didelė antraštė "WELCOME!" */}
+        <h1 className="text-4xl sm:text-5xl font-bold mb-4 text-blue-900 uppercase">
           {t('welcomeTitle')}
         </h1>
 
-        <p className="text-gray-800 text-2xl mb-3 font-medium">
+        {/* Po antrašte – motyvaciniai sakiniai */}
+        <p className="text-gray-800 text-xl mb-2">
           {t('welcomeStepTaken')}
         </p>
-        <p className="text-gray-600 text-lg mb-6">
+        <p className="text-gray-600 mb-6 text-lg">
           {t('welcomeBalanceBegins')}
         </p>
 
-        <button
-          className="bg-green-600 hover:bg-green-700 text-white py-3 px-8 rounded-lg font-semibold text-lg transition-all shadow-md hover:scale-105"
-          onClick={onSignUp}
-        >
-          {t('startYourJourney')}
-        </button>
+        {/* Mygtukas pradėti kelionę */}
+        <div className="flex gap-4">
+          <button
+            className="border border-[#245A6B] text-[#245A6B] py-3 px-7 rounded-lg font-semibold text-lg shadow-md hover:bg-[#245A6B] hover:text-white transition-colors"
+            onClick={onSignUp}
+          >
+            {t('startYourJourney')}
+          </button>
+        </div>
       </div>
 
-      {/* Iliustracija – dešinėje */}
+      {/* Dešinėje – paveikslėlis */}
       <div className="flex-1 flex justify-center">
         <Image
-          src="/hero.png"
-          alt="Person celebrating wellness"
-          width={300}
-          height={300}
-          priority
-          style={{ maxWidth: '100%', height: 'auto' }}
+          src="/images/fitness_welcome.png"
+          alt="Fitness illustration"
+          width={400}
+          height={400}
         />
       </div>
     </header>
-
   );
 }
