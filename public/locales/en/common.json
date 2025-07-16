@@ -400,7 +400,7 @@
 "test.last_done": "Last completed:",
 "test.not_done": "Test not completed yet",
 
-"successMessage": "The test was successfully generated!"
+"test.successMessage": "The test was successfully generated!"
 
 
 

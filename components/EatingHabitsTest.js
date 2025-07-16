@@ -73,7 +73,7 @@ export default function EatingHabitsTest() {
         setError("Serverio klaida: " + errText);
         return;
       }
-      setSuccessMessage(t("test.successMessage")); // <- tekstas, kurį pateiksi i18n faile
+      setSuccessMessage(t("test.successMessage"));
     } catch (e) {
       setError("Tinklo klaida: " + e.message);
     } finally {
@@ -118,7 +118,7 @@ export default function EatingHabitsTest() {
                     onChange={() => handleAnswer(q.key, opt)}
                     className="sr-only"
                     required
-                    disabled={loading}
+                    disabled={loading || successMessage}
                   />
                   <span
                     className={`w-10 h-10 flex items-center justify-center rounded-full border-2 text-lg font-semibold
@@ -137,14 +137,16 @@ export default function EatingHabitsTest() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 items-center justify-center mt-10">
-        <button
-          type="button"
-          onClick={handleGenerateReport}
-          disabled={filled < total || loading}
-          className="bg-blue-700 text-white rounded px-10 py-3 font-bold shadow-lg transition hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-        >
-          {loading ? t("test.generating") : t("test.submit")}
-        </button>
+        {!successMessage && (
+          <button
+            type="button"
+            onClick={handleGenerateReport}
+            disabled={filled < total || loading}
+            className="bg-blue-700 text-white rounded px-10 py-3 font-bold shadow-lg transition hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+          >
+            {loading ? t("test.generating") : t("test.submit")}
+          </button>
+        )}
       </div>
 
       {error && (

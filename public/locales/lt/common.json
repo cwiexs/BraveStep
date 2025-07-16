@@ -404,7 +404,7 @@
 "test.last_done": "Paskutinį kartą atliktas:",
 "test.not_done": "Testas dar neatliktas",
 
-"successMessage": "Testas sėkmingai sugeneruotas!"
+"test.successMessage": "Testas sėkmingai sugeneruotas!"
 
 
 
