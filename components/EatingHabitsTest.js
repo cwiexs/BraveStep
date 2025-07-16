@@ -3,9 +3,6 @@ import { useTranslation } from "next-i18next";
 
 // Klausimų sąrašas (nekeičiama dalis)
 const questions = [
-  // ... (visas tavo klausimų masyvas iš failo - nekeičiam)
-  // (liko taip pat, kaip tavo faile)
-  // ...
   { key: "plan_meals", category: "planning" },         
   { key: "eat_regularly", category: "planning" },      
   { key: "late_eating", category: "planning" },        
@@ -53,7 +50,7 @@ function EatingHabitsTest({ onClose, onComplete }) {
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
-  const [error, setError] = useState(null); // naujas error state
+  const [error, setError] = useState(null);
 
   const options = [1, 2, 3, 4, 5];
   const filled = Object.keys(answers).length;
@@ -62,13 +59,10 @@ function EatingHabitsTest({ onClose, onComplete }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-
-    //tikrinam 
-    console.log("SUBMITO FUNKCIJA TRIGGERINTA", answers);
     setLoading(true);
     setDone(false);
     setError(null);
+
     try {
       const resp = await fetch('/api/generate-eating-habits-report', {
         method: 'POST',
@@ -76,7 +70,6 @@ function EatingHabitsTest({ onClose, onComplete }) {
         body: JSON.stringify({ answers }),
       });
       if (!resp.ok) {
-        // Perskaityk pilną klaidos tekstą ir parodyk
         const errText = await resp.text();
         setError("Serverio klaida: " + errText);
         setLoading(false);
@@ -176,11 +169,10 @@ function EatingHabitsTest({ onClose, onComplete }) {
             </div>
           );
         })}
- <div className="flex flex-col md:flex-row gap-4 items-center justify-center mt-10">
-    <button type="submit">Pateikti testą</button>
+        <div className="flex flex-col md:flex-row gap-4 items-center justify-center mt-10">
           <button
             type="submit"
-            disabled={loading}
+            disabled={filled < total || loading}
             className="bg-blue-700 text-white rounded px-10 py-3 font-bold shadow-lg transition hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
           >
             {loading
@@ -193,7 +185,6 @@ function EatingHabitsTest({ onClose, onComplete }) {
             type="button"
             onClick={onClose}
             className="px-8 py-3 bg-gray-200 rounded text-blue-900 font-semibold hover:bg-gray-300 transition text-lg shadow"
-            // disabled={loading}
           >
             {t("test.cancel")}
           </button>
