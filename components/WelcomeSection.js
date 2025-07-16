@@ -5,7 +5,7 @@ export default function WelcomeSection({ onSignIn, onSignUp }) {
   const { t } = useTranslation('common');
 
   return (
-    <header className="flex flex-col md:flex-row items-center justify-between py-12 px-6 bg-transparent rounded-xl shadow-lg">
+    <header className="flex flex-col md:flex-row items-center justify-between py-12 px-6 bg-transparent rounded-xl">
       {/* Kairėje – tekstinė dalis */}
       <div className="flex-1 mb-10 md:mb-0 flex flex-col items-start md:items-start text-left">
         <h1 className="text-5xl font-extrabold text-blue-900 tracking-wide mb-4">
