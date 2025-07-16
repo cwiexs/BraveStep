@@ -125,7 +125,7 @@ export default function SignUp({ onSignIn }) {
         </div>
         {error && <div className="text-red-600 text-xs">{error}</div>}
         {success && <div className="text-green-600 text-xs">{success}</div>}
-        <button type="submit" className="bg-blue-700 text-white rounded py-2">{t('signUp')}</button>
+        <button type="submit" className="bg-blue-700 text-white rounded py-2">{t('takeTheNextBraveStep')}</button>
       </form>
       <div className="mt-4 text-sm">
         {t('alreadyHaveAccount')}{' '}
