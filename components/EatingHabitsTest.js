@@ -59,6 +59,7 @@ function EatingHabitsTest({ onClose, onComplete }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    alert("JEI PAMATAI ŠĮ ALERT – SUBMIT VEIKIA!");
     setLoading(true);
     setDone(false);
     setError(null);
