@@ -33,7 +33,7 @@ export default function SignIn({ onClose, onSignUp }) {
 
   return (
     <div className="w-full flex flex-col items-center justify-center min-h-[300px]">
-      <h2 className="text-blue-900 font-medium hover:text-blue-700 rounded px-4 py-2 text-3xl transition">{t("signIn")}</h2>
+      <h2 className="text-blue-900 font-medium hover:text-blue-700 rounded px-4 py-2 text-3xl transition">{t("welcome.signIn")}</h2>
       <form onSubmit={handleSubmit} className="flex flex-col gap-4 w-full max-w-xs">
         <input
           type="email"
