@@ -205,100 +205,14 @@ const promptParts = [
   `Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.`,
   `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into 1–5 named stretches, each with its own title and description.`,
 
-// 12. STRUCTURED FORMAT WITH SYMBOLS
-`STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
-You MUST return the workout plan in a clearly structured and machine-readable format.
 
-Use the following symbols ONLY to separate sections. Do NOT add other section names, bullets, or formatting.
-
-Each symbol must be followed by text in the user's preferred language.
-
-— HYDRATION GUIDANCE —
-
-ALWAYS include hydration guidance based on workout intensity, duration, and user body weight.
-
-Suggest when and how much water to drink:
-- before the workout (e.g., 200–400 ml),
-- during the workout (e.g., small sips every 10–15 minutes),
-- and after the workout (e.g., 300–500 ml).
-
-Adapt these amounts depending on the user's weight and training intensity. If weight is unknown, assume average (60–75kg).
-
-Hydration tips must be phrased in the user's preferred language in a gentle and natural tone. Example suggestions:
-- "Prieš treniruotę išgerk stiklinę vandens – tai padės kūnui geriau dirbti."
-- "Sportuodamas atsigerk mažais gurkšneliais kas 10–15 minučių."
-- "Po treniruotės atsigauk – išgerk stiklinę ar dvi vandens."
-
-You may place hydration guidance either before the first exercise or at the end of the plan, after the final motivational message. NEVER place it in the middle of exercises.
-
-— OUTDOOR ENCOURAGEMENT —
-
-If the user's workoutLocation allows outdoor exercise (e.g., 'outdoor', 'home with backyard', or 'no limitation'), consider encouraging them to go outside – only if weather is nice.
-
-Include a soft and friendly suggestion like:
-- "Jeigu šiandien gražus oras, kodėl nepabandžius treniruotės lauke?"
-- "Saulės spinduliai padeda geriau jaustis – jei įmanoma, pasportuok gamtoje ar parke."
-- "Gamta pakelia nuotaiką – gal šįkart išbandyk šią treniruotę po atviru dangumi?"
-
-NEVER force the suggestion. Make it optional and kind. This line may be included either at the start of the plan or near the ending motivational message.
-
-— INSPIRATIONAL SEEDS —
-
-Occasionally include light inspiration like:
-- "If you find a quiet park nearby with workout bars or open space, maybe this session could become a short adventure outside."
-- "Sometimes a simple walk to the park before or after exercise changes your whole day."
-
-Keep such suggestions gentle, optional, and context-aware. They should feel like spontaneous ideas, not fixed rules.
-
-%%intro  
-[Short introductory paragraph in the user's preferred language]
-
-Generate ONLY ONE full workout day based on the user's goals or experience level.  
-The workout must follow the exact structure below and start with this format:
- 
-
-!!motivation_start!!  
-[Motivational message for beginning the workout – localized]  
-!!motivation_end!!  
-[Motivational message for ending the workout – localized]
-
-Include 3 to 15 exercises. For each exercise, always use this full format:
-
-@@exercise@@  
-@name: [Name of the exercise in the user's language]  
-@reps: [e.g., "Do 12 repetitions" or similar sentence]  
-@sets: [e.g., "3 sets"]  
-@rest_sets: [e.g., "Rest 30 seconds between sets"]  
-@rest_after: [e.g., "Rest 60 seconds before the next exercise"]  
-@description: [Short, beginner-friendly description in the user's language]
-
-@@exercise@@  
-...
-
-At the end, include this only if needed:
-
-##MISSING_FIELDS##  
-[Optional. List of any missing user data and explanation why it matters, in the user's language.]
-
----
-
-IMPORTANT RULES:  
-- DO NOT translate or remove any of these symbols: %%intro, !!motivation_start!!, @@exercise@@, @name:, etc.  
-- These symbols are used for machine parsing. They must appear exactly as shown.  
-- DO NOT use bullet points (•), dashes, extra spacing, or alternative section titles.  
-- The user's language must be used for all visible text.  
-- Symbols and structure must remain in English.  
-- DO NOT return any summaries, explanations, or formatting outside the structured block.  
-- This is not an example. This is the exact format that MUST be followed.
-`,
-
-  // 11. Baigiamoji instrukcija
+ // 13. Baigiamoji instrukcija
   `Make sure that every day has one starting motivational message and one ending motivational message.`,
   `For every exercise, include short explanation that is friendly for beginners.`,
   `Only use the user’s preferred language for all content.`,
 
-  // 12. Bus pridėti duomenys apie vartotoją
+  // 14. Vartotojo duomenų sekcija
   `Here are the field descriptions and their values:`
 ];
 
