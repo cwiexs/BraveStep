@@ -1,47 +1,107 @@
-function parseWorkoutText(text) {
-  const introMatch = text.match(/%%intro\s+([\s\S]*?)\n(?=##DAY|@@exercise@@|%%|##MISSING_FIELDS##)/);
-  const hydrationMatch = text.match(/%%hydration%%\s+"?([^"]+)"?/);
-  const outdoorMatch = text.match(/%%outdoor%%\s+"?([^"]+)"?/);
-  const inspirationMatch = text.match(/%%inspiration%%\s+"?([^"]+)"?/);
-
-  const motivationMatch = text.match(/!!motivation_start!!\s+"([^"]+)"\s+!!motivation_end!!\s+"([^"]+)"/);
-  const missingFieldsMatch = text.match(/##MISSING_FIELDS##\s+([\s\S]*)/);
-
-  const daySections = text.split(/##DAY \d+##/g).filter(s => s.trim());
-
-  const workouts = daySections.map(section => {
-    const exercises = [...section.matchAll(/@@exercise@@\s+([\s\S]*?)(?=(?:@@exercise@@|%%|##MISSING_FIELDS##|$))/g)].map(match => {
-      const ex = match[1];
-      const name = ex.match(/@name: (.*)/)?.[1]?.trim();
-      const reps = ex.match(/@reps: (.*)/)?.[1]?.trim();
-      const sets = ex.match(/@sets: (.*)/)?.[1]?.trim();
-      const rest_sets = ex.match(/@rest_sets: (.*)/)?.[1]?.trim();
-      const rest_after = ex.match(/@rest_after: (.*)/)?.[1]?.trim();
-      const description = ex.match(/@description: ([\s\S]*)/)?.[1]?.trim();
-
-      return {
-        name,
-        reps,
-        sets,
-        rest_sets,
-        rest_after,
-        description
-      };
-    });
-
-    return { exercises };
-  });
-
-  return {
-    intro: introMatch ? introMatch[1].trim() : null,
-    hydration: hydrationMatch ? hydrationMatch[1].trim() : null,
-    outdoor: outdoorMatch ? outdoorMatch[1].trim() : null,
-    inspiration: inspirationMatch ? inspirationMatch[1].trim() : null,
-    motivation_start: motivationMatch ? motivationMatch[1] : null,
-    motivation_end: motivationMatch ? motivationMatch[2] : null,
-    workouts,
-    missingFields: missingFieldsMatch ? missingFieldsMatch[1].trim() : null,
+export function parseWorkoutText(planText) {
+  const lines = planText.split("\n");
+  const result = {
+    introduction: "",
+    days: [],
+    missingFields: "",
+    hydration: "",
+    outdoor: "",
+    inspiration: ""
   };
-}
 
-module.exports = parseWorkoutText;
+  let currentDay = null;
+  let currentExercise = null;
+  let section = "intro";
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith("%%intro")) {
+      section = "intro";
+      continue;
+    }
+    if (trimmed.startsWith("##DAY ")) {
+      const dayNumber = trimmed.match(/##DAY (\d+)##/);
+      if (dayNumber) {
+        currentDay = {
+          day: parseInt(dayNumber[1]),
+          motivationStart: "",
+          motivationEnd: "",
+          exercises: []
+        };
+        result.days.push(currentDay);
+        section = "day";
+      }
+      continue;
+    }
+    if (trimmed.startsWith("!!motivation_start!!")) {
+      section = "motivationStart";
+      continue;
+    }
+    if (trimmed.startsWith("!!motivation_end!!")) {
+      section = "motivationEnd";
+      continue;
+    }
+    if (trimmed.startsWith("@@exercise@@")) {
+      currentExercise = {
+        name: "",
+        reps: "",
+        sets: "",
+        restBetweenSets: "",
+        restAfterExercise: "",
+        description: ""
+      };
+      currentDay.exercises.push(currentExercise);
+      section = "exercise";
+      continue;
+    }
+    if (trimmed.startsWith("##MISSING_FIELDS##")) {
+      section = "missingFields";
+      continue;
+    }
+    if (trimmed.startsWith("%%hydration")) {
+      section = "hydration";
+      continue;
+    }
+    if (trimmed.startsWith("%%outdoor")) {
+      section = "outdoor";
+      continue;
+    }
+    if (trimmed.startsWith("%%inspiration")) {
+      section = "inspiration";
+      continue;
+    }
+
+    if (section === "intro") {
+      result.introduction += trimmed + "\n";
+    } else if (section === "hydration") {
+      result.hydration += trimmed + "\n";
+    } else if (section === "outdoor") {
+      result.outdoor += trimmed + "\n";
+    } else if (section === "inspiration") {
+      result.inspiration += trimmed + "\n";
+    } else if (section === "motivationStart") {
+      currentDay.motivationStart += trimmed + " ";
+    } else if (section === "motivationEnd") {
+      currentDay.motivationEnd += trimmed + " ";
+    } else if (section === "exercise") {
+      if (trimmed.startsWith("@name:")) {
+        currentExercise.name = trimmed.replace("@name:", "").trim();
+      } else if (trimmed.startsWith("@reps:")) {
+        currentExercise.reps = trimmed.replace("@reps:", "").trim();
+      } else if (trimmed.startsWith("@sets:")) {
+        currentExercise.sets = trimmed.replace("@sets:", "").trim();
+      } else if (trimmed.startsWith("@rest_sets:")) {
+        currentExercise.restBetweenSets = trimmed.replace("@rest_sets:", "").trim();
+      } else if (trimmed.startsWith("@rest_after:")) {
+        currentExercise.restAfterExercise = trimmed.replace("@rest_after:", "").trim();
+      } else if (trimmed.startsWith("@description:")) {
+        currentExercise.description = trimmed.replace("@description:", "").trim();
+      }
+    } else if (section === "missingFields") {
+      result.missingFields += trimmed + "\n";
+    }
+  }
+
+  return result;
+}
