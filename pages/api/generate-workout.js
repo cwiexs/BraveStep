@@ -25,22 +25,14 @@ export default async function handler(req, res) {
   const {
   password,
   email,
-  id,
-  created_at,
-  updated_at,
-  preferredLanguage,
   ...userData
 } = user;
 
-// Konvertuoja weightKg į skaičių, jei buvo tekstas
+// 4. Konvertuoja weightKg į skaičių, jei buvo tekstas
 if (userData.weightKg !== undefined && userData.weightKg !== null) {
   userData.weightKg = Number(String(userData.weightKg).replace(",", "."));
 }
 
-  // 4. Kalbos nustatymas
-  let languageString = "English";
-  if (preferredLanguage?.toLowerCase() === "lt") languageString = "Lithuanian";
-  if (preferredLanguage?.toLowerCase() === "ru") languageString = "Russian";
 
   // 5. Visų laukų aprašymai
   const descriptions = {
@@ -66,8 +58,7 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
     bedTime: "Usual bedtime – for optimal recovery and workout timing.",
     sleepHours: "Average sleep duration – adjust training volume accordingly.",
     familyStatus: "Information about family status, if relevant for schedule or motivation.",
-    mealsPerDay: "How many meals per day – only use for nutrition context.",
-    eatsOutOften: "If the client eats out often – may affect diet planning.",
+    mealsPerDay: "Number of main meals per day – use this value when tailoring nutrition plans or calculating daily energy needs. Can also help adjust training intensity or meal timing strategies in fitness programs.",
     favoriteActivities: "Preferred sports or activities – increase motivation by including them if possible.",
     gymMember: "Is the client a gym member? Only assign gym-based workouts if true.",
     physicalActivityLevel: "General physical activity – adapt total training load.",
@@ -83,7 +74,6 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
     dislikedFoods: "Foods the client dislikes – for nutrition context.",
     cuisinePreference: "Preferred cuisines – for nutrition context.",
     supplements: "Current supplements taken by the client.",
-    eatingHabits: "Any special eating habits (snacking, intermittent fasting, etc.).",
     coffeePerDay: "Average daily coffee intake.",
     teaPerDay: "Average daily tea intake.",
     sugarPerDay: "Average daily sugar intake.",
@@ -95,8 +85,8 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
     planUpdateFrequency: "How often the plan should be updated (weekly, monthly, etc.).",
     hasInsurance: "Ignore for training purposes.",
     smokes: "Does the client smoke? Consider when setting cardio intensity.",
-    alcohol: "Alcohol consumption – for general health context.",
-    stressLevel: "Current stress level – adjust training volume if high.",
+    alcohol: "Alcohol consumption – for general health assessment. Follow standard classification based on alcohol units per week: Light – up to 4 alcohol units per week (e.g., 1–2 glasses of wine or 1–2 beers); Moderate – between 5 and 14 units per week (e.g., 2–6 drinks, such as wine, beer, or spirits); Heavy – more than 14 units per week or high-volume drinking in a short time. Use UK Chief Medical Officers' guidelines as reference.",
+    stressLevel: "Current stress level (1 = very low, 10 = extremely high). The higher the number, the more important it is to reduce training volume and prioritize recovery. If this field is empty, recommend the user to fill it in, as it significantly affects workout intensity and mental balance.",
     medications: "List of medications – watch out for drug-exercise interactions.",
     smartWatch: "Ignore unless relevant for tracking.",
     goal: "Main fitness goal – the workout plan must focus on this.",
@@ -111,14 +101,23 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
   // 6. Promptas AI su duomenų validacija ir motyvacija kiekvienai dienai
 const promptParts = [
   // 1. Kas esi
-  `You are a professional fitness coach and data safety validator.`,
-  `Your goal is to generate a realistic, personalized, and safe workout plan for the user.`,
+  "You are a professional fitness coach, data safety validator, and empathetic psychological guide. Your mission is to generate realistic, personalized, and safe workout plans, while also providing emotionally supportive and psychologically aware motivational messages adapted to the user's mental and emotional needs.",
 
   // 2. Kalbos nustatymas ir vertimas
-  `IMPORTANT: All field values (especially equipmentAvailable, goal, bodyType, etc.) may be provided in different natural languages (e.g., Lithuanian, Polish, French, German, etc.).`,
+  `IMPORTANT: All field values may be provided in different natural languages (e.g., Lithuanian, Polish, French, German, etc.).`,
   `Your first task is to detect and internally translate ALL field values into English before processing them.`,
   `NEVER reject or misinterpret data due to unfamiliar language.`,
-  `DO NOT generate responses in English if the user has provided a preferred language – use that language exclusively.`,
+  `DO NOT generate responses in English if the user has provided a preferredLanguage – use that language exclusively.`,
+  `Ensure that the visible content contains only the user's preferred language. Do not mix words or sentences from different languages.`,
+  // 2.1 Kalbos aiškumas ir terminų vartojimas
+  `When generating content in the user's preferred language, you MUST use natural and commonly used vocabulary, as found in local fitness guides, government health portals, or official sport websites.`,
+  `DO NOT translate fitness terms directly from English word-by-word.`,
+  `Examples:
+  - Instead of "komplektai", use "serijos" or "kartus".
+  - Instead of "darykite apskritimus", say "Sukite pečius ratu" or "Atlikite 10 ratų į vieną pusę, tada į kitą."`,
+  `Always try to match the style and terminology used in real fitness programs written by native speakers.`,
+  `You may reference stylistic examples from sportuok.lt, sveikata.lt, or other native language fitness sites.`,
+  `If unsure, prefer simple, natural and human-sounding expressions over literal translations.`,
 
   // 3. Duomenų analizė
   `Carefully analyze all the provided user information for logic, realism, safety, and appropriateness.`,
@@ -138,7 +137,6 @@ const promptParts = [
   `Use this format exactly: %%intro\n[Explanation in user's language why the plan was not created]\n##MISSING_FIELDS##\n[List any missing or unsafe fields in user's language]`,
   `Make sure this explanation is human-readable and supportive. It must never be empty or technical.`,
   `Even if no plan is created, the user must understand why and what they can do next.`,
-
 
   // 5.1. Adaptacija ribinėms, bet realioms vertėms
   `HOWEVER, if a value is real but extreme (e.g., stress level 10/10, very high weight, poor sleep), DO NOT reject the request.`,
@@ -162,7 +160,6 @@ const promptParts = [
   `Never judge. Always reassure.`,
   `If stress is high, explicitly include at least one motivational message that addresses emotional balance, overthinking, or mental tension — even in subtle ways.`,
 
-
   // 6. Nepilnamečiams
   `If the user appears to be underage, DO NOT reject them.`,
   `Instead, generate an age-appropriate, fun, and gentle workout.`,
@@ -182,7 +179,7 @@ const promptParts = [
   // 9. Dirbti su ribotu inventoriumi
   `If the user has minimal equipment (e.g., only a mat), ALWAYS provide a full workout using bodyweight exercises and floor exercises.`,
   `Focus on what CAN be done, not what is missing.`,
- 
+
   // 10. DĖL BENDRINIŲ AR NEAIŠKIŲ PRATIMŲ
   `NEVER use general labels like "Dynamic warm-up" without breaking them down into specific exercises.`,
   `For example, replace "Dynamic warm-up" with a list like: "Neck circles, arm swings, jumping jacks, leg swings, and high knees – 30 seconds each."`,
@@ -205,62 +202,61 @@ const promptParts = [
   `Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.`,
   `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into 1–5 named stretches, each with its own title and description.`,
 
-// STRUCTURED FORMAT WITH SYMBOLS  
-`STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
-You MUST return the workout plan in a clearly structured and machine-readable format using the symbols below. DO NOT invent new symbols or change their spelling.
+  // 12. STRUCTURED FORMAT WITH SYMBOLS
+  `STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
+
+You MUST return the workout plan in a clearly structured and machine-readable format.
+
+Use the following symbols ONLY to separate sections. Do NOT add other section names, bullets, or formatting.
+
+Each symbol must be followed by text in the user's preferred language.
 
 ---
 
 %%intro  
 [Short introductory paragraph in the user's preferred language]
 
-##DAY 1##
+Generate ONLY ONE full workout day based on the user's goals or experience level.  
+The workout must follow the exact structure below and start with this format:
+
+##DAY 1##  
 
 !!motivation_start!!  
 [Motivational message for beginning the workout – localized]  
 !!motivation_end!!  
 [Motivational message for ending the workout – localized]
 
-Include 3 to 10 exercises. For each exercise, always use this format:
+Include 3 to 15 exercises. For each exercise, always use this full format:
 
 @@exercise@@  
-@name: [Exercise name in the user's language]  
-@reps: [Number of repetitions, e.g., "Do 12 reps"]  
-@sets: [Number of sets]  
-@rest_sets: [Rest between sets]  
-@rest_after: [Rest after exercise]  
+@name: [Name of the exercise in the user's language]  
+@reps: [e.g., "Do 12 repetitions" or similar sentence]  
+@sets: [e.g., "3 sets"]  
+@rest_sets: [e.g., "Rest 30 seconds between sets"]  
+@rest_after: [e.g., "Rest 60 seconds before the next exercise"]  
 @description: [Short, beginner-friendly description in the user's language]
 
 @@exercise@@  
+...
 
-%%hydration%%  
-Hydration tips adapted to user weight (or average) and workout intensity. Write in the user's preferred language. Example:
-"Prieš treniruotę išgerk stiklinę vandens – tai padės kūnui geriau dirbti."
-"Sportuodamas atsigerk mažais gurkšneliais kas 10–15 minučių."
-"Po treniruotės atsigauk – išgerk stiklinę ar dvi vandens."
-
-%%outdoor%%  
-Encourage outdoor activity if workoutLocation allows it. Example:
-"Jeigu šiandien gražus oras, kodėl nepabandžius treniruotės lauke?"
-
-%%inspiration%%  
-Light, optional inspiration to make the workout enjoyable. Example:
-"Sometimes a simple walk to the park before or after exercise changes your whole day."
+At the end, include this only if needed:
 
 ##MISSING_FIELDS##  
-[List any missing user data and why it matters, in the user's language.]
+[Optional. List of any missing user data and explanation why it matters, in the user's language.]
 
 ---
 
-RULES:
-- Use exactly these symbols: %%intro, ##DAY 1##, !!motivation_start!!, !!motivation_end!!, @@exercise@@, @name:, @reps:, @sets:, @rest_sets:, @rest_after:, @description:, %%hydration%%, %%outdoor%%, %%inspiration%%, ##MISSING_FIELDS##.
-- Do NOT add bullets or other headings.
-- All visible text must be in the user's preferred language.
-- Return ONLY this structured block.`,
+IMPORTANT RULES:  
+- DO NOT translate or remove any of these symbols: %%intro, ##DAY 1##, !!motivation_start!!, @@exercise@@, @name:, etc.  
+- These symbols are used for machine parsing. They must appear exactly as shown.  
+- DO NOT use bullet points (•), dashes, extra spacing, or alternative section titles.  
+- The user's language must be used for all visible text.  
+- Symbols and structure must remain in English.  
+- DO NOT return any summaries, explanations, or formatting outside the structured block.  
+- This is not an example. This is the exact format that MUST be followed.`,
 
-
- // 13. Baigiamoji instrukcija
+  // 13. Baigiamoji instrukcija
   `Make sure that every day has one starting motivational message and one ending motivational message.`,
   `For every exercise, include short explanation that is friendly for beginners.`,
   `Only use the user’s preferred language for all content.`,
@@ -268,7 +264,6 @@ RULES:
   // 14. Vartotojo duomenų sekcija
   `Here are the field descriptions and their values:`
 ];
-
 
 
 
@@ -291,7 +286,6 @@ promptParts.push(`today: "${today}" [The current date. Use this together with da
   promptParts.push(
     `IMPORTANT INSTRUCTIONS: 
 - NEVER generate a workout plan if there are any doubts about the safety, realism, or appropriateness of the input data. 
-- ALWAYS give a clear, structured response in ${languageString}. 
 - If you generate a workout plan: For EVERY DAY, start with a unique motivational message to encourage starting the workout, and finish with a unique motivational message for the end of the workout. For EVERY EXERCISE, add a short, beginner-friendly description. If any exercise has a complicated name, explain it briefly. The weekly structure must match the client's schedule, available equipment, and goal. If any data is missing, make your best professional assumptions.`
   );
 
