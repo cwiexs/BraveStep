@@ -11,6 +11,14 @@ export default function Workouts() {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // 👇 funkcija, kuri nusprendžia ar poilsis turi būti rodomas
+  function shouldShowRest(text) {
+    if (!text) return false;
+    const cleaned = text.trim().toLowerCase();
+    const noRestVariants = ["jokio poilsio", "no rest", "nowrest"];
+    return !noRestVariants.includes(cleaned);
+  }
+
   useEffect(() => {
     if (session) {
       fetch("/api/last-workout")
@@ -86,8 +94,12 @@ export default function Workouts() {
                             <div>
                               <p className="font-semibold text-gray-800">{ex.name ? ex.name : `Pratimas ${i + 1}`}</p>
                               <p className="text-sm text-gray-700">{ex.reps}, {ex.sets}</p>
-                              <p className="text-sm text-gray-600">{ex.restBetweenSets}</p>
-                              <p className="text-sm text-gray-600">{ex.restAfterExercise}</p>
+                              {shouldShowRest(ex.restBetweenSets) && (
+                                <p className="text-sm text-gray-600">{ex.restBetweenSets}</p>
+                              )}
+                              {shouldShowRest(ex.restAfterExercise) && (
+                                <p className="text-sm text-gray-600">{ex.restAfterExercise}</p>
+                              )}
                             </div>
                             <div className="relative group cursor-pointer">
                               <Info className="w-5 h-5 text-blue-500 mt-1" />
