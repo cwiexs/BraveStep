@@ -208,55 +208,57 @@ const promptParts = [
 // STRUCTURED FORMAT WITH SYMBOLS  
 `STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
-You MUST return the workout plan in a clearly structured and machine-readable format.
-
-Use the following symbols ONLY to separate sections. Do NOT add other section names, bullets, or formatting.
-
-Each symbol must be followed by text in the user's preferred language.
+You MUST return the workout plan in a clearly structured and machine-readable format using the symbols below. DO NOT invent new symbols or change their spelling.
 
 ---
 
 %%intro  
 [Short introductory paragraph in the user's preferred language]
 
-Generate ONLY ONE full workout day based on the user's goals or experience level.  
-The workout must follow the exact structure below and start with this format:
-
-##DAY 1##  
+##DAY 1##
 
 !!motivation_start!!  
 [Motivational message for beginning the workout – localized]  
 !!motivation_end!!  
 [Motivational message for ending the workout – localized]
 
-Include 3 to 10 exercises. For each exercise, always use this full format:
+Include 3 to 10 exercises. For each exercise, always use this format:
 
 @@exercise@@  
-@name: [Name of the exercise in the user's language]  
-@reps: [e.g., "Do 12 repetitions" or similar sentence]  
-@sets: [e.g., "3 sets"]  
-@rest_sets: [e.g., "Rest 30 seconds between sets"]  
-@rest_after: [e.g., "Rest 60 seconds before the next exercise"]  
+@name: [Exercise name in the user's language]  
+@reps: [Number of repetitions, e.g., "Do 12 reps"]  
+@sets: [Number of sets]  
+@rest_sets: [Rest between sets]  
+@rest_after: [Rest after exercise]  
 @description: [Short, beginner-friendly description in the user's language]
 
 @@exercise@@  
-...
 
-At the end, include this only if needed:
+%%hydration%%  
+Hydration tips adapted to user weight (or average) and workout intensity. Write in the user's preferred language. Example:
+"Prieš treniruotę išgerk stiklinę vandens – tai padės kūnui geriau dirbti."
+"Sportuodamas atsigerk mažais gurkšneliais kas 10–15 minučių."
+"Po treniruotės atsigauk – išgerk stiklinę ar dvi vandens."
+
+%%outdoor%%  
+Encourage outdoor activity if workoutLocation allows it. Example:
+"Jeigu šiandien gražus oras, kodėl nepabandžius treniruotės lauke?"
+
+%%inspiration%%  
+Light, optional inspiration to make the workout enjoyable. Example:
+"Sometimes a simple walk to the park before or after exercise changes your whole day."
 
 ##MISSING_FIELDS##  
-[Optional. List of any missing user data and explanation why it matters, in the user's language.]
+[List any missing user data and why it matters, in the user's language.]
 
 ---
 
-IMPORTANT RULES:  
-- DO NOT translate or remove any of these symbols: %%intro, ##DAY 1##, !!motivation_start!!, @@exercise@@, @name:, etc.  
-- These symbols are used for machine parsing. They must appear exactly as shown.  
-- DO NOT use bullet points (•), dashes, extra spacing, or alternative section titles.  
-- The user's language must be used for all visible text.  
-- Symbols and structure must remain in English.  
-- DO NOT return any summaries, explanations, or formatting outside the structured block.  
-- This is not an example. This is the exact format that MUST be followed.`,
+RULES:
+- Use exactly these symbols: %%intro, ##DAY 1##, !!motivation_start!!, !!motivation_end!!, @@exercise@@, @name:, @reps:, @sets:, @rest_sets:, @rest_after:, @description:, %%hydration%%, %%outdoor%%, %%inspiration%%, ##MISSING_FIELDS##.
+- Do NOT add bullets or other headings.
+- All visible text must be in the user's preferred language.
+- Return ONLY this structured block.`,
+
 
  // 13. Baigiamoji instrukcija
   `Make sure that every day has one starting motivational message and one ending motivational message.`,
