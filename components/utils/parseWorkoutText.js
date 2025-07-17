@@ -3,10 +3,7 @@ export function parseWorkoutText(planText) {
   const result = {
     introduction: "",
     days: [],
-    missingFields: "",
-    hydration: "",
-    outdoor: "",
-    inspiration: ""
+    missingFields: ""
   };
 
   let currentDay = null;
@@ -59,37 +56,21 @@ export function parseWorkoutText(planText) {
       section = "missingFields";
       continue;
     }
-    if (trimmed.startsWith("%%hydration")) {
-      section = "hydration";
-      continue;
-    }
-    if (trimmed.startsWith("%%outdoor")) {
-      section = "outdoor";
-      continue;
-    }
-    if (trimmed.startsWith("%%inspiration")) {
-      section = "inspiration";
-      continue;
-    }
 
     if (section === "intro") {
       result.introduction += trimmed + "\n";
-    } else if (section === "hydration") {
-      result.hydration += trimmed + "\n";
-    } else if (section === "outdoor") {
-      result.outdoor += trimmed + "\n";
-    } else if (section === "inspiration") {
-      result.inspiration += trimmed + "\n";
     } else if (section === "motivationStart") {
       currentDay.motivationStart += trimmed + " ";
     } else if (section === "motivationEnd") {
       currentDay.motivationEnd += trimmed + " ";
     } else if (section === "exercise") {
-      if (trimmed.startsWith("@name:")) {
-        currentExercise.name = trimmed.replace("@name:", "").trim();
-      } else if (trimmed.startsWith("@reps:")) {
+      if (trimmed.startsWith("@reps:")) {
         currentExercise.reps = trimmed.replace("@reps:", "").trim();
-      } else if (trimmed.startsWith("@sets:")) {
+      }
+      else if (trimmed.startsWith("@name:")) {
+        currentExercise.name = trimmed.replace("@name:", "").trim();
+      }
+       else if (trimmed.startsWith("@sets:")) {
         currentExercise.sets = trimmed.replace("@sets:", "").trim();
       } else if (trimmed.startsWith("@rest_sets:")) {
         currentExercise.restBetweenSets = trimmed.replace("@rest_sets:", "").trim();
