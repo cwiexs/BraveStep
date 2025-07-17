@@ -1,129 +1,47 @@
 function parseWorkoutText(text) {
-  const lines = text.split('\n');
-  const result = {
-    introduction: "",
-    days: [],
-    hydration: "",
-    outdoorEncouragement: "",
-    inspirationSeeds: "",
-    missingFields: ""
-  };
+  const introMatch = text.match(/%%intro\s+([\s\S]*?)\n(?=##DAY|@@exercise@@|%%|##MISSING_FIELDS##)/);
+  const hydrationMatch = text.match(/%%hydration%%\s+"?([^"]+)"?/);
+  const outdoorMatch = text.match(/%%outdoor%%\s+"?([^"]+)"?/);
+  const inspirationMatch = text.match(/%%inspiration%%\s+"?([^"]+)"?/);
 
-  let currentDay = null;
-  let currentExercise = null;
-  let section = null;
+  const motivationMatch = text.match(/!!motivation_start!!\s+"([^"]+)"\s+!!motivation_end!!\s+"([^"]+)"/);
+  const missingFieldsMatch = text.match(/##MISSING_FIELDS##\s+([\s\S]*)/);
 
-  for (let line of lines) {
-    const trimmed = line.trim();
+  const daySections = text.split(/##DAY \d+##/g).filter(s => s.trim());
 
-    if (!trimmed) continue;
+  const workouts = daySections.map(section => {
+    const exercises = [...section.matchAll(/@@exercise@@\s+([\s\S]*?)(?=(?:@@exercise@@|%%|##MISSING_FIELDS##|$))/g)].map(match => {
+      const ex = match[1];
+      const name = ex.match(/@name: (.*)/)?.[1]?.trim();
+      const reps = ex.match(/@reps: (.*)/)?.[1]?.trim();
+      const sets = ex.match(/@sets: (.*)/)?.[1]?.trim();
+      const rest_sets = ex.match(/@rest_sets: (.*)/)?.[1]?.trim();
+      const rest_after = ex.match(/@rest_after: (.*)/)?.[1]?.trim();
+      const description = ex.match(/@description: ([\s\S]*)/)?.[1]?.trim();
 
-    if (trimmed.startsWith("%%intro")) {
-      section = "intro";
-      continue;
-    }
-
-    if (trimmed.startsWith("##DAY")) {
-      currentDay = {
-        dayTitle: trimmed,
-        motivationStart: "",
-        motivationEnd: "",
-        exercises: []
+      return {
+        name,
+        reps,
+        sets,
+        rest_sets,
+        rest_after,
+        description
       };
-      result.days.push(currentDay);
-      section = "day";
-      continue;
-    }
+    });
 
-    if (trimmed.startsWith("!!motivation_start!!")) {
-      section = "motivationStart";
-      continue;
-    }
+    return { exercises };
+  });
 
-    if (trimmed.startsWith("!!motivation_end!!")) {
-      section = "motivationEnd";
-      continue;
-    }
-
-    if (trimmed.startsWith("@@exercise@@")) {
-      if (currentDay) {
-        currentExercise = {
-          name: "",
-          reps: "",
-          sets: "",
-          rest_sets: "",
-          rest_after: "",
-          description: ""
-        };
-        currentDay.exercises.push(currentExercise);
-      }
-      section = "exercise";
-      continue;
-    }
-
-    if (trimmed.startsWith("%%hydration%%")) {
-      section = "hydration";
-      continue;
-    }
-
-    if (trimmed.startsWith("%%outdoor%%")) {
-      section = "outdoor";
-      continue;
-    }
-
-    if (trimmed.startsWith("%%inspiration%%")) {
-      section = "inspiration";
-      continue;
-    }
-
-    if (trimmed.startsWith("##MISSING_FIELDS##")) {
-      section = "missing";
-      continue;
-    }
-
-    switch (section) {
-      case "intro":
-        result.introduction += trimmed + "\n";
-        break;
-      case "motivationStart":
-        if (currentDay) currentDay.motivationStart += trimmed + "\n";
-        break;
-      case "motivationEnd":
-        if (currentDay) currentDay.motivationEnd += trimmed + "\n";
-        break;
-      case "exercise":
-        if (currentExercise) {
-          if (trimmed.startsWith("@name:")) {
-            currentExercise.name = trimmed.replace("@name:", "").trim();
-          } else if (trimmed.startsWith("@reps:")) {
-            currentExercise.reps = trimmed.replace("@reps:", "").trim();
-          } else if (trimmed.startsWith("@sets:")) {
-            currentExercise.sets = trimmed.replace("@sets:", "").trim();
-          } else if (trimmed.startsWith("@rest_sets:")) {
-            currentExercise.rest_sets = trimmed.replace("@rest_sets:", "").trim();
-          } else if (trimmed.startsWith("@rest_after:")) {
-            currentExercise.rest_after = trimmed.replace("@rest_after:", "").trim();
-          } else if (trimmed.startsWith("@description:")) {
-            currentExercise.description = trimmed.replace("@description:", "").trim();
-          }
-        }
-        break;
-      case "hydration":
-        result.hydration += trimmed + "\n";
-        break;
-      case "outdoor":
-        result.outdoorEncouragement += trimmed + "\n";
-        break;
-      case "inspiration":
-        result.inspirationSeeds += trimmed + "\n";
-        break;
-      case "missing":
-        result.missingFields += trimmed + "\n";
-        break;
-    }
-  }
-
-  return result;
+  return {
+    intro: introMatch ? introMatch[1].trim() : null,
+    hydration: hydrationMatch ? hydrationMatch[1].trim() : null,
+    outdoor: outdoorMatch ? outdoorMatch[1].trim() : null,
+    inspiration: inspirationMatch ? inspirationMatch[1].trim() : null,
+    motivation_start: motivationMatch ? motivationMatch[1] : null,
+    motivation_end: motivationMatch ? motivationMatch[2] : null,
+    workouts,
+    missingFields: missingFieldsMatch ? missingFieldsMatch[1].trim() : null,
+  };
 }
 
 module.exports = parseWorkoutText;
