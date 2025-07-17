@@ -205,7 +205,58 @@ const promptParts = [
   `Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.`,
   `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into 1–5 named stretches, each with its own title and description.`,
 
+// STRUCTURED FORMAT WITH SYMBOLS  
+`STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
+You MUST return the workout plan in a clearly structured and machine-readable format.
+
+Use the following symbols ONLY to separate sections. Do NOT add other section names, bullets, or formatting.
+
+Each symbol must be followed by text in the user's preferred language.
+
+---
+
+%%intro  
+[Short introductory paragraph in the user's preferred language]
+
+Generate ONLY ONE full workout day based on the user's goals or experience level.  
+The workout must follow the exact structure below and start with this format:
+
+##DAY 1##  
+
+!!motivation_start!!  
+[Motivational message for beginning the workout – localized]  
+!!motivation_end!!  
+[Motivational message for ending the workout – localized]
+
+Include 3 to 10 exercises. For each exercise, always use this full format:
+
+@@exercise@@  
+@name: [Name of the exercise in the user's language]  
+@reps: [e.g., "Do 12 repetitions" or similar sentence]  
+@sets: [e.g., "3 sets"]  
+@rest_sets: [e.g., "Rest 30 seconds between sets"]  
+@rest_after: [e.g., "Rest 60 seconds before the next exercise"]  
+@description: [Short, beginner-friendly description in the user's language]
+
+@@exercise@@  
+...
+
+At the end, include this only if needed:
+
+##MISSING_FIELDS##  
+[Optional. List of any missing user data and explanation why it matters, in the user's language.]
+
+---
+
+IMPORTANT RULES:  
+- DO NOT translate or remove any of these symbols: %%intro, ##DAY 1##, !!motivation_start!!, @@exercise@@, @name:, etc.  
+- These symbols are used for machine parsing. They must appear exactly as shown.  
+- DO NOT use bullet points (•), dashes, extra spacing, or alternative section titles.  
+- The user's language must be used for all visible text.  
+- Symbols and structure must remain in English.  
+- DO NOT return any summaries, explanations, or formatting outside the structured block.  
+- This is not an example. This is the exact format that MUST be followed.`,
 
  // 13. Baigiamoji instrukcija
   `Make sure that every day has one starting motivational message and one ending motivational message.`,
