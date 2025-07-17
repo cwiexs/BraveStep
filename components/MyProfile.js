@@ -786,6 +786,20 @@ const finalData = {
   if (sec.key === "nutrition" && f.name === "mealsPerDay") {
     return (
       <React.Fragment key={f.name}>
+        {/* Mygtukas po mealsPerDay */}
+        <div className="mb-4">
+          <label className="block mb-1 font-medium text-blue-900">
+            {t("form.eatingHabitsTestLabel")}
+            <InfoTooltip infoKey="info.eatingHabitsTest" />
+          </label>
+          <button
+            type="button"
+            onClick={() => setEatingHabitsModalOpen(true)}
+            className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
+          >
+            {t("form.takeEatingHabitsTest")}
+          </button>
+        </div>
         {/* mealsPerDay laukelis */}
         <div className="mb-4">
           <label className="block mb-1 font-medium text-blue-900">
@@ -801,20 +815,7 @@ const finalData = {
             placeholder={t(f.label)}
           />
         </div>
-        {/* Mygtukas po mealsPerDay */}
-        <div className="mb-4">
-          <label className="block mb-1 font-medium text-blue-900">
-            {t("form.eatingHabitsTestLabel")}
-            <InfoTooltip infoKey="info.eatingHabitsTest" />
-          </label>
-          <button
-            type="button"
-            onClick={() => setEatingHabitsModalOpen(true)}
-            className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
-          >
-            {t("form.takeEatingHabitsTest")}
-          </button>
-        </div>
+        
       </React.Fragment>
     );
   }
