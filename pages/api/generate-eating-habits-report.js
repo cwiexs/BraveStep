@@ -23,16 +23,25 @@ export default async function handler(req, res) {
   const { answers, preferredLanguage } = req.body;
 
   // Promptas AI
-  const prompt = `
-You are a nutrition and eating habits expert. Here are a client's Eating Habits Test answers (scale 1-5). Analyze and generate a structured report:
+const prompt = `
+You are a nutrition expert and eating behavior psychologist. You understand both nutritional science and emotional patterns related to food.
+
+Client has completed the Eating Habits Test (scale 1–5). Generate a structured report that will be used later for creating a personalized nutrition plan. Focus on clarity and usefulness — this report is for AI processing only, not for human display.
+
+Keep structure:
 - General summary
-- Main strengths
+- Strengths
 - Weaknesses / risks
-- Recommendations for improvement
-Use the client's preferred language: ${preferredLanguage || "en"}.
+- Suggestions for improvement
+
+Use ${preferredLanguage || "en"} language.
+
+Be efficient. Avoid fluff or repetition. Keep tone informative, emotionally aware, and future-useful.
+
 Answers:
 ${Object.entries(answers).map(([key, val]) => `${key}: ${val}`).join('\n')}
 `;
+
 
   let aiResponse;
   try {
