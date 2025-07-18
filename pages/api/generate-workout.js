@@ -265,20 +265,27 @@ IMPORTANT RULES:
   `Here are the field descriptions and their values:`
 ];
 
-// 15. Papildomos rekomendacijos (vanduo ir buvimas lauke)
 promptParts.push(
-  `For every workout, you MUST include the following extra recommendations using clear symbols:
+  `15. EXTRA RECOMMENDATIONS (hydration + fresh air)
+
+For every workout day, you MUST generate 2 unique lifestyle-related recommendations using the following exact format:
 
 @@water@@  
-[Personalized hydration advice, based on user weight, height, activity level, and workout intensity. Always written in the user's language. E.g., "Don't forget to drink about 2.5 liters of water today – especially before and after the workout."]
+[Personalized hydration suggestion in the user's preferred language, based on their weight, height, workout intensity and weather/climate if possible. Never copy a fixed number like \"2.5 liters\". Instead, calculate approximately how much water they might need based on their profile. Vary the wording every time. Make it friendly and motivating.]
 
 @@outdoor@@  
-[If applicable: Suggest spending time outdoors, based on user's job type, activity level, or city. Example: "Try to take a 20-minute walk outside after this session – fresh air helps recovery and boosts mood."]
+[If the user’s job or lifestyle is mostly indoors, and city or country is provided, use it to imagine the weather (sunny, cloudy, rainy) and suggest something outdoors – a walk, jog, stretch in the park, even standing on a balcony. If the weather is bad, acknowledge it and suggest something alternative (e.g., stretching near a window). The message should always sound new and not copied. Add a motivational tone.]
 
-IMPORTANT:
-- These lines MUST appear only once per day, either at the start, in the middle, or at the end of the workout text.
-- Do NOT repeat them multiple times.
-- Use @@water@@ and @@outdoor@@ exactly as written – these are machine-parsable symbols.
+Examples:
+- “💧 Keep your body fresh – based on your profile, around 2.2 liters of water would support you well today. Don’t wait until you feel thirsty!”
+- “🌤️ It's probably sunny in your area – take a 15-minute walk after the workout and feel the sun on your skin. If it’s cloudy, fresh air still helps you reset your mind.”
+
+IMPORTANT RULES:
+- NEVER repeat the same hydration or outdoor text twice. These messages must be organically rewritten and adapted each time.
+- The number of liters must vary realistically based on weight, activity, and intensity.
+- The outdoor suggestion must feel fresh and imaginative. You may link it to emotional health or mental recovery.
+- The text must sound like it was written for a friend, not like a robotic checklist.
+- DO NOT copy wording from this prompt into the final response.
 `
 );
 
