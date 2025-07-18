@@ -14,8 +14,8 @@ export default function Workouts() {
   function shouldShowRest(text) {
     if (!text) return false;
     const cleaned = text.trim().toLowerCase();
-    const noRestVariants = ["jokio poilsio", "no rest", "nowrest"];
-    return !noRestVariants.includes(cleaned);
+    const noRestVariants = ["jokio poilsio", "no rest", "nowrest", "aucun repos", "keine pause", "nessun riposo"];
+    return text.trim() !== "" && !noRestVariants.includes(cleaned);
   }
 
   useEffect(() => {
