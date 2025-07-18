@@ -11,13 +11,6 @@ export default function Workouts() {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  function shouldShowRest(text) {
-    if (!text) return false;
-    const cleaned = text.trim().toLowerCase();
-    const noRestVariants = ["jokio poilsio", "no rest", "nowrest", "aucun repos", "keine pause", "nessun riposo"];
-    return text.trim() !== "" && !noRestVariants.includes(cleaned);
-  }
-
   useEffect(() => {
     if (session) {
       fetch("/api/last-workout")
@@ -93,10 +86,10 @@ export default function Workouts() {
                             <div>
                               <p className="font-semibold text-gray-800">{ex.name ? ex.name : `Pratimas ${i + 1}`}</p>
                               <p className="text-sm text-gray-700">{ex.reps}, {ex.sets}</p>
-                              {shouldShowRest(ex.restBetweenSets) && (
+                              {ex.restBetweenSets?.trim() && (
                                 <p className="text-sm text-gray-600">{ex.restBetweenSets}</p>
                               )}
-                              {shouldShowRest(ex.restAfterExercise) && (
+                              {ex.restAfterExercise?.trim() && (
                                 <p className="text-sm text-gray-600">{ex.restAfterExercise}</p>
                               )}
                             </div>
@@ -111,10 +104,10 @@ export default function Workouts() {
                       ))}
                     </div>
                     <p className="text-blue-700 italic mt-4">🏁 {day.motivationEnd}</p>
-                    {day.waterRecommendation && (
+                    {day.waterRecommendation?.trim() && (
                       <p className="text-blue-600 mt-2">💧 {day.waterRecommendation}</p>
                     )}
-                    {day.outdoorSuggestion && (
+                    {day.outdoorSuggestion?.trim() && (
                       <p className="text-green-600 mt-1">🌿 {day.outdoorSuggestion}</p>
                     )}
                   </div>
