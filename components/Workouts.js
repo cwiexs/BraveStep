@@ -11,7 +11,6 @@ export default function Workouts() {
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  // 👇 funkcija, kuri nusprendžia ar poilsis turi būti rodomas
   function shouldShowRest(text) {
     if (!text) return false;
     const cleaned = text.trim().toLowerCase();
@@ -112,6 +111,12 @@ export default function Workouts() {
                       ))}
                     </div>
                     <p className="text-blue-700 italic mt-4">🏁 {day.motivationEnd}</p>
+                    {day.waterRecommendation && (
+                      <p className="text-blue-600 mt-2">💧 {day.waterRecommendation}</p>
+                    )}
+                    {day.outdoorSuggestion && (
+                      <p className="text-green-600 mt-1">🌿 {day.outdoorSuggestion}</p>
+                    )}
                   </div>
                 ))}
               </div>

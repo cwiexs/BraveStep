@@ -265,7 +265,22 @@ IMPORTANT RULES:
   `Here are the field descriptions and their values:`
 ];
 
+// 15. Papildomos rekomendacijos (vanduo ir buvimas lauke)
+promptParts.push(
+  `For every workout, you MUST include the following extra recommendations using clear symbols:
 
+@@water@@  
+[Personalized hydration advice, based on user weight, height, activity level, and workout intensity. Always written in the user's language. E.g., "Don't forget to drink about 2.5 liters of water today – especially before and after the workout."]
+
+@@outdoor@@  
+[If applicable: Suggest spending time outdoors, based on user's job type, activity level, or city. Example: "Try to take a 20-minute walk outside after this session – fresh air helps recovery and boosts mood."]
+
+IMPORTANT:
+- These lines MUST appear only once per day, either at the start, in the middle, or at the end of the workout text.
+- Do NOT repeat them multiple times.
+- Use @@water@@ and @@outdoor@@ exactly as written – these are machine-parsable symbols.
+`
+);
 
 for (const [key, value] of Object.entries(userData)) {
   if (

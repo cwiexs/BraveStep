@@ -24,7 +24,9 @@ export function parseWorkoutText(planText) {
           day: parseInt(dayNumber[1]),
           motivationStart: "",
           motivationEnd: "",
-          exercises: []
+          exercises: [],
+          waterRecommendation: "",
+          outdoorSuggestion: ""
         };
         result.days.push(currentDay);
         section = "day";
@@ -52,6 +54,14 @@ export function parseWorkoutText(planText) {
       section = "exercise";
       continue;
     }
+    if (trimmed.startsWith("@@water@@")) {
+      section = "water";
+      continue;
+    }
+    if (trimmed.startsWith("@@outdoor@@")) {
+      section = "outdoor";
+      continue;
+    }
     if (trimmed.startsWith("##MISSING_FIELDS##")) {
       section = "missingFields";
       continue;
@@ -66,11 +76,9 @@ export function parseWorkoutText(planText) {
     } else if (section === "exercise") {
       if (trimmed.startsWith("@reps:")) {
         currentExercise.reps = trimmed.replace("@reps:", "").trim();
-      }
-      else if (trimmed.startsWith("@name:")) {
+      } else if (trimmed.startsWith("@name:")) {
         currentExercise.name = trimmed.replace("@name:", "").trim();
-      }
-       else if (trimmed.startsWith("@sets:")) {
+      } else if (trimmed.startsWith("@sets:")) {
         currentExercise.sets = trimmed.replace("@sets:", "").trim();
       } else if (trimmed.startsWith("@rest_sets:")) {
         currentExercise.restBetweenSets = trimmed.replace("@rest_sets:", "").trim();
@@ -79,6 +87,10 @@ export function parseWorkoutText(planText) {
       } else if (trimmed.startsWith("@description:")) {
         currentExercise.description = trimmed.replace("@description:", "").trim();
       }
+    } else if (section === "water") {
+      currentDay.waterRecommendation += trimmed + " ";
+    } else if (section === "outdoor") {
+      currentDay.outdoorSuggestion += trimmed + " ";
     } else if (section === "missingFields") {
       result.missingFields += trimmed + "\n";
     }
