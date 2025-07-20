@@ -11,8 +11,6 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
-  const totalSets = parseInt(exercise.sets) || 1;
-  const isFinalRestPhase = phase === "rest" && currentSet > totalSets;
 
   function parseSeconds(text) {
     const match = text.match(/(\d+)/);
@@ -28,22 +26,15 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
       if (!playedWarnings.includes(secondsLeft)) {
         switch (secondsLeft) {
           case 5:
-            playWarning5();
-            break;
+            playWarning5(); break;
           case 4:
-            playWarning4();
-            break;
+            playWarning4(); break;
           case 3:
-            playWarning3();
-            break;
+            playWarning3(); break;
           case 2:
-            playWarning2();
-            break;
+            playWarning2(); break;
           case 1:
-            playWarning1();
-            break;
-          default:
-            break;
+            playWarning1(); break;
         }
         setPlayedWarnings(prev => [...prev, secondsLeft]);
       }
@@ -59,37 +50,18 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     if (phase === "idle" && currentExerciseIndex === 0 && currentSet === 1) {
       const isTimed = exercise.reps.includes("sekund");
       const duration = parseSeconds(exercise.reps);
-      if (!isTimed || duration === 0) {
-        setWaitingForUser(true);
-      }
+      if (!isTimed || duration === 0) setWaitingForUser(true);
     }
   }, []);
 
   function playBeep() {
-    const audio = new Audio("/beep.mp3");
-    audio.play();
+    new Audio("/beep.mp3").play();
   }
-
-  function playWarning5() {
-    const audio = new Audio("/5.mp3");
-    audio.play();
-  }
-  function playWarning4() {
-    const audio = new Audio("/4.mp3");
-    audio.play();
-  }
-  function playWarning3() {
-    const audio = new Audio("/3.mp3");
-    audio.play();
-  }
-  function playWarning2() {
-    const audio = new Audio("/2.mp3");
-    audio.play();
-  }
-  function playWarning1() {
-    const audio = new Audio("/1.mp3");
-    audio.play();
-  }
+  function playWarning1() { new Audio("/1.mp3").play(); }
+  function playWarning2() { new Audio("/2.mp3").play(); }
+  function playWarning3() { new Audio("/3.mp3").play(); }
+  function playWarning4() { new Audio("/4.mp3").play(); }
+  function playWarning5() { new Audio("/5.mp3").play(); }
 
   function startPhase(duration, nextPhase) {
     setWaitingForUser(false);
@@ -110,6 +82,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   function handlePhaseComplete() {
     playBeep();
+    const totalSets = parseInt(exercise.sets) || 1;
     const restBetween = parseSeconds(exercise.restBetweenSets);
     const restAfter = parseSeconds(exercise.restAfterExercise);
     const isTimed = exercise.reps.includes("sekund");
@@ -119,39 +92,47 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         setCurrentSet(prev => prev + 1);
         startPhase(restBetween, "rest");
       } else {
-        const nextIndex = currentExerciseIndex + 1;
-        if (nextIndex < day.exercises.length) {
-          setCurrentSet(1);
-          setCurrentExerciseIndex(nextIndex);
-
-          const nextExercise = day.exercises[nextIndex];
-          const nextIsTimed = nextExercise.reps.includes("sekund");
-          const nextDuration = parseSeconds(nextExercise.reps);
-
-          if (restAfter > 0) {
-            startPhase(restAfter, "rest");
-          } else {
-            if (!nextIsTimed || nextDuration === 0) {
-              setWaitingForUser(true);
-              setPhase("idle");
-            } else {
-              startPhase(nextDuration, "exercise");
-            }
-          }
+        if (restAfter > 0) {
+          startPhase(restAfter, "rest");
         } else {
-          alert("Treniruotė baigta!");
-          onClose();
+          goToNextExercise();
         }
       }
     } else if (phase === "rest") {
-      const isTimed = exercise.reps.includes("sekund");
-      const duration = isTimed ? parseSeconds(exercise.reps) : 0;
-      if (isTimed && currentSet <= totalSets) {
-        startPhase(duration, "exercise");
+      if (currentSet >= parseInt(exercise.sets)) {
+        goToNextExercise();
       } else {
+        const isTimed = exercise.reps.includes("sekund");
+        const duration = isTimed ? parseSeconds(exercise.reps) : 0;
+        if (isTimed && currentSet <= parseInt(exercise.sets)) {
+          startPhase(duration, "exercise");
+        } else {
+          setWaitingForUser(true);
+          setPhase("idle");
+        }
+      }
+    }
+  }
+
+  function goToNextExercise() {
+    const nextIndex = currentExerciseIndex + 1;
+    if (nextIndex < day.exercises.length) {
+      setCurrentSet(1);
+      setCurrentExerciseIndex(nextIndex);
+
+      const nextExercise = day.exercises[nextIndex];
+      const nextIsTimed = nextExercise.reps.includes("sekund");
+      const nextDuration = parseSeconds(nextExercise.reps);
+
+      if (!nextIsTimed || nextDuration === 0) {
         setWaitingForUser(true);
         setPhase("idle");
+      } else {
+        startPhase(nextDuration, "exercise");
       }
+    } else {
+      alert("Treniruotė baigta!");
+      onClose();
     }
   }
 
@@ -162,39 +143,30 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     if (isTimed) {
       startPhase(duration, "exercise");
     } else {
-      const restBetween = parseSeconds(exercise.restBetweenSets);
-      const restAfter = parseSeconds(exercise.restAfterExercise);
-
-      if (currentSet < totalSets) {
+      if (currentSet < parseInt(exercise.sets)) {
         setCurrentSet(prev => prev + 1);
-        startPhase(restBetween, "rest");
+        startPhase(parseSeconds(exercise.restBetweenSets), "rest");
       } else {
-        const nextIndex = currentExerciseIndex + 1;
-        if (nextIndex < day.exercises.length) {
-          setCurrentSet(1);
-          setCurrentExerciseIndex(nextIndex);
-
-          const nextExercise = day.exercises[nextIndex];
-          const nextIsTimed = nextExercise.reps.includes("sekund");
-          const nextDuration = parseSeconds(nextExercise.reps);
-
-          if (restAfter > 0) {
-            startPhase(restAfter, "rest");
-          } else {
-            if (!nextIsTimed || nextDuration === 0) {
-              setWaitingForUser(true);
-              setPhase("idle");
-            } else {
-              startPhase(nextDuration, "exercise");
-            }
-          }
+        if (parseSeconds(exercise.restAfterExercise) > 0) {
+          startPhase(parseSeconds(exercise.restAfterExercise), "rest");
         } else {
-          alert("Treniruotė baigta!");
-          onClose();
+          goToNextExercise();
         }
       }
     }
   }
+
+  const nextExerciseText = () => {
+    if (phase === "rest") {
+      if (currentSet < parseInt(exercise.sets)) {
+        return `${exercise.name} (serija ${currentSet + 1} iš ${exercise.sets})`;
+      } else {
+        const next = day.exercises[currentExerciseIndex + 1];
+        return next ? `${next.name} (serija 1 iš ${next.sets})` : "Pabaiga";
+      }
+    }
+    return "";
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -205,31 +177,29 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             <p className="mb-2 text-gray-700 italic">
               Giliai įkvėpk... iškvėpk... Ramiai stovėk. Leisk kūnui pailsėti.
             </p>
-<p className="text-sm text-gray-600 italic mt-2">
-  🔜 Sekantis pratimas: {
-    currentSet < totalSets
-      ? `${exercise.name} (serija ${currentSet + 1} iš ${exercise.sets})`
-      : (currentExerciseIndex + 1 < day.exercises.length
-          ? `${day.exercises[currentExerciseIndex + 1].name} (serija 1 iš ${day.exercises[currentExerciseIndex + 1].sets})`
-          : "Pabaiga")
-  }
-</p>
-
+            <p className="text-sm text-gray-600 italic mt-2">
+              🔜 Sekantis pratimas: {nextExerciseText()}
+            </p>
+            <p className="font-semibold mb-2">
+              Serija {Math.min(currentSet, exercise.sets)}/{exercise.sets} serijos
+            </p>
+            <p className="text-4xl font-bold mb-4">
+              Poilsis: {secondsLeft} sek.
+            </p>
           </>
         ) : (
           <>
             <h2 className="text-xl font-bold mb-4">{exercise.name}</h2>
             <p className="mb-2">{exercise.description}</p>
+            <p className="font-semibold mb-4">
+              Serija {currentSet}/{exercise.sets}
+            </p>
+            {secondsLeft > 0 && (
+              <p className="text-4xl font-bold mb-4">{secondsLeft} sek.</p>
+            )}
           </>
         )}
 
-        <p className="font-semibold mb-4">Serija {currentSet}/{exercise.sets}</p>
-        {secondsLeft > 0 && (
-          <p className="text-4xl font-bold mb-4">
-            {phase === "rest" ? "Poilsis: " : ""}
-            {secondsLeft} sek.
-          </p>
-        )}
         {waitingForUser && (
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
