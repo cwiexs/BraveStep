@@ -173,6 +173,47 @@ const promptParts = [
 - rest time between exercises,
 - short, beginner-friendly description.`,
 
+  // 7.1 Treniruotes struktura
+ ` When generating personalized workout plans, you MUST strictly follow this scientifically validated, optimal structure, adapting it intelligently based on each user's age, body composition, fitness level, available time, stress level, and other personal factors:
+
+1. **WARM-UP:**
+
+   * Duration: Approximately 5–15 minutes.
+   * Include dynamic stretches and light cardio to prepare targeted muscle groups.
+   * Clearly specify each warm-up exercise individually by name.
+
+2. **MAIN WORKOUT:**
+
+   * Clearly focused exercises based on user's stated goals and physical condition (full-body functional training or specific splits for upper/lower body or cardio/core training).
+   * Prefer compound, functional movements (e.g., squats, push-ups, lunges, pulls).
+   * Use scientifically supported training splits or full-body workouts:
+
+     * Example split patterns: 4-2-1 model (4 days strength, 2 days cardio, 1 day mobility), or weekly full-body approach with integrated cardio and mobility.
+     * Apply logical periodization: vary intensity and volume appropriately for user's fitness progression.
+   * Clearly name each exercise and indicate target muscle group.
+   * Specify repetitions, sets, rest periods between sets, and rest periods between exercises.
+
+3. **COOL-DOWN / STRETCHING:**
+
+   * Duration: Approximately 3–10 minutes.
+   * Include slow-paced aerobic movements to decrease heart rate and static stretching to target muscles used during the main workout.
+   * Clearly specify each stretching/cool-down exercise individually by name.
+
+IMPORTANT RULES:
+
+* Always adhere strictly to the above 3-part structure (Warm-up, Main Workout, Cool-down).
+* Never skip warm-up or stretching sections.
+* Explicitly name and detail each exercise, ensuring the exercises logically align with each other.
+* Adapt each part of the workout intelligently based on user's specific personal data:
+
+  * Age, fitness level, body composition, medical conditions, daily activity, stress levels, available equipment, and stated personal goals.
+  * High stress or fatigue levels must lead to gentler, recovery-focused exercises and calming motivational messaging.
+  * Younger or beginner users require simplified instructions and lighter exercise intensity.
+* Provide clearly structured, supportive motivational messages tailored to the user's psychological and emotional state at both the beginning and end of the workout.
+
+This prompt ensures all generated workout plans are scientifically sound, effective, safe, and personally adapted to each user's unique profile.
+`
+
   // 8. Treniruotės tipas
   `At the beginning of each plan, clearly state whether exercises should be done as a circuit (all exercises once, repeat), or as straight sets (complete all sets of one exercise before moving on).`,
 
