@@ -46,20 +46,23 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function startPhase(duration, nextPhase) {
-    setWaitingForUser(false);
-    setHasWarned(false);
-    if (duration > 0) {
-      setSecondsLeft(duration);
-      setPhase(nextPhase);
-    } else {
-      if (nextPhase === "exercise") {
-        setWaitingForUser(true);
-        setPhase("idle");
-      } else {
-        handlePhaseComplete();
-      }
+  setWaitingForUser(false);
+  setHasWarned(false);
+
+  if (duration > 0) {
+    setSecondsLeft(duration);
+    setPhase(nextPhase);
+  } else {
+    if (nextPhase === "exercise") {
+      setPhase("idle");
+      setWaitingForUser(true); // <- labai svarbu: aktyvuoti rankinį mygtuką
+    } else if (nextPhase === "rest") {
+      // Pabaigti poilsį nedelsiant
+      handlePhaseComplete();
     }
   }
+}
+
 
   function handlePhaseComplete() {
     playBeep();
