@@ -8,6 +8,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [playedWarnings, setPlayedWarnings] = useState([]);
+  const [audioUnlocked, setAudioUnlocked] = useState(false); // <-- nauja būsena
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
@@ -137,6 +138,12 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function handleManualStart() {
+    if (!audioUnlocked) {
+      const unlock = new Audio("/1.mp3");
+      unlock.play().catch(() => {});
+      setAudioUnlocked(true);
+    }
+
     const isTimed = exercise.reps.includes("sekund");
     const duration = isTimed ? parseSeconds(exercise.reps) : 0;
 
@@ -180,7 +187,6 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             <p className="text-sm text-gray-600 italic mt-2">
               🔜 Sekantis pratimas: {nextExerciseText()}
             </p>
-            
             <p className="text-4xl font-bold mb-4">
               Poilsis: {secondsLeft} sek.
             </p>
