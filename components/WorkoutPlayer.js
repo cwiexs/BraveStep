@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentDay, setCurrentDay] = useState(0);
@@ -9,6 +9,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [playedWarnings, setPlayedWarnings] = useState([]);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const wakeLockRef = useRef(null);
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
@@ -17,6 +18,27 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     const match = text.match(/(\d+)/);
     return match ? parseInt(match[1]) : 0;
   }
+
+  useEffect(() => {
+    if ('wakeLock' in navigator) {
+      navigator.wakeLock.request('screen').then(lock => {
+        wakeLockRef.current = lock;
+        wakeLockRef.current.addEventListener("release", () => {
+          console.log("🔕 Wake lock atleistas");
+        });
+        console.log("📱 Ekranas laikomas aktyvus");
+      }).catch(err => {
+        console.error("Wake Lock nepavyko:", err);
+      });
+    }
+
+    return () => {
+      if (wakeLockRef.current) {
+        wakeLockRef.current.release();
+        wakeLockRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (secondsLeft > 0) {
@@ -149,7 +171,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   function handleManualStart() {
     if (!audioUnlocked) {
-      const unlock = new Audio("/1.mp3");
+      const unlock = new Audio("/silence.mp3");
       unlock.play().catch(() => {});
       setAudioUnlocked(true);
     }
