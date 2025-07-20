@@ -205,15 +205,16 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             <p className="mb-2 text-gray-700 italic">
               Giliai įkvėpk... iškvėpk... Ramiai stovėk. Leisk kūnui pailsėti.
             </p>
-            <p className="text-sm text-gray-600 italic mt-2">
-              🔜 Sekantis pratimas: {
-                isFinalRestPhase
-                  ? (currentExerciseIndex + 1 < day.exercises.length
-                      ? `${day.exercises[currentExerciseIndex + 1].name} (serija 1 iš ${day.exercises[currentExerciseIndex + 1].sets})`
-                      : "Pabaiga")
-                  : `${exercise.name} (serija ${Math.min(currentSet + 1, totalSets)} iš ${exercise.sets})`
-              }
-            </p>
+<p className="text-sm text-gray-600 italic mt-2">
+  🔜 Sekantis pratimas: {
+    currentSet < totalSets
+      ? `${exercise.name} (serija ${currentSet + 1} iš ${exercise.sets})`
+      : (currentExerciseIndex + 1 < day.exercises.length
+          ? `${day.exercises[currentExerciseIndex + 1].name} (serija 1 iš ${day.exercises[currentExerciseIndex + 1].sets})`
+          : "Pabaiga")
+  }
+</p>
+
           </>
         ) : (
           <>
