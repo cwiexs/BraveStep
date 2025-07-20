@@ -23,7 +23,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         setSecondsLeft(prev => prev - 1);
       }, 1000);
 
-      if (secondsLeft === 5 && !hasWarned) {
+      if (secondsLeft === 7 && !hasWarned) {
         playWarning();
         setHasWarned(true);
       }
