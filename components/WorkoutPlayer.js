@@ -171,7 +171,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   function handleManualStart() {
     if (!audioUnlocked) {
-      const unlock = new Audio("/silence.mp3");
+      const unlock = new Audio("/silance.mp3");
       unlock.play().catch(() => {});
       setAudioUnlocked(true);
     }
@@ -214,6 +214,11 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
           <>
             <h2 className="text-2xl font-bold mb-4">💡 Motyvacija</h2>
             <p className="mb-4 text-gray-800 whitespace-pre-wrap">{workoutData.introduction}</p>
+            <div className="mb-6 text-left text-sm text-gray-600 border-l-4 border-blue-300 pl-4">
+              <p><strong>Pirmas pratimas:</strong> {exercise.name}</p>
+              <p><strong>Kartojimai:</strong> {exercise.reps}</p>
+              <p><strong>Serijų skaičius:</strong> {exercise.sets}</p>
+            </div>
             <button
               className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold"
               onClick={handleIntroContinue}
@@ -237,7 +242,8 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         ) : (
           <>
             <h2 className="text-xl font-bold mb-4">{exercise.name}</h2>
-            <p className="mb-2">{exercise.description}</p>
+            <p className="text-lg text-blue-600 font-semibold mb-2">Atlikite: {exercise.reps}</p>
+            <p className="text-sm text-gray-500 italic mb-2">{exercise.description}</p>
             <p className="font-semibold mb-4">
               Serija {currentSet}/{exercise.sets}
             </p>
