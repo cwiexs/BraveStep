@@ -6,20 +6,14 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentSet, setCurrentSet] = useState(1);
   const [timer, setTimer] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
-  const [justFinishedExercise, setJustFinishedExercise] = useState(false);
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
 
-  useEffect(() => {
-    if (justFinishedExercise) {
-      setJustFinishedExercise(false);
-      const restAfter = parseInt(exercise.restAfterExercise) || 0;
-      if (restAfter > 0) {
-        startTimer(restAfter, "rest");
-      }
-    }
-  }, [currentExerciseIndex]);
+  function parseSeconds(text) {
+    const match = text.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  }
 
   useEffect(() => {
     if (secondsLeft > 0) {
@@ -33,45 +27,52 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }, [secondsLeft, timer]);
 
   function startTimer(duration, type) {
-    setSecondsLeft(duration);
-    setTimer(type);
+    if (duration > 0) {
+      setSecondsLeft(duration);
+      setTimer(type);
+    } else {
+      handleTimerComplete();
+    }
   }
 
   function handleTimerComplete() {
     if (timer === "exercise") {
-      handleExerciseComplete();
-    } else if (timer === "rest") {
-      setTimer(null);
-    }
-  }
+      const totalSets = parseInt(exercise.sets) || 1;
+      const restBetween = parseSeconds(exercise.restBetweenSets);
 
-  function handleExerciseComplete() {
-    if (currentSet < parseInt(exercise.sets)) {
-      setCurrentSet(prev => prev + 1);
-      const restSeconds = parseInt(exercise.restBetweenSets) || 0;
-      if (restSeconds > 0) {
-        startTimer(restSeconds, "rest");
-      }
-    } else {
-      if (currentExerciseIndex + 1 < day.exercises.length) {
-        setCurrentExerciseIndex(prev => prev + 1);
-        setCurrentSet(1);
-        setJustFinishedExercise(true);
+      if (currentSet < totalSets) {
+        setCurrentSet(prev => prev + 1);
+        startTimer(restBetween, "rest");
       } else {
-        alert("Treniruotė baigta!");
-        onClose();
+        const restAfter = parseSeconds(exercise.restAfterExercise);
+        setCurrentSet(1);
+
+        if (currentExerciseIndex + 1 < day.exercises.length) {
+          setCurrentExerciseIndex(prev => prev + 1);
+          startTimer(restAfter, "rest");
+        } else {
+          alert("Treniruotė baigta!");
+          onClose();
+        }
+      }
+    } else if (timer === "rest") {
+      const duration = exercise.reps.includes("sekund") ? parseSeconds(exercise.reps) : 0;
+      if (currentSet <= parseInt(exercise.sets)) {
+        startTimer(duration, "exercise");
+      } else {
+        setTimer(null);
       }
     }
-    setTimer(null);
   }
 
   function handleManualNext() {
-    const durationMatch = exercise.reps.match(/(\\d+)/);
-    const duration = durationMatch ? parseInt(durationMatch[0]) : 0;
-    if (exercise.reps.includes("sekund")) {
+    const isTimed = exercise.reps.includes("sekund");
+    const duration = isTimed ? parseSeconds(exercise.reps) : 0;
+
+    if (isTimed) {
       startTimer(duration, "exercise");
     } else {
-      handleExerciseComplete();
+      handleTimerComplete();
     }
   }
 
@@ -87,7 +88,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
             onClick={handleManualNext}
           >
-            {exercise.reps.includes("sekundžių") ? "Pradėti laikmatį" : "Pratimas atliktas"}
+            {exercise.reps.includes("sekund") ? "Pradėti laikmatį" : "Pratimas atliktas"}
           </button>
         )}
         <button onClick={onClose} className="mt-4 text-red-500">Uždaryti</button>
