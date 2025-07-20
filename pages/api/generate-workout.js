@@ -211,8 +211,7 @@ IMPORTANT RULES:
   * Younger or beginner users require simplified instructions and lighter exercise intensity.
 * Provide clearly structured, supportive motivational messages tailored to the user's psychological and emotional state at both the beginning and end of the workout.
 
-This prompt ensures all generated workout plans are scientifically sound, effective, safe, and personally adapted to each user's unique profile.
-`
+This prompt ensures all generated workout plans are scientifically sound, effective, safe, and personally adapted to each user's unique profile.`,
 
   // 8. Treniruotės tipas
   `At the beginning of each plan, clearly state whether exercises should be done as a circuit (all exercises once, repeat), or as straight sets (complete all sets of one exercise before moving on).`,
