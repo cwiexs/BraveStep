@@ -27,7 +27,26 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         playWarning();
         setHasWarned(true);
       }
-
+      if (secondsLeft === 5 && !hasWarned) {
+        playWarning5();
+        setHasWarned(true);
+      }
+      if (secondsLeft === 4 && !hasWarned) {
+        playWarning4();
+        setHasWarned(true);
+      }
+      if (secondsLeft === 3 && !hasWarned) {
+        playWarning3();
+        setHasWarned(true);
+      }
+      if (secondsLeft === 2 && !hasWarned) {
+        playWarning2();
+        setHasWarned(true);
+      }
+      if (secondsLeft === 1 && !hasWarned) {
+        playWarning1();
+        setHasWarned(true);
+      }
       return () => clearInterval(interval);
     } else if (secondsLeft === 0 && phase !== "idle") {
       setHasWarned(false);
@@ -51,10 +70,29 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function playWarning() {
-    const audio = new Audio("/get-ready.mp3");
+    const audio = new Audio("/Ash get ready.mp3");
     audio.play();
   }
-
+function playWarning5() {
+    const audio = new Audio("/Ash Fvive.mp3");
+    audio.play();
+  }
+function playWarning4() {
+    const audio = new Audio("/Ash For.mp3");
+    audio.play();
+  }
+  function playWarning3() {
+    const audio = new Audio("/Ash Three.mp3");
+    audio.play();
+  }
+  function playWarning2() {
+    const audio = new Audio("/Ash Two.mp3");
+    audio.play();
+  }
+  function playWarning1() {
+    const audio = new Audio("/Ash One.mp3");
+    audio.play();
+  }
   function startPhase(duration, nextPhase) {
     setWaitingForUser(false);
     setHasWarned(false);
