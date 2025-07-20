@@ -4,7 +4,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentDay, setCurrentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
-  const [phase, setPhase] = useState("idle");
+  const [phase, setPhase] = useState("idle"); // "exercise", "rest", "idle"
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [hasWarned, setHasWarned] = useState(false);
@@ -46,23 +46,21 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function startPhase(duration, nextPhase) {
-  setWaitingForUser(false);
-  setHasWarned(false);
-
-  if (duration > 0) {
-    setSecondsLeft(duration);
-    setPhase(nextPhase);
-  } else {
-    if (nextPhase === "exercise") {
-      setPhase("idle");
-      setWaitingForUser(true); // <- labai svarbu: aktyvuoti rankinį mygtuką
-    } else if (nextPhase === "rest") {
-      // Pabaigti poilsį nedelsiant
-      handlePhaseComplete();
+    setWaitingForUser(false);
+    setHasWarned(false);
+    if (duration > 0) {
+      setSecondsLeft(duration);
+      setPhase(nextPhase);
+    } else {
+      if (nextPhase === "exercise") {
+        setPhase("idle");
+        setWaitingForUser(true);
+      } else if (nextPhase === "rest") {
+        setPhase("rest");
+        setSecondsLeft(0); // trigger handlePhaseComplete immediately
+      }
     }
   }
-}
-
 
   function handlePhaseComplete() {
     playBeep();
@@ -76,15 +74,32 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         setCurrentSet(prev => prev + 1);
         startPhase(restBetween, "rest");
       } else {
-        if (currentExerciseIndex + 1 < day.exercises.length) {
+        const nextIndex = currentExerciseIndex + 1;
+        if (nextIndex < day.exercises.length) {
           setCurrentSet(1);
-          setCurrentExerciseIndex(prev => prev + 1);
-          const nextExercise = day.exercises[currentExerciseIndex + 1];
+          setCurrentExerciseIndex(nextIndex);
+
+          const nextExercise = day.exercises[nextIndex];
           const nextIsTimed = nextExercise.reps.includes("sekund");
           const nextDuration = parseSeconds(nextExercise.reps);
-          startPhase(restAfter, "rest");
-          if (!nextIsTimed || nextDuration === 0) {
-            setWaitingForUser(true);
+
+          if (restAfter > 0) {
+            setPhase("rest");
+            setTimeout(() => {
+              if (!nextIsTimed || nextDuration === 0) {
+                setWaitingForUser(true);
+                setPhase("idle");
+              } else {
+                startPhase(nextDuration, "exercise");
+              }
+            }, restAfter * 1000);
+          } else {
+            if (!nextIsTimed || nextDuration === 0) {
+              setWaitingForUser(true);
+              setPhase("idle");
+            } else {
+              startPhase(nextDuration, "exercise");
+            }
           }
         } else {
           alert("Treniruotė baigta!");
@@ -118,10 +133,33 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         setCurrentSet(prev => prev + 1);
         startPhase(restBetween, "rest");
       } else {
-        if (currentExerciseIndex + 1 < day.exercises.length) {
+        const nextIndex = currentExerciseIndex + 1;
+        if (nextIndex < day.exercises.length) {
           setCurrentSet(1);
-          setCurrentExerciseIndex(prev => prev + 1);
-          startPhase(restAfter, "rest");
+          setCurrentExerciseIndex(nextIndex);
+
+          const nextExercise = day.exercises[nextIndex];
+          const nextIsTimed = nextExercise.reps.includes("sekund");
+          const nextDuration = parseSeconds(nextExercise.reps);
+
+          if (restAfter > 0) {
+            setPhase("rest");
+            setTimeout(() => {
+              if (!nextIsTimed || nextDuration === 0) {
+                setWaitingForUser(true);
+                setPhase("idle");
+              } else {
+                startPhase(nextDuration, "exercise");
+              }
+            }, restAfter * 1000);
+          } else {
+            if (!nextIsTimed || nextDuration === 0) {
+              setWaitingForUser(true);
+              setPhase("idle");
+            } else {
+              startPhase(nextDuration, "exercise");
+            }
+          }
         } else {
           alert("Treniruotė baigta!");
           onClose();
