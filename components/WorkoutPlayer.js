@@ -4,11 +4,11 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentDay, setCurrentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
-  const [phase, setPhase] = useState("idle");
+  const [phase, setPhase] = useState("intro"); // intro phase
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [playedWarnings, setPlayedWarnings] = useState([]);
-  const [audioUnlocked, setAudioUnlocked] = useState(false); // <-- nauja būsena
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
@@ -41,7 +41,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
       }
 
       return () => clearInterval(interval);
-    } else if (secondsLeft === 0 && phase !== "idle") {
+    } else if (secondsLeft === 0 && phase !== "idle" && phase !== "intro") {
       setPlayedWarnings([]);
       handlePhaseComplete();
     }
@@ -103,7 +103,6 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
       if (currentSet >= parseInt(exercise.sets)) {
         goToNextExercise();
       } else {
-        const isTimed = exercise.reps.includes("sekund");
         const duration = isTimed ? parseSeconds(exercise.reps) : 0;
         if (isTimed && currentSet <= parseInt(exercise.sets)) {
           startPhase(duration, "exercise");
@@ -134,6 +133,17 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     } else {
       alert("Treniruotė baigta!");
       onClose();
+    }
+  }
+
+  function handleIntroContinue() {
+    const isTimed = exercise.reps.includes("sekund");
+    const duration = isTimed ? parseSeconds(exercise.reps) : 0;
+    if (isTimed) {
+      startPhase(duration, "exercise");
+    } else {
+      setPhase("idle");
+      setWaitingForUser(true);
     }
   }
 
@@ -178,7 +188,18 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-xl text-center">
-        {phase === "rest" ? (
+        {phase === "intro" ? (
+          <>
+            <h2 className="text-2xl font-bold mb-4">💡 Motyvacija</h2>
+            <p className="mb-4 text-gray-800 whitespace-pre-wrap">{workoutData.introduction}</p>
+            <button
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold"
+              onClick={handleIntroContinue}
+            >
+              Pradėti treniruotę
+            </button>
+          </>
+        ) : phase === "rest" ? (
           <>
             <h2 className="text-xl font-bold mb-2">🧘‍♂️ Poilsis</h2>
             <p className="mb-2 text-gray-700 italic">
