@@ -69,23 +69,23 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function playWarning5() {
-    const audio = new Audio("/5D.mp3");
+    const audio = new Audio("/5.mp3");
     audio.play();
   }
   function playWarning4() {
-    const audio = new Audio("/4D.mp3");
+    const audio = new Audio("/4.mp3");
     audio.play();
   }
   function playWarning3() {
-    const audio = new Audio("/3D.mp3");
+    const audio = new Audio("/3.mp3");
     audio.play();
   }
   function playWarning2() {
-    const audio = new Audio("/2D.mp3");
+    const audio = new Audio("/2.mp3");
     audio.play();
   }
   function playWarning1() {
-    const audio = new Audio("/1D.mp3");
+    const audio = new Audio("/1.mp3");
     audio.play();
   }
 
