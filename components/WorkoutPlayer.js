@@ -7,7 +7,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [phase, setPhase] = useState("idle");
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
-  const [hasWarned, setHasWarned] = useState(false);
+  const [playedWarnings, setPlayedWarnings] = useState([]);
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
@@ -23,33 +23,32 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         setSecondsLeft(prev => prev - 1);
       }, 1000);
 
-      if (secondsLeft === 7 && !hasWarned) {
-        playWarning();
-        setHasWarned(true);
+      if (!playedWarnings.includes(secondsLeft)) {
+        switch (secondsLeft) {
+          case 5:
+            playWarning5();
+            break;
+          case 4:
+            playWarning4();
+            break;
+          case 3:
+            playWarning3();
+            break;
+          case 2:
+            playWarning2();
+            break;
+          case 1:
+            playWarning1();
+            break;
+          default:
+            break;
+        }
+        setPlayedWarnings(prev => [...prev, secondsLeft]);
       }
-      if (secondsLeft === 5 && !hasWarned) {
-        playWarning5();
-        setHasWarned(true);
-      }
-      if (secondsLeft === 4 && !hasWarned) {
-        playWarning4();
-        setHasWarned(true);
-      }
-      if (secondsLeft === 3 && !hasWarned) {
-        playWarning3();
-        setHasWarned(true);
-      }
-      if (secondsLeft === 2 && !hasWarned) {
-        playWarning2();
-        setHasWarned(true);
-      }
-      if (secondsLeft === 1 && !hasWarned) {
-        playWarning1();
-        setHasWarned(true);
-      }
+
       return () => clearInterval(interval);
     } else if (secondsLeft === 0 && phase !== "idle") {
-      setHasWarned(false);
+      setPlayedWarnings([]);
       handlePhaseComplete();
     }
   }, [secondsLeft, phase]);
@@ -69,33 +68,30 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     audio.play();
   }
 
-  function playWarning() {
-    const audio = new Audio("/Ash get ready.mp3");
+  function playWarning5() {
+    const audio = new Audio("/5D.mp3");
     audio.play();
   }
-function playWarning5() {
-    const audio = new Audio("/Ash Fvive.mp3");
-    audio.play();
-  }
-function playWarning4() {
-    const audio = new Audio("/Ash For.mp3");
+  function playWarning4() {
+    const audio = new Audio("/4D.mp3");
     audio.play();
   }
   function playWarning3() {
-    const audio = new Audio("/Ash Three.mp3");
+    const audio = new Audio("/3D.mp3");
     audio.play();
   }
   function playWarning2() {
-    const audio = new Audio("/Ash Two.mp3");
+    const audio = new Audio("/2D.mp3");
     audio.play();
   }
   function playWarning1() {
-    const audio = new Audio("/Ash One.mp3");
+    const audio = new Audio("/1D.mp3");
     audio.play();
   }
+
   function startPhase(duration, nextPhase) {
     setWaitingForUser(false);
-    setHasWarned(false);
+    setPlayedWarnings([]);
     if (duration > 0) {
       setSecondsLeft(duration);
       setPhase(nextPhase);
