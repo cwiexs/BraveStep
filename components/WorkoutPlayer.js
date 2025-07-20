@@ -209,7 +209,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
               🔜 Sekantis pratimas: {
                 isFinalRestPhase
                   ? (currentExerciseIndex + 1 < day.exercises.length
-                      ? day.exercises[currentExerciseIndex + 1].name
+                      ? `${day.exercises[currentExerciseIndex + 1].name} (serija 1 iš ${day.exercises[currentExerciseIndex + 1].sets})`
                       : "Pabaiga")
                   : `${exercise.name} (serija ${Math.min(currentSet + 1, totalSets)} iš ${exercise.sets})`
               }
