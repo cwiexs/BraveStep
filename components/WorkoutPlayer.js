@@ -68,15 +68,32 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function handleManualStart() {
-    const isTimed = exercise.reps.includes("sekund");
-    const duration = isTimed ? parseSeconds(exercise.reps) : 0;
+  const isTimed = exercise.reps.includes("sekund");
+  const duration = isTimed ? parseSeconds(exercise.reps) : 0;
 
-    if (isTimed) {
-      startPhase(duration, "exercise");
+  if (isTimed) {
+    startPhase(duration, "exercise");
+  } else {
+    // Rankinis pratimo atlikimas (viena serija)
+    const totalSets = parseInt(exercise.sets) || 1;
+    const restBetween = parseSeconds(exercise.restBetweenSets);
+    const restAfter = parseSeconds(exercise.restAfterExercise);
+
+    if (currentSet < totalSets) {
+      setCurrentSet(prev => prev + 1);
+      startPhase(restBetween, "rest");
     } else {
-      handlePhaseComplete();
+      if (currentExerciseIndex + 1 < day.exercises.length) {
+        setCurrentSet(1);
+        setCurrentExerciseIndex(prev => prev + 1);
+        startPhase(restAfter, "rest");
+      } else {
+        alert("Treniruotė baigta!");
+        onClose();
+      }
     }
   }
+}
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
