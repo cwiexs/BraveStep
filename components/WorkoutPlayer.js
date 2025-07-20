@@ -207,13 +207,14 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             </p>
             <p className="text-sm text-gray-600 italic mt-2">
                 🔜 Sekantis pratimas: {
-                    currentSet < parseInt(exercise.sets)
+                    (phase === "rest" && currentSet < parseInt(exercise.sets))
                     ? exercise.name + " (serija " + (currentSet + 1) + " iš " + exercise.sets + ")"
                     : currentExerciseIndex + 1 < day.exercises.length
                         ? day.exercises[currentExerciseIndex + 1].name
                         : "Pabaiga"
                 }
                 </p>
+
 
           </>
         ) : (
