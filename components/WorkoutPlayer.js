@@ -6,9 +6,20 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentSet, setCurrentSet] = useState(1);
   const [timer, setTimer] = useState(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [justFinishedExercise, setJustFinishedExercise] = useState(false);
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
+
+  useEffect(() => {
+    if (justFinishedExercise) {
+      setJustFinishedExercise(false);
+      const restAfter = parseInt(exercise.restAfterExercise) || 0;
+      if (restAfter > 0) {
+        startTimer(restAfter, "rest");
+      }
+    }
+  }, [currentExerciseIndex]);
 
   useEffect(() => {
     if (secondsLeft > 0) {
@@ -16,16 +27,22 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         setSecondsLeft(prev => prev - 1);
       }, 1000);
       return () => clearInterval(interval);
-    } else if (timer === 'exercise') {
-      handleExerciseComplete();
-    } else if (timer === 'rest') {
-      setTimer(null);
+    } else if (secondsLeft === 0 && timer) {
+      handleTimerComplete();
     }
-  }, [secondsLeft]);
+  }, [secondsLeft, timer]);
 
   function startTimer(duration, type) {
     setSecondsLeft(duration);
     setTimer(type);
+  }
+
+  function handleTimerComplete() {
+    if (timer === "exercise") {
+      handleExerciseComplete();
+    } else if (timer === "rest") {
+      setTimer(null);
+    }
   }
 
   function handleExerciseComplete() {
@@ -33,20 +50,28 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
       setCurrentSet(prev => prev + 1);
       const restSeconds = parseInt(exercise.restBetweenSets) || 0;
       if (restSeconds > 0) {
-        startTimer(restSeconds, 'rest');
+        startTimer(restSeconds, "rest");
       }
     } else {
-      const restAfter = parseInt(exercise.restAfterExercise) || 0;
       if (currentExerciseIndex + 1 < day.exercises.length) {
         setCurrentExerciseIndex(prev => prev + 1);
+        setCurrentSet(1);
+        setJustFinishedExercise(true);
       } else {
         alert("Treniruotė baigta!");
         onClose();
       }
-      setCurrentSet(1);
-      if (restAfter > 0) {
-        startTimer(restAfter, 'rest');
-      }
+    }
+    setTimer(null);
+  }
+
+  function handleManualNext() {
+    const durationMatch = exercise.reps.match(/(\\d+)/);
+    const duration = durationMatch ? parseInt(durationMatch[0]) : 0;
+    if (exercise.reps.includes("sekund")) {
+      startTimer(duration, "exercise");
+    } else {
+      handleExerciseComplete();
     }
   }
 
@@ -60,15 +85,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         {!timer && (
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
-            onClick={() => {
-              const durationMatch = exercise.reps.match(/\d+/);
-              const duration = durationMatch ? parseInt(durationMatch[0]) : 0;
-              if (duration > 0) {
-                startTimer(duration, 'exercise');
-              } else {
-                handleExerciseComplete();
-              }
-            }}
+            onClick={handleManualNext}
           >
             {exercise.reps.includes("sekundžių") ? "Pradėti laikmatį" : "Pratimas atliktas"}
           </button>
