@@ -11,6 +11,8 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
+  const totalSets = parseInt(exercise.sets) || 1;
+  const isFinalRestPhase = phase === "rest" && currentSet > totalSets;
 
   function parseSeconds(text) {
     const match = text.match(/(\d+)/);
@@ -108,7 +110,6 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   function handlePhaseComplete() {
     playBeep();
-    const totalSets = parseInt(exercise.sets) || 1;
     const restBetween = parseSeconds(exercise.restBetweenSets);
     const restAfter = parseSeconds(exercise.restAfterExercise);
     const isTimed = exercise.reps.includes("sekund");
@@ -145,7 +146,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     } else if (phase === "rest") {
       const isTimed = exercise.reps.includes("sekund");
       const duration = isTimed ? parseSeconds(exercise.reps) : 0;
-      if (isTimed && currentSet <= parseInt(exercise.sets)) {
+      if (isTimed && currentSet <= totalSets) {
         startPhase(duration, "exercise");
       } else {
         setWaitingForUser(true);
@@ -161,7 +162,6 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     if (isTimed) {
       startPhase(duration, "exercise");
     } else {
-      const totalSets = parseInt(exercise.sets) || 1;
       const restBetween = parseSeconds(exercise.restBetweenSets);
       const restAfter = parseSeconds(exercise.restAfterExercise);
 
@@ -206,16 +206,14 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
               Giliai įkvėpk... iškvėpk... Ramiai stovėk. Leisk kūnui pailsėti.
             </p>
             <p className="text-sm text-gray-600 italic mt-2">
-                🔜 Sekantis pratimas: {
-                    (phase === "rest" && currentSet < parseInt(exercise.sets))
-                    ? exercise.name + " (serija " + (currentSet + 1) + " iš " + exercise.sets + ")"
-                    : currentExerciseIndex + 1 < day.exercises.length
-                        ? day.exercises[currentExerciseIndex + 1].name
-                        : "Pabaiga"
-                }
-                </p>
-
-
+              🔜 Sekantis pratimas: {
+                isFinalRestPhase
+                  ? (currentExerciseIndex + 1 < day.exercises.length
+                      ? day.exercises[currentExerciseIndex + 1].name
+                      : "Pabaiga")
+                  : `${exercise.name} (serija ${Math.min(currentSet + 1, totalSets)} iš ${exercise.sets})`
+              }
+            </p>
           </>
         ) : (
           <>
