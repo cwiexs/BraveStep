@@ -4,7 +4,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentDay, setCurrentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
-  const [timer, setTimer] = useState(null);
+  const [phase, setPhase] = useState("idle"); // "exercise", "rest", "idle"
   const [secondsLeft, setSecondsLeft] = useState(0);
 
   const day = workoutData.days[currentDay];
@@ -21,58 +21,60 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         setSecondsLeft(prev => prev - 1);
       }, 1000);
       return () => clearInterval(interval);
-    } else if (secondsLeft === 0 && timer) {
-      handleTimerComplete();
+    } else if (secondsLeft === 0 && phase !== "idle") {
+      handlePhaseComplete();
     }
-  }, [secondsLeft, timer]);
+  }, [secondsLeft, phase]);
 
-  function startTimer(duration, type) {
-    if (duration > 0) {
-      setSecondsLeft(duration);
-      setTimer(type);
-    } else {
-      handleTimerComplete();
-    }
+  function playBeep() {
+    const audio = new Audio("/beep.mp3"); // įkelk beep.mp3 į public/
+    audio.play();
   }
 
-  function handleTimerComplete() {
-    if (timer === "exercise") {
-      const totalSets = parseInt(exercise.sets) || 1;
-      const restBetween = parseSeconds(exercise.restBetweenSets);
+  function startPhase(duration, nextPhase) {
+    setSecondsLeft(duration);
+    setPhase(nextPhase);
+  }
 
+  function handlePhaseComplete() {
+    playBeep();
+    const totalSets = parseInt(exercise.sets) || 1;
+    const restBetween = parseSeconds(exercise.restBetweenSets);
+    const restAfter = parseSeconds(exercise.restAfterExercise);
+
+    if (phase === "exercise") {
       if (currentSet < totalSets) {
         setCurrentSet(prev => prev + 1);
-        startTimer(restBetween, "rest");
+        startPhase(restBetween, "rest");
       } else {
-        const restAfter = parseSeconds(exercise.restAfterExercise);
-        setCurrentSet(1);
-
         if (currentExerciseIndex + 1 < day.exercises.length) {
+          setCurrentSet(1);
           setCurrentExerciseIndex(prev => prev + 1);
-          startTimer(restAfter, "rest");
+          startPhase(restAfter, "rest");
         } else {
           alert("Treniruotė baigta!");
           onClose();
         }
       }
-    } else if (timer === "rest") {
-      const duration = exercise.reps.includes("sekund") ? parseSeconds(exercise.reps) : 0;
-      if (currentSet <= parseInt(exercise.sets)) {
-        startTimer(duration, "exercise");
-      } else {
-        setTimer(null);
-      }
+    } else if (phase === "rest") {
+      startNextExerciseOrSet();
     }
   }
 
-  function handleManualNext() {
+  function startNextExerciseOrSet() {
+    const isTimed = exercise.reps.includes("sekund");
+    const duration = isTimed ? parseSeconds(exercise.reps) : 0;
+    startPhase(duration, "exercise");
+  }
+
+  function handleManualStart() {
     const isTimed = exercise.reps.includes("sekund");
     const duration = isTimed ? parseSeconds(exercise.reps) : 0;
 
     if (isTimed) {
-      startTimer(duration, "exercise");
+      startPhase(duration, "exercise");
     } else {
-      handleTimerComplete();
+      handlePhaseComplete();
     }
   }
 
@@ -82,11 +84,16 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         <h2 className="text-xl font-bold mb-4">{exercise.name}</h2>
         <p className="mb-2">{exercise.description}</p>
         <p className="font-semibold mb-4">Serija {currentSet}/{exercise.sets}</p>
-        {secondsLeft > 0 && <p className="text-4xl font-bold mb-4">{secondsLeft} sek.</p>}
-        {!timer && (
+        {secondsLeft > 0 && (
+          <p className="text-4xl font-bold mb-4">
+            {phase === "rest" ? "Poilsis: " : ""}
+            {secondsLeft} sek.
+          </p>
+        )}
+        {phase === "idle" && (
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
-            onClick={handleManualNext}
+            onClick={handleManualStart}
           >
             {exercise.reps.includes("sekund") ? "Pradėti laikmatį" : "Pratimas atliktas"}
           </button>
