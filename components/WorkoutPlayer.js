@@ -17,6 +17,18 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     return match ? parseInt(match[1]) : 0;
   }
 
+useEffect(() => {
+  // Pirmas kartas, kai užkraunamas komponentas
+  if (phase === "idle" && currentExerciseIndex === 0 && currentSet === 1) {
+    const isTimed = exercise.reps.includes("sekund");
+    const duration = parseSeconds(exercise.reps);
+    if (!isTimed || duration === 0) {
+      setWaitingForUser(true); // rodyti mygtuką „Pratimas atliktas“
+    }
+  }
+}, []);
+
+
   useEffect(() => {
     if (secondsLeft > 0) {
       const interval = setInterval(() => {
@@ -35,6 +47,9 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     }
   }, [secondsLeft, phase]);
 
+
+
+  
   function playBeep() {
     const audio = new Audio("/beep.mp3");
     audio.play();
