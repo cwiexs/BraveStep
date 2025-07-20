@@ -4,7 +4,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentDay, setCurrentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
-  const [phase, setPhase] = useState("idle"); // "exercise", "rest", "idle"
+  const [phase, setPhase] = useState("idle");
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [hasWarned, setHasWarned] = useState(false);
@@ -16,18 +16,6 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     const match = text.match(/(\d+)/);
     return match ? parseInt(match[1]) : 0;
   }
-
-useEffect(() => {
-  // Pirmas kartas, kai užkraunamas komponentas
-  if (phase === "idle" && currentExerciseIndex === 0 && currentSet === 1) {
-    const isTimed = exercise.reps.includes("sekund");
-    const duration = parseSeconds(exercise.reps);
-    if (!isTimed || duration === 0) {
-      setWaitingForUser(true); // rodyti mygtuką „Pratimas atliktas“
-    }
-  }
-}, []);
-
 
   useEffect(() => {
     if (secondsLeft > 0) {
@@ -47,9 +35,16 @@ useEffect(() => {
     }
   }, [secondsLeft, phase]);
 
+  useEffect(() => {
+    if (phase === "idle" && currentExerciseIndex === 0 && currentSet === 1) {
+      const isTimed = exercise.reps.includes("sekund");
+      const duration = parseSeconds(exercise.reps);
+      if (!isTimed || duration === 0) {
+        setWaitingForUser(true);
+      }
+    }
+  }, []);
 
-
-  
   function playBeep() {
     const audio = new Audio("/beep.mp3");
     audio.play();
@@ -72,7 +67,7 @@ useEffect(() => {
         setWaitingForUser(true);
       } else if (nextPhase === "rest") {
         setPhase("rest");
-        setSecondsLeft(0); // trigger handlePhaseComplete immediately
+        setSecondsLeft(0);
       }
     }
   }
@@ -99,15 +94,7 @@ useEffect(() => {
           const nextDuration = parseSeconds(nextExercise.reps);
 
           if (restAfter > 0) {
-            setPhase("rest");
-            setTimeout(() => {
-              if (!nextIsTimed || nextDuration === 0) {
-                setWaitingForUser(true);
-                setPhase("idle");
-              } else {
-                startPhase(nextDuration, "exercise");
-              }
-            }, restAfter * 1000);
+            startPhase(restAfter, "rest");
           } else {
             if (!nextIsTimed || nextDuration === 0) {
               setWaitingForUser(true);
@@ -158,15 +145,7 @@ useEffect(() => {
           const nextDuration = parseSeconds(nextExercise.reps);
 
           if (restAfter > 0) {
-            setPhase("rest");
-            setTimeout(() => {
-              if (!nextIsTimed || nextDuration === 0) {
-                setWaitingForUser(true);
-                setPhase("idle");
-              } else {
-                startPhase(nextDuration, "exercise");
-              }
-            }, restAfter * 1000);
+            startPhase(restAfter, "rest");
           } else {
             if (!nextIsTimed || nextDuration === 0) {
               setWaitingForUser(true);
