@@ -165,8 +165,25 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
       <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-xl text-center">
-        <h2 className="text-xl font-bold mb-4">{exercise.name}</h2>
-        <p className="mb-2">{exercise.description}</p>
+        {phase === "rest" ? (
+          <>
+            <h2 className="text-xl font-bold mb-2">🧘‍♂️ Poilsis</h2>
+            <p className="mb-2 text-gray-700 italic">
+              Giliai įkvėpk... iškvėpk... Ramiai stovėk. Leisk kūnui pailsėti.
+            </p>
+            {currentExerciseIndex + 1 < day.exercises.length && (
+              <p className="text-sm text-gray-600 italic mt-2">
+                🔜 Sekantis pratimas: {day.exercises[currentExerciseIndex + 1].name}
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <h2 className="text-xl font-bold mb-4">{exercise.name}</h2>
+            <p className="mb-2">{exercise.description}</p>
+          </>
+        )}
+
         <p className="font-semibold mb-4">Serija {currentSet}/{exercise.sets}</p>
         {secondsLeft > 0 && (
           <p className="text-4xl font-bold mb-4">
