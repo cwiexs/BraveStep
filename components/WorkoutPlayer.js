@@ -149,7 +149,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   function handleManualStart() {
     if (!audioUnlocked) {
-      const unlock = new Audio("/1.mp3");
+      const unlock = new Audio("/silent.mp3");
       unlock.play().catch(() => {});
       setAudioUnlocked(true);
     }
