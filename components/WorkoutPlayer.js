@@ -4,8 +4,10 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentDay, setCurrentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentSet, setCurrentSet] = useState(1);
-  const [phase, setPhase] = useState("idle"); // "exercise", "rest", "idle"
+  const [phase, setPhase] = useState("idle");
   const [secondsLeft, setSecondsLeft] = useState(0);
+  const [waitingForUser, setWaitingForUser] = useState(false);
+  const [hasWarned, setHasWarned] = useState(false);
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
@@ -20,20 +22,43 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
       const interval = setInterval(() => {
         setSecondsLeft(prev => prev - 1);
       }, 1000);
+
+      if (secondsLeft === 5 && !hasWarned) {
+        playWarning();
+        setHasWarned(true);
+      }
+
       return () => clearInterval(interval);
     } else if (secondsLeft === 0 && phase !== "idle") {
+      setHasWarned(false);
       handlePhaseComplete();
     }
   }, [secondsLeft, phase]);
 
   function playBeep() {
-    const audio = new Audio("/beep.mp3"); // įkelk beep.mp3 į public/
+    const audio = new Audio("/beep.mp3");
+    audio.play();
+  }
+
+  function playWarning() {
+    const audio = new Audio("/get-ready.mp3");
     audio.play();
   }
 
   function startPhase(duration, nextPhase) {
-    setSecondsLeft(duration);
-    setPhase(nextPhase);
+    setWaitingForUser(false);
+    setHasWarned(false);
+    if (duration > 0) {
+      setSecondsLeft(duration);
+      setPhase(nextPhase);
+    } else {
+      if (nextPhase === "exercise") {
+        setWaitingForUser(true);
+        setPhase("idle");
+      } else {
+        handlePhaseComplete();
+      }
+    }
   }
 
   function handlePhaseComplete() {
@@ -41,8 +66,51 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     const totalSets = parseInt(exercise.sets) || 1;
     const restBetween = parseSeconds(exercise.restBetweenSets);
     const restAfter = parseSeconds(exercise.restAfterExercise);
+    const isTimed = exercise.reps.includes("sekund");
 
     if (phase === "exercise") {
+      if (currentSet < totalSets) {
+        setCurrentSet(prev => prev + 1);
+        startPhase(restBetween, "rest");
+      } else {
+        if (currentExerciseIndex + 1 < day.exercises.length) {
+          setCurrentSet(1);
+          setCurrentExerciseIndex(prev => prev + 1);
+          const nextExercise = day.exercises[currentExerciseIndex + 1];
+          const nextIsTimed = nextExercise.reps.includes("sekund");
+          const nextDuration = parseSeconds(nextExercise.reps);
+          startPhase(restAfter, "rest");
+          if (!nextIsTimed || nextDuration === 0) {
+            setWaitingForUser(true);
+          }
+        } else {
+          alert("Treniruotė baigta!");
+          onClose();
+        }
+      }
+    } else if (phase === "rest") {
+      const isTimed = exercise.reps.includes("sekund");
+      const duration = isTimed ? parseSeconds(exercise.reps) : 0;
+      if (isTimed && currentSet <= parseInt(exercise.sets)) {
+        startPhase(duration, "exercise");
+      } else {
+        setWaitingForUser(true);
+        setPhase("idle");
+      }
+    }
+  }
+
+  function handleManualStart() {
+    const isTimed = exercise.reps.includes("sekund");
+    const duration = isTimed ? parseSeconds(exercise.reps) : 0;
+
+    if (isTimed) {
+      startPhase(duration, "exercise");
+    } else {
+      const totalSets = parseInt(exercise.sets) || 1;
+      const restBetween = parseSeconds(exercise.restBetweenSets);
+      const restAfter = parseSeconds(exercise.restAfterExercise);
+
       if (currentSet < totalSets) {
         setCurrentSet(prev => prev + 1);
         startPhase(restBetween, "rest");
@@ -56,44 +124,8 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
           onClose();
         }
       }
-    } else if (phase === "rest") {
-      startNextExerciseOrSet();
     }
   }
-
-  function startNextExerciseOrSet() {
-    const isTimed = exercise.reps.includes("sekund");
-    const duration = isTimed ? parseSeconds(exercise.reps) : 0;
-    startPhase(duration, "exercise");
-  }
-
-  function handleManualStart() {
-  const isTimed = exercise.reps.includes("sekund");
-  const duration = isTimed ? parseSeconds(exercise.reps) : 0;
-
-  if (isTimed) {
-    startPhase(duration, "exercise");
-  } else {
-    // Rankinis pratimo atlikimas (viena serija)
-    const totalSets = parseInt(exercise.sets) || 1;
-    const restBetween = parseSeconds(exercise.restBetweenSets);
-    const restAfter = parseSeconds(exercise.restAfterExercise);
-
-    if (currentSet < totalSets) {
-      setCurrentSet(prev => prev + 1);
-      startPhase(restBetween, "rest");
-    } else {
-      if (currentExerciseIndex + 1 < day.exercises.length) {
-        setCurrentSet(1);
-        setCurrentExerciseIndex(prev => prev + 1);
-        startPhase(restAfter, "rest");
-      } else {
-        alert("Treniruotė baigta!");
-        onClose();
-      }
-    }
-  }
-}
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -107,7 +139,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             {secondsLeft} sek.
           </p>
         )}
-        {phase === "idle" && (
+        {waitingForUser && (
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
             onClick={handleManualStart}
