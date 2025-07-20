@@ -180,9 +180,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             <p className="text-sm text-gray-600 italic mt-2">
               🔜 Sekantis pratimas: {nextExerciseText()}
             </p>
-            <p className="font-semibold mb-2">
-              Serija {Math.min(currentSet, exercise.sets)}/{exercise.sets} serijos
-            </p>
+            
             <p className="text-4xl font-bold mb-4">
               Poilsis: {secondsLeft} sek.
             </p>
