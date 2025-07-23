@@ -7,6 +7,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [phase, setPhase] = useState("intro");
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
+  const [playedWarnings, setPlayedWarnings] = useState([]);
   const wakeLockRef = useRef(null);
 
   const day = workoutData.days[currentDay];
@@ -44,6 +45,12 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   useEffect(() => {
     if (secondsLeft > 0) {
       const interval = setInterval(() => setSecondsLeft(prev => prev - 1), 1000);
+      if (!playedWarnings.includes(secondsLeft)) {
+        if ([5,4,3,2,1].includes(secondsLeft)) {
+          new Audio(`/${secondsLeft}.mp3`).play().catch(()=>{});
+          setPlayedWarnings(prev => [...prev, secondsLeft]);
+        }
+      }
       return () => clearInterval(interval);
     } else if (secondsLeft === 0 && !waitingForUser && phase !== "intro") {
       handlePhaseComplete();
@@ -51,11 +58,14 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }, [secondsLeft, waitingForUser, phase]);
 
   function handlePhaseComplete() {
+    new Audio("/beep.mp3").play().catch(()=>{});
     if (currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
+      setPlayedWarnings([]);
     } else if (currentExerciseIndex + 1 < day.exercises.length) {
       setCurrentExerciseIndex(prev => prev + 1);
       setCurrentStepIndex(0);
+      setPlayedWarnings([]);
     } else {
       alert("Treniruotė baigta!");
       onClose();
@@ -75,6 +85,14 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
       setWaitingForUser(false);
       handlePhaseComplete();
     }
+  }
+
+  function getNextExerciseText() {
+    if (currentExerciseIndex + 1 < day.exercises.length) {
+      const nextExercise = day.exercises[currentExerciseIndex + 1];
+      return nextExercise ? nextExercise.name : "Pabaiga";
+    }
+    return "Pabaiga";
   }
 
   return (
@@ -104,6 +122,11 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             {secondsLeft > 0 && (
               <p className="text-4xl font-bold mb-4">{secondsLeft} sek.</p>
             )}
+            {step.type === "rest" || step.type === "rest_after" ? (
+              <p className="text-sm text-gray-600 italic mt-2">
+                🔜 Sekantis pratimas: {getNextExerciseText()}
+              </p>
+            ) : null}
           </>
         )}
 
