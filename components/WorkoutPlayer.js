@@ -36,17 +36,22 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
     if (step.type === "rest" || step.type === "rest_after") {
       setSecondsLeft(parseSeconds(step.duration));
-      setPhase(step.type);
+      setPhase("rest");
       setWaitingForUser(false);
     } else if (step.type === "exercise") {
       if (step.duration.includes("sek") || step.duration.includes("sec")) {
         setSecondsLeft(parseSeconds(step.duration));
         setPhase("exercise");
         setWaitingForUser(false);
-      } else {
+      } else if (step.duration.includes("kart")) {
         setWaitingForUser(true);
         setPhase("exercise");
+      } else {
+        setWaitingForUser(false);
       }
+    } else {
+      setPhase("rest");
+      setWaitingForUser(false);
     }
   }, [currentExerciseIndex, currentStepIndex, phase, paused]);
 
@@ -189,7 +194,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
           </>
         )}
 
-        {waitingForUser && step.type === "exercise" && (
+        {waitingForUser && step.type === "exercise" && step.duration.includes("kart") && (
           <div className="flex flex-col items-center gap-2 mt-4">
             <button
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
