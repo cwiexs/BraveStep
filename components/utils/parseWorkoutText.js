@@ -1,4 +1,4 @@
-// Patobulintas parseWorkoutText.js su teisingu žingsnių priskyrimu
+// Patobulintas parseWorkoutText.js su automatiniais žingsnių generavimais
 
 export function parseWorkoutText(planText) {
   const lines = planText.split("\n");
@@ -11,8 +11,16 @@ export function parseWorkoutText(planText) {
   let currentDay = null;
   let currentExercise = null;
   let section = "intro";
-  let isStepsSection = false;
   let currentSteps = [];
+  let setCount = 0;
+  let restBetween = "";
+  let restAfter = "";
+  let reps = "";
+
+  function extractNumberFrom(text) {
+    const match = text.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  }
 
   for (const line of lines) {
     const trimmed = line.trim();
@@ -56,8 +64,11 @@ export function parseWorkoutText(planText) {
       };
       currentDay.exercises.push(currentExercise);
       section = "exercise";
-      isStepsSection = false;
       currentSteps = [];
+      setCount = 0;
+      restBetween = "";
+      restAfter = "";
+      reps = "";
       continue;
     }
     if (trimmed.startsWith("@@water@@")) {
@@ -84,25 +95,14 @@ export function parseWorkoutText(planText) {
         currentExercise.name = trimmed.replace("@name:", "").trim();
       } else if (trimmed.startsWith("@description:")) {
         currentExercise.description = trimmed.replace("@description:", "").trim();
-      } else if (trimmed.startsWith("@steps:")) {
-        isStepsSection = true;
-      } else if (isStepsSection && trimmed.startsWith("- type:")) {
-        const step = {
-          type: trimmed.replace("- type:", "").trim(),
-          set: null,
-          duration: null
-        };
-        currentSteps.push(step);
-      } else if (isStepsSection && trimmed.startsWith("set:")) {
-        const lastStep = currentSteps[currentSteps.length - 1];
-        if (lastStep) {
-          lastStep.set = parseInt(trimmed.replace("set:", "").trim());
-        }
-      } else if (isStepsSection && trimmed.startsWith("duration:")) {
-        const lastStep = currentSteps[currentSteps.length - 1];
-        if (lastStep) {
-          lastStep.duration = trimmed.replace("duration:", "").trim().replace(/^\"|\"$/g, "");
-        }
+      } else if (trimmed.startsWith("@sets:")) {
+        setCount = extractNumberFrom(trimmed);
+      } else if (trimmed.startsWith("@rest_sets:")) {
+        restBetween = trimmed.replace("@rest_sets:", "").trim();
+      } else if (trimmed.startsWith("@rest_after:")) {
+        restAfter = trimmed.replace("@rest_after:", "").trim();
+      } else if (trimmed.startsWith("@reps:")) {
+        reps = extractNumberFrom(trimmed);
       }
     } else if (section === "water") {
       currentDay.waterRecommendation += trimmed + " ";
@@ -110,6 +110,32 @@ export function parseWorkoutText(planText) {
       currentDay.outdoorSuggestion += trimmed + " ";
     } else if (section === "missingFields") {
       result.missingFields += trimmed + "\n";
+    }
+
+    if (currentExercise && setCount && reps && restBetween) {
+      currentSteps = [];
+      for (let i = 1; i <= setCount; i++) {
+        currentSteps.push({
+          type: "exercise",
+          set: i,
+          duration: reps + " sek."
+        });
+        if (i < setCount) {
+          currentSteps.push({
+            type: "rest",
+            set: i,
+            duration: restBetween
+          });
+        }
+      }
+      if (restAfter) {
+        currentSteps.push({
+          type: "rest_after",
+          set: null,
+          duration: restAfter
+        });
+      }
+      currentExercise.steps = currentSteps;
     }
   }
 
