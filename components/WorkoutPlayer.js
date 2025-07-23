@@ -196,16 +196,22 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   const nextExerciseText = () => {
-    if (phase === "rest") {
-      if (currentSet < parseInt(exercise.sets)) {
-        return `${exercise.name} (serija ${currentSet + 1} iš ${exercise.sets})`;
-      } else {
-        const next = day.exercises[currentExerciseIndex + 1];
-        return next ? `${next.name} (serija 1 iš ${next.sets})` : "Pabaiga";
-      }
+  const totalSets = parseInt(exercise.sets) || 1;
+
+  if (phase === "rest") {
+    if (currentSet <= totalSets) {
+      // Jei dabar ilsimės po serijos ir dar ne paskutinė
+      return `${exercise.name} (serija ${currentSet} iš ${exercise.sets})`;
+    } else {
+      // Baigtos visos serijos – rodom sekantį pratimą
+      const next = day.exercises[currentExerciseIndex + 1];
+      return next ? `${next.name} (serija 1 iš ${next.sets})` : "Pabaiga";
     }
-    return "";
-  };
+  }
+
+  return "";
+};
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
