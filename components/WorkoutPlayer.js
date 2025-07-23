@@ -14,8 +14,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
-const step = exercise?.steps?.[currentStepIndex] ?? {};
-
+  const step = exercise.steps[currentStepIndex];
 
   function parseSeconds(text) {
     const match = text.match(/(\d+)/);
