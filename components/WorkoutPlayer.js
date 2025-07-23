@@ -136,9 +136,9 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
           </>
         ) : (
           <>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
+            <h2 className="text-2xl font-bold text-green-600 mb-2">{exercise.name}</h2>
             {step.type === "exercise" && (
-              <p className="text-lg font-medium text-gray-900 mb-2">
+              <p className="text-lg font-medium text-green-600 mb-2">
                 {step.duration}, serija {step.set}
               </p>
             )}
@@ -171,17 +171,17 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
 
 
-            <div className="flex justify-center items-center gap-4 mt-6">
-              <button onClick={goToPrevious} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
+            <div className="flex justify-center items-center gap-2 mt-6">
+              <button onClick={goToPrevious} className="text-gray-700 text-xl">
                 ⏮️
               </button>
-              <button onClick={() => setPaused(prev => !prev)} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
+              <button onClick={() => setPaused(prev => !prev)} className="text-gray-700 text-xl">
                 {paused ? "▶️" : "⏸️"}
               </button>
-              <button onClick={restartCurrentStep} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
+              <button onClick={restartCurrentStep} className=" text-gray-700 text-xl">
                 🔁
               </button>
-              <button onClick={goToNext} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
+              <button onClick={goToNext} className="text-gray-700 text-xl">
                 ⏭️
               </button>
             </div>
