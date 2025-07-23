@@ -120,7 +120,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
                 )}
 
                 {(step.type === "rest" || step.type === "rest_after") && (
-                <p className="text-lg font-medium text-gray-900 mb-2">
+                <p className="text-lg font-medium text-green-500 mb-2">
                     Poilsis: {step.duration}
                 </p>
                 )}
