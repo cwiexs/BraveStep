@@ -1,4 +1,4 @@
-// Patobulintas parseWorkoutText.js su automatiniais žingsnių generavimais
+// Saugi parseWorkoutText.js versija su žingsnių generavimu tik pabaigoje
 
 export function parseWorkoutText(planText) {
   const lines = planText.split("\n");
@@ -11,7 +11,6 @@ export function parseWorkoutText(planText) {
   let currentDay = null;
   let currentExercise = null;
   let section = "intro";
-  let currentSteps = [];
   let setCount = 0;
   let restBetween = "";
   let restAfter = "";
@@ -54,8 +53,33 @@ export function parseWorkoutText(planText) {
       continue;
     }
     if (trimmed.startsWith("@@exercise@@")) {
-      if (currentExercise && currentSteps.length > 0) {
-        currentExercise.steps = currentSteps;
+      if (currentExercise) {
+        // Generuojam žingsnius tik čia
+        if (setCount > 0 && reps > 0 && restBetween) {
+          const steps = [];
+          for (let i = 1; i <= setCount; i++) {
+            steps.push({
+              type: "exercise",
+              set: i,
+              duration: reps + " sek."
+            });
+            if (i < setCount) {
+              steps.push({
+                type: "rest",
+                set: i,
+                duration: restBetween
+              });
+            }
+          }
+          if (restAfter) {
+            steps.push({
+              type: "rest_after",
+              set: null,
+              duration: restAfter
+            });
+          }
+          currentExercise.steps = steps;
+        }
       }
       currentExercise = {
         name: "",
@@ -64,7 +88,6 @@ export function parseWorkoutText(planText) {
       };
       currentDay.exercises.push(currentExercise);
       section = "exercise";
-      currentSteps = [];
       setCount = 0;
       restBetween = "";
       restAfter = "";
@@ -111,36 +134,33 @@ export function parseWorkoutText(planText) {
     } else if (section === "missingFields") {
       result.missingFields += trimmed + "\n";
     }
-
-    if (currentExercise && setCount && reps && restBetween) {
-      currentSteps = [];
-      for (let i = 1; i <= setCount; i++) {
-        currentSteps.push({
-          type: "exercise",
-          set: i,
-          duration: reps + " sek."
-        });
-        if (i < setCount) {
-          currentSteps.push({
-            type: "rest",
-            set: i,
-            duration: restBetween
-          });
-        }
-      }
-      if (restAfter) {
-        currentSteps.push({
-          type: "rest_after",
-          set: null,
-          duration: restAfter
-        });
-      }
-      currentExercise.steps = currentSteps;
-    }
   }
 
-  if (currentExercise && currentSteps.length > 0) {
-    currentExercise.steps = currentSteps;
+  // Priskiriam paskutinio pratimo žingsnius
+  if (currentExercise && setCount > 0 && reps > 0 && restBetween) {
+    const steps = [];
+    for (let i = 1; i <= setCount; i++) {
+      steps.push({
+        type: "exercise",
+        set: i,
+        duration: reps + " sek."
+      });
+      if (i < setCount) {
+        steps.push({
+          type: "rest",
+          set: i,
+          duration: restBetween
+        });
+      }
+    }
+    if (restAfter) {
+      steps.push({
+        type: "rest_after",
+        set: null,
+        duration: restAfter
+      });
+    }
+    currentExercise.steps = steps;
   }
 
   return result;
