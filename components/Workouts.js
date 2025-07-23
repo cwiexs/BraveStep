@@ -9,6 +9,7 @@ export default function Workouts() {
   const { data: session, status } = useSession();
   const { t } = useTranslation("workouts");
   const [plan, setPlan] = useState(null);
+  const [parsedPlan, setParsedPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
 
@@ -16,14 +17,21 @@ export default function Workouts() {
     if (session) {
       fetch("/api/last-workout")
         .then(res => res.json())
-        .then(data => setPlan(data.plan))
-        .catch(() => setPlan(null));
+        .then(data => {
+          setPlan(data.plan);
+          setParsedPlan(parseWorkoutText(data.plan.text));
+        })
+        .catch(() => {
+          setPlan(null);
+          setParsedPlan(null);
+        });
     }
   }, [session]);
 
   async function handleGeneratePlan() {
     setLoading(true);
     setPlan(null);
+    setParsedPlan(null);
     try {
       const response = await fetch("/api/generate-workout", {
         method: "POST",
@@ -32,6 +40,7 @@ export default function Workouts() {
       });
       const data = await response.json();
       setPlan(data.plan);
+      setParsedPlan(parseWorkoutText(data.plan.text));
     } catch (error) {
       alert("Nepavyko sugeneruoti plano");
     } finally {
@@ -69,7 +78,7 @@ export default function Workouts() {
         </button>
       </div>
 
-      {plan && (
+      {parsedPlan && (
         <>
           <div className="mt-4 text-center">
             <button
@@ -81,49 +90,47 @@ export default function Workouts() {
           </div>
 
           <div className="mt-10 space-y-10">
-            {(() => {
-              const parsed = parseWorkoutText(plan.text);
+            <p className="text-md text-gray-800 whitespace-pre-wrap mb-6 bg-blue-50 p-4 rounded-xl">{parsedPlan.introduction}</p>
 
-              return (
-                <div>
-                  <p className="text-md text-gray-800 whitespace-pre-wrap mb-6 bg-blue-50 p-4 rounded-xl">{parsed.introduction}</p>
-
-                  {parsed.days.map(day => (
-                    <div key={day.day} className="bg-gray-50 border border-gray-300 rounded-xl p-6 shadow-sm">
-                      <h2 className="text-2xl font-semibold text-blue-900 mb-2">Diena {day.day}</h2>
-                      <p className="text-green-700 italic mb-3">💬 {day.motivationStart}</p>
-                      <div className="space-y-4">
-                        {day.exercises.map((ex, i) => (
-                          <div key={i} className="bg-white border border-gray-200 p-4 rounded-lg relative">
-                            <div className="flex items-start justify-between">
-                              <div>
-                                <p className="font-semibold text-gray-800">{ex.name || `Pratimas ${i + 1}`}</p>
-                                {ex.steps.map((step, idx) => (
-                                  <p key={idx} className="text-sm text-gray-700">
-                                    {step.type === "exercise" ? `Serija ${step.set}: ${step.duration}` : step.type === "rest" ? `Poilsis: ${step.duration}` : `Poilsis prieš kitą pratimą: ${step.duration}`}
-                                  </p>
-                                ))}
-                              </div>
-                              <div className="relative group cursor-pointer">
-                                <Info className="w-5 h-5 text-blue-500 mt-1" />
-                                <div className="absolute hidden group-hover:block bg-white border border-gray-300 p-3 text-sm text-gray-700 rounded-lg shadow-md w-64 right-0 z-10">
-                                  {ex.description}
-                                </div>
-                              </div>
-                            </div>
+            {parsedPlan.days.map(day => (
+              <div key={day.day} className="bg-gray-50 border border-gray-300 rounded-xl p-6 shadow-sm">
+                <h2 className="text-2xl font-semibold text-blue-900 mb-2">Diena {day.day}</h2>
+                <p className="text-green-700 italic mb-3">💬 {day.motivationStart}</p>
+                <div className="space-y-4">
+                  {day.exercises.map((ex, i) => (
+                    <div key={i} className="bg-white border border-gray-200 p-4 rounded-lg relative">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <p className="font-semibold text-gray-800">{ex.name || `Pratimas ${i + 1}`}</p>
+                          {ex.steps.map((step, idx) => (
+                            <p key={idx} className="text-sm text-gray-700">
+                              {step.type === "exercise" ? `Serija ${step.set}: ${step.duration}` : step.type === "rest" ? `Poilsis: ${step.duration}` : `Poilsis prieš kitą pratimą: ${step.duration}`}
+                            </p>
+                          ))}
+                        </div>
+                        <div className="relative group cursor-pointer">
+                          <Info className="w-5 h-5 text-blue-500 mt-1" />
+                          <div className="absolute hidden group-hover:block bg-white border border-gray-300 p-3 text-sm text-gray-700 rounded-lg shadow-md w-64 right-0 z-10">
+                            {ex.description}
                           </div>
-                        ))}
+                        </div>
                       </div>
-                      <p className="text-blue-700 italic mt-4">🏁 {day.motivationEnd}</p>
-                      {day.waterRecommendation?.trim() && <p className="text-blue-600 mt-2">💧 {day.waterRecommendation}</p>}
-                      {day.outdoorSuggestion?.trim() && <p className="text-green-600 mt-1">🌿 {day.outdoorSuggestion}</p>}
                     </div>
                   ))}
                 </div>
-              );
-            })()}
+                <p className="text-blue-700 italic mt-4">🏁 {day.motivationEnd}</p>
+                {day.waterRecommendation?.trim() && <p className="text-blue-600 mt-2">💧 {day.waterRecommendation}</p>}
+                {day.outdoorSuggestion?.trim() && <p className="text-green-600 mt-1">🌿 {day.outdoorSuggestion}</p>}
+              </div>
+            ))}
           </div>
-          {showPlayer && <WorkoutPlayer workoutData={parseWorkoutText(plan.text)} onClose={() => setShowPlayer(false)} />}
+
+          {showPlayer && (
+            <WorkoutPlayer
+              workoutData={parsedPlan}
+              onClose={() => setShowPlayer(false)}
+            />
+          )}
         </>
       )}
     </div>
