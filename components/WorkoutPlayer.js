@@ -31,22 +31,24 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }, []);
 
   useEffect(() => {
+    if (phase === "intro") return;
+
     if (step.duration.includes("sek") || step.duration.includes("sec")) {
       setSecondsLeft(parseSeconds(step.duration));
       setPhase(step.type);
     } else {
       setWaitingForUser(true);
     }
-  }, [currentExerciseIndex, currentStepIndex]);
+  }, [currentExerciseIndex, currentStepIndex, phase]);
 
   useEffect(() => {
     if (secondsLeft > 0) {
       const interval = setInterval(() => setSecondsLeft(prev => prev - 1), 1000);
       return () => clearInterval(interval);
-    } else if (secondsLeft === 0 && !waitingForUser) {
+    } else if (secondsLeft === 0 && !waitingForUser && phase !== "intro") {
       handlePhaseComplete();
     }
-  }, [secondsLeft]);
+  }, [secondsLeft, waitingForUser, phase]);
 
   function handlePhaseComplete() {
     if (currentStepIndex + 1 < exercise.steps.length) {
@@ -61,8 +63,18 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function handleManualContinue() {
-    setWaitingForUser(false);
-    handlePhaseComplete();
+    if (phase === "intro") {
+      setPhase("exercise");
+      if (step.duration.includes("sek") || step.duration.includes("sec")) {
+        setSecondsLeft(parseSeconds(step.duration));
+        setWaitingForUser(false);
+      } else {
+        setWaitingForUser(true);
+      }
+    } else {
+      setWaitingForUser(false);
+      handlePhaseComplete();
+    }
   }
 
   return (
@@ -82,14 +94,20 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         ) : (
           <>
             <h2 className="text-xl font-bold mb-4">{exercise.name}</h2>
-            <p className="text-lg text-blue-600 font-semibold mb-2">{step.type === "rest" || step.type === "rest_after" ? "Poilsis" : `Serija ${step.set}`}</p>
+            <p className="text-lg text-blue-600 font-semibold mb-2">
+              {step.type === "rest" || step.type === "rest_after"
+                ? "Poilsis"
+                : `Serija ${step.set}`}
+            </p>
             <p className="text-sm text-gray-500 italic mb-2">{exercise.description}</p>
             <p className="font-semibold mb-4">{step.duration}</p>
-            {secondsLeft > 0 && <p className="text-4xl font-bold mb-4">{secondsLeft} sek.</p>}
+            {secondsLeft > 0 && (
+              <p className="text-4xl font-bold mb-4">{secondsLeft} sek.</p>
+            )}
           </>
         )}
 
-        {waitingForUser && (
+        {waitingForUser && phase !== "intro" && (
           <button
             className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
             onClick={handleManualContinue}
