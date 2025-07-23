@@ -138,16 +138,23 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
           </>
         )}
 
-        {waitingForUser && phase !== "intro" && (
-          <button
-            className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded"
-            onClick={handleManualContinue}
-          >
-            Tęsti
-          </button>
-        )}
+                    {waitingForUser && phase !== "intro" && (
+            <div className="flex flex-col items-center gap-2 mt-4">
+                <button
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
+                onClick={handleManualContinue}
+                >
+                Tęsti
+                </button>
+                <button
+                onClick={onClose}
+                className="text-sm text-red-500 hover:underline"
+                >
+                Uždaryti
+                </button>
+            </div>
+            )}
 
-        <button onClick={onClose} className="mt-4 text-red-500">Uždaryti</button>
       </div>
     </div>
   );
