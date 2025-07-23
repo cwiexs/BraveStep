@@ -149,7 +149,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
               </p>
             )}
             {secondsLeft > 0 && (
-              <p className="text-4xl font-bold mb-4">{secondsLeft} sek.</p>
+              <p className="text-4xl text-green-600 font-bold mb-4">{secondsLeft} sek.</p>
             )}
             <p className="text-sm text-gray-600 italic mb-6">{exercise.description}</p>
             {(step.type === "rest" || step.type === "rest_after") && (
