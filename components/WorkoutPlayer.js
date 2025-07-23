@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { SkipBack, SkipForward, Pause, Play, RotateCcw } from 'lucide-react';
 
 export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentDay, setCurrentDay] = useState(0);
@@ -33,20 +34,11 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   useEffect(() => {
     if (phase === "intro" || paused) return;
-
-    if (step.type === "rest" || step.type === "rest_after") {
+    if (step.duration.includes("sek") || step.duration.includes("sec")) {
       setSecondsLeft(parseSeconds(step.duration));
       setPhase(step.type);
-      setWaitingForUser(false);
-    } else if (step.type === "exercise") {
-      if (step.duration.includes("sek") || step.duration.includes("sec")) {
-        setSecondsLeft(parseSeconds(step.duration));
-        setPhase("exercise");
-        setWaitingForUser(false);
-      } else {
-        setWaitingForUser(true);
-        setPhase("exercise");
-      }
+    } else {
+      setWaitingForUser(true);
     }
   }, [currentExerciseIndex, currentStepIndex, phase, paused]);
 
@@ -146,50 +138,28 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         ) : (
           <>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
-            {step.type === "exercise" && step.duration.includes("kart") && (
+            {step.type === "exercise" && (
               <p className="text-lg font-medium text-gray-900 mb-2">
-                {step.duration} – serija {step.set}
+                {step.duration} - serija {step.set}
               </p>
             )}
             {(step.type === "rest" || step.type === "rest_after") && (
-              <p className="text-lg font-medium text-green-600 mb-2">
+              <p className="text-lg font-medium text-gray-900 mb-2">
                 Poilsis: {step.duration}
               </p>
             )}
             {secondsLeft > 0 && (
-              <p className="text-4xl font-bold mb-4">{secondsLeft} sek.</p>
+              <p className="text-4xl text-gray-900 font-bold mb-4">{secondsLeft} sek.</p>
             )}
-            <p className="text-sm text-gray-600 italic mb-6">{exercise.description}</p>
+            <p className="text-sm text-gray-500 italic mb-6">{exercise.description}</p>
             {(step.type === "rest" || step.type === "rest_after") && (
-              <p className="text-sm text-gray-600 italic mt-2">
+              <p className="text-sm text-gray-500 italic mt-2">
                 🔜 Sekantis pratimas: {getNextExerciseText()}
               </p>
             )}
 
-            <div className="flex justify-center items-center gap-4 mt-6">
-              <button onClick={goToPrevious} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
-                ⏮️
-              </button>
-              <button onClick={() => setPaused(prev => !prev)} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
-                {paused ? "▶️" : "⏸️"}
-              </button>
-              <button onClick={restartCurrentStep} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
-                🔁
-              </button>
-              <button onClick={goToNext} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
-                ⏭️
-              </button>
-            </div>
 
-            <div className="mt-4">
-              <button onClick={onClose} className="text-sm text-red-500 hover:underline">
-                Baigti sesiją
-              </button>
-            </div>
-          </>
-        )}
-
-        {waitingForUser && step.type === "exercise" && (
+{waitingForUser && phase !== "intro" && (
           <div className="flex flex-col items-center gap-2 mt-4">
             <button
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
@@ -199,6 +169,34 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             </button>
           </div>
         )}
+
+
+
+            <div className="flex justify-center items-center gap-4 mt-6">
+  <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    <SkipBack className="w-6 h-6 text-gray-800" />
+  </button>
+  <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+  </button>
+  <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    <RotateCcw className="w-6 h-6 text-gray-800" />
+  </button>
+  <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    <SkipForward className="w-6 h-6 text-gray-800" />
+  </button>
+</div> 
+
+
+            <div className="mt-4">
+              <button onClick={onClose} className="text-sm text-red-500 hover:underline">
+                Baigti sesiją
+              </button>
+            </div>
+          </>
+        )}
+
+        
       </div>
     </div>
   );
