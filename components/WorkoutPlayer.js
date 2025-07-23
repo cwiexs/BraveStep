@@ -111,14 +111,22 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
           </>
         ) : (
           <>
-            <h2 className="text-xl font-bold mb-4">{exercise.name}</h2>
-            <p className="text-lg text-blue-600 font-semibold mb-2">
-              {step.type === "rest" || step.type === "rest_after"
-                ? "Poilsis"
-                : `Serija ${step.set}`}
-            </p>
-            <p className="text-sm text-gray-500 italic mb-2">{exercise.description}</p>
-            <p className="font-semibold mb-4">{step.duration}</p>
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
+
+                {step.type === "exercise" && (
+                <p className="text-lg font-medium text-gray-900 mb-2">
+                    {step.duration}, serija {step.set}
+                </p>
+                )}
+
+                {(step.type === "rest" || step.type === "rest_after") && (
+                <p className="text-lg font-medium text-gray-900 mb-2">
+                    Poilsis: {step.duration}
+                </p>
+                )}
+
+                <p className="text-sm text-gray-600 italic mb-6">{exercise.description}</p>
+
             {secondsLeft > 0 && (
               <p className="text-4xl font-bold mb-4">{secondsLeft} sek.</p>
             )}
