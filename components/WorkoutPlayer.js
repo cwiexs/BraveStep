@@ -14,10 +14,11 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
-  const step = exercise?.steps?.[currentStepIndex] ?? {};
+const step = exercise?.steps?.[currentStepIndex] ?? {};
+
 
   function parseSeconds(text) {
-    const match = text?.match(/(\d+)/);
+    const match = text.match(/(\d+)/);
     return match ? parseInt(match[1]) : 0;
   }
 
@@ -33,14 +34,14 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }, []);
 
   useEffect(() => {
-    if (phase === "intro" || paused || !step) return;
-    if (step.duration?.includes("sek") || step.duration?.includes("sec")) {
+    if (phase === "intro" || paused) return;
+    if (step.duration.includes("sek") || step.duration.includes("sec")) {
       setSecondsLeft(parseSeconds(step.duration));
       setPhase(step.type);
     } else {
       setWaitingForUser(true);
     }
-  }, [currentExerciseIndex, currentStepIndex, phase, paused, step]);
+  }, [currentExerciseIndex, currentStepIndex, phase, paused]);
 
   useEffect(() => {
     if (secondsLeft > 0 && !paused) {
@@ -59,7 +60,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   function handlePhaseComplete() {
     new Audio("/beep.mp3").play().catch(()=>{});
-    if (currentStepIndex + 1 < exercise.steps?.length) {
+    if (currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
       setPlayedWarnings([]);
     } else if (currentExerciseIndex + 1 < day.exercises.length) {
@@ -75,7 +76,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   function handleManualContinue() {
     if (phase === "intro") {
       setPhase("exercise");
-      if (step.duration?.includes("sek") || step.duration?.includes("sec")) {
+      if (step.duration.includes("sek") || step.duration.includes("sec")) {
         setSecondsLeft(parseSeconds(step.duration));
         setWaitingForUser(false);
       } else {
@@ -107,7 +108,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function goToNext() {
-    if (currentStepIndex + 1 < exercise.steps?.length) {
+    if (currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
     } else if (currentExerciseIndex + 1 < day.exercises.length) {
       setCurrentExerciseIndex(prev => prev + 1);
@@ -116,7 +117,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function restartCurrentStep() {
-    if (step.duration?.includes("sek") || step.duration?.includes("sec")) {
+    if (step.duration.includes("sek") || step.duration.includes("sec")) {
       setSecondsLeft(parseSeconds(step.duration));
     }
   }
@@ -128,19 +129,22 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
           <>
             <h2 className="text-2xl font-bold mb-4">💡 Motyvacija</h2>
             <p className="mb-4 text-gray-800 whitespace-pre-wrap">{workoutData.introduction}</p>
-            <button className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold" onClick={handleManualContinue}>
+            <button
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold"
+              onClick={handleManualContinue}
+            >
               Pradėti treniruotę
             </button>
           </>
         ) : (
           <>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
-            {step?.type === "exercise" && (
+            {step.type === "exercise" && (
               <p className="text-lg font-medium text-gray-900 mb-2">
                 {step.duration} - serija {step.set}
               </p>
             )}
-            {(step?.type === "rest" || step?.type === "rest_after") && (
+            {(step.type === "rest" || step.type === "rest_after") && (
               <p className="text-lg font-medium text-gray-900 mb-2">
                 Poilsis: {step.duration}
               </p>
@@ -149,31 +153,51 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
               <p className="text-4xl text-gray-900 font-bold mb-4">{secondsLeft} sek.</p>
             )}
             <p className="text-sm text-gray-500 italic mb-6">{exercise.description}</p>
-            {(step?.type === "rest" || step?.type === "rest_after") && (
+            {(step.type === "rest" || step.type === "rest_after") && (
               <p className="text-sm text-gray-500 italic mt-2">
                 🔜 Sekantis pratimas: {getNextExerciseText()}
               </p>
             )}
-            {waitingForUser && phase !== "intro" && (
-              <div className="flex flex-col items-center gap-2 mt-4">
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold" onClick={handleManualContinue}>
-                  Atlikta
-                </button>
-              </div>
-            )}
+
+
+{waitingForUser && phase !== "intro" && (
+          <div className="flex flex-col items-center gap-2 mt-4">
+            <button
+              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
+              onClick={handleManualContinue}
+            >
+              Atlikta
+            </button>
+          </div>
+        )}
+
+
+
             <div className="flex justify-center items-center gap-4 mt-6">
-              <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm"><SkipBack className="w-6 h-6 text-gray-800" /></button>
-              <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-              </button>
-              <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm"><RotateCcw className="w-6 h-6 text-gray-800" /></button>
-              <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm"><SkipForward className="w-6 h-6 text-gray-800" /></button>
-            </div>
+  <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    <SkipBack className="w-6 h-6 text-gray-800" />
+  </button>
+  <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+  </button>
+  <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    <RotateCcw className="w-6 h-6 text-gray-800" />
+  </button>
+  <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    <SkipForward className="w-6 h-6 text-gray-800" />
+  </button>
+</div> 
+
+
             <div className="mt-4">
-              <button onClick={onClose} className="text-sm text-red-500 hover:underline">Baigti sesiją</button>
+              <button onClick={onClose} className="text-sm text-red-500 hover:underline">
+                Baigti sesiją
+              </button>
             </div>
           </>
         )}
+
+        
       </div>
     </div>
   );
