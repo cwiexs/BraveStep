@@ -98,9 +98,13 @@ export default function Workouts() {
                             <div className="flex items-start justify-between">
                               <div>
                                 <p className="font-semibold text-gray-800">{ex.name || `Pratimas ${i + 1}`}</p>
-                                <p className="text-sm text-gray-700">{ex.reps}, {ex.sets}</p>
-                                {ex.restBetweenSets?.trim() && <p className="text-sm text-gray-600">{ex.restBetweenSets}</p>}
-                                {ex.restAfterExercise?.trim() && <p className="text-sm text-gray-600">{ex.restAfterExercise}</p>}
+                                {ex.steps?.map((step, idx) => (
+                                  <p key={idx} className="text-sm text-gray-700">
+                                    {step.type === "exercise" && `Serija ${step.set}: ${step.duration}`}
+                                    {step.type === "rest" && `Poilsis: ${step.duration}`}
+                                    {step.type === "rest_after" && `Poilsis prieš kitą pratimą: ${step.duration}`}
+                                  </p>
+                                ))}
                               </div>
                               <div className="relative group cursor-pointer">
                                 <Info className="w-5 h-5 text-blue-500 mt-1" />
