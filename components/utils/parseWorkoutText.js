@@ -1,4 +1,4 @@
-// Atnaujintas failas parseWorkoutText.js su nauja @steps struktūra
+// Patobulintas parseWorkoutText.js su teisingu žingsnių priskyrimu
 
 export function parseWorkoutText(planText) {
   const lines = planText.split("\n");
@@ -46,6 +46,9 @@ export function parseWorkoutText(planText) {
       continue;
     }
     if (trimmed.startsWith("@@exercise@@")) {
+      if (currentExercise && currentSteps.length > 0) {
+        currentExercise.steps = currentSteps;
+      }
       currentExercise = {
         name: "",
         steps: [],
@@ -110,7 +113,6 @@ export function parseWorkoutText(planText) {
     }
   }
 
-  // Priskirti surinktus žingsnius
   if (currentExercise && currentSteps.length > 0) {
     currentExercise.steps = currentSteps;
   }
