@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { SkipBack, SkipForward, Pause, Play, RotateCcw } from 'lucide-react';
 
 export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentDay, setCurrentDay] = useState(0);
@@ -171,20 +172,21 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
 
 
-            <div className="flex justify-center items-center gap-2 mt-6">
-              <button onClick={goToPrevious} className="text-gray-700 text-xl">
-                ⏮️
-              </button>
-              <button onClick={() => setPaused(prev => !prev)} className="text-gray-700 text-xl">
-                {paused ? "▶️" : "⏸️"}
-              </button>
-              <button onClick={restartCurrentStep} className=" text-gray-700 text-xl">
-                🔁
-              </button>
-              <button onClick={goToNext} className="text-gray-700 text-xl">
-                ⏭️
-              </button>
-            </div>
+            <div className="flex justify-center items-center gap-4 mt-6">
+  <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    <SkipBack className="w-6 h-6 text-gray-800" />
+  </button>
+  <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+  </button>
+  <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    <RotateCcw className="w-6 h-6 text-gray-800" />
+  </button>
+  <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+    <SkipForward className="w-6 h-6 text-gray-800" />
+  </button>
+</div> 
+
 
             <div className="mt-4">
               <button onClick={onClose} className="text-sm text-red-500 hover:underline">
