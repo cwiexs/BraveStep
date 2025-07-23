@@ -137,23 +137,23 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
           </>
         ) : (
           <>
-            <h2 className="text-2xl font-bold text-gray-600 mb-2">{exercise.name}</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
             {step.type === "exercise" && (
-              <p className="text-lg font-medium text-gray-600 mb-2">
+              <p className="text-lg font-medium text-gray-900 mb-2">
                 {step.duration}, serija {step.set}
               </p>
             )}
             {(step.type === "rest" || step.type === "rest_after") && (
-              <p className="text-lg font-medium text-gray-600 mb-2">
+              <p className="text-lg font-medium text-gray-900 mb-2">
                 Poilsis: {step.duration}
               </p>
             )}
             {secondsLeft > 0 && (
-              <p className="text-4xl text-gray-600 font-bold mb-4">{secondsLeft} sek.</p>
+              <p className="text-4xl text-gray-900 font-bold mb-4">{secondsLeft} sek.</p>
             )}
-            <p className="text-sm text-gray-600 italic mb-6">{exercise.description}</p>
+            <p className="text-sm text-gray-900 italic mb-6">{exercise.description}</p>
             {(step.type === "rest" || step.type === "rest_after") && (
-              <p className="text-sm text-gray-600 italic mt-2">
+              <p className="text-sm text-gray-900 italic mt-2">
                 🔜 Sekantis pratimas: {getNextExerciseText()}
               </p>
             )}
