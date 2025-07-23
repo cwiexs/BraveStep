@@ -98,11 +98,9 @@ export default function Workouts() {
                             <div className="flex items-start justify-between">
                               <div>
                                 <p className="font-semibold text-gray-800">{ex.name || `Pratimas ${i + 1}`}</p>
-                                {ex.steps?.map((step, idx) => (
+                                {ex.steps.map((step, idx) => (
                                   <p key={idx} className="text-sm text-gray-700">
-                                    {step.type === "exercise" && `Serija ${step.set}: ${step.duration}`}
-                                    {step.type === "rest" && `Poilsis: ${step.duration}`}
-                                    {step.type === "rest_after" && `Poilsis prieš kitą pratimą: ${step.duration}`}
+                                    {step.type === "exercise" ? `Serija ${step.set}: ${step.duration}` : step.type === "rest" ? `Poilsis: ${step.duration}` : `Poilsis prieš kitą pratimą: ${step.duration}`}
                                   </p>
                                 ))}
                               </div>
