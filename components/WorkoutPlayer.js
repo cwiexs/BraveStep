@@ -138,12 +138,12 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
           <>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
             {step.type === "exercise" && (
-              <p className="text-lg font-medium text-green-500 mb-2">
+              <p className="text-lg font-medium text-gray-900 mb-2">
                 {step.duration}, serija {step.set}
               </p>
             )}
             {(step.type === "rest" || step.type === "rest_after") && (
-              <p className="text-lg font-medium text-green-500 mb-2">
+              <p className="text-lg font-medium text-green-600 mb-2">
                 Poilsis: {step.duration}
               </p>
             )}
@@ -156,23 +156,9 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
                 🔜 Sekantis pratimas: {getNextExerciseText()}
               </p>
             )}
-            <div className="flex justify-center gap-4 mt-6">
-              <button onClick={goToPrevious} className="text-gray-500 hover:text-black text-xl">⏮️</button>
-              <button onClick={() => setPaused(prev => !prev)} className="text-gray-700 hover:text-black text-xl">
-                {paused ? "▶️" : "⏸️"}
-              </button>
-              <button onClick={restartCurrentStep} className="text-gray-500 hover:text-black text-xl">🔁</button>
-              <button onClick={goToNext} className="text-gray-500 hover:text-black text-xl">⏭️</button>
-            </div>
-            <div className="mt-4">
-              <button onClick={onClose} className="text-sm text-red-500 hover:underline">
-                Baigti sesiją
-              </button>
-            </div>
-          </>
-        )}
 
-        {waitingForUser && phase !== "intro" && (
+
+{waitingForUser && phase !== "intro" && (
           <div className="flex flex-col items-center gap-2 mt-4">
             <button
               className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
@@ -182,6 +168,33 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             </button>
           </div>
         )}
+
+
+
+            <div className="flex justify-center items-center gap-4 mt-6">
+              <button onClick={goToPrevious} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
+                ⏮️
+              </button>
+              <button onClick={() => setPaused(prev => !prev)} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
+                {paused ? "▶️" : "⏸️"}
+              </button>
+              <button onClick={restartCurrentStep} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
+                🔁
+              </button>
+              <button onClick={goToNext} className="bg-gray-200 hover:bg-gray-300 p-3 rounded-full shadow-sm text-gray-700 text-xl">
+                ⏭️
+              </button>
+            </div>
+
+            <div className="mt-4">
+              <button onClick={onClose} className="text-sm text-red-500 hover:underline">
+                Baigti sesiją
+              </button>
+            </div>
+          </>
+        )}
+
+        
       </div>
     </div>
   );
