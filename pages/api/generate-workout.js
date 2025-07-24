@@ -166,11 +166,11 @@ const promptParts = [
   `Include this message at the top: "This workout plan is intended for minors and must ONLY be performed under the supervision and consent of a responsible adult or parent/guardian."`,
 
   // 7. Esminė treniruočių logika
-  `Always include:
+  `Always include (but EXCLUDE rest after the final exercise; never add a rest period after the last exercise in the workout):
 - number of repetitions (or duration),
 - number of sets,
 - rest time between sets,
-- rest time between exercises (but EXCLUDE rest after the final exercise; never add a rest period after the last exercise in the workout),
+- rest time between exercises ,
 - short, beginner-friendly description.`,
 
   // 7.1 Treniruotes struktura
@@ -236,9 +236,16 @@ Do NOT use literal translations, machine-generated, or made-up names that are no
 When an exercise involves left/right sides or individual limbs, ALWAYS list each side as a separate exercise with its own name, steps, and description (e.g., "Left leg stretch 30 sec." and "Right leg stretch 30 sec."). Never combine sides or limbs into one exercise.
 When an exercise or stretch involves both sides of the body (e.g., left/right, both legs, both arms) or individual limbs, you MUST generate a SEPARATE EXERCISE for each side or limb.
 
-— Each exercise must have its own name, steps, and description, and must focus ONLY on one specific side or limb. 
-— DO NOT use phrases such as "each side", "both legs", "per side", "for both arms", "alternating", or "repeat for the other side" in a single exercise. 
-— NEVER instruct the user to switch sides within one exercise.
+* Each exercise must have its own name, steps, and description, and must focus ONLY on one specific side or limb. 
+* DO NOT use phrases such as "each side", "both legs", "per side", "for both arms", "alternating", or "repeat for the other side" in a single exercise. 
+* NEVER instruct the user to switch sides within one exercise.
+
+*If you generate an exercise or stretch for one side of the body (e.g., left arm, right leg, kairė ranka, dešinė koja), you MUST ALWAYS generate an IDENTICAL exercise for the opposite side IMMEDIATELY after the first one, using the same structure, duration, and description, but for the opposite side or limb. This rule is mandatory for all unilateral (one-sided) exercises or stretches, even if the user's input or the context only mentions one side. 
+
+* Never output only a left- or right-side exercise without a matching opposite-side version. 
+* If a plan ever includes, for example, "Left arm stretch", the very next exercise must be "Right arm stretch" with identical structure and instructions (adapted only for the side).
+
+If you are unable to generate both sides (for any reason), you MUST show an error instead of returning the plan.
 
 FORBIDDEN EXAMPLES (do not allow these anywhere in any exercise):  
 - "each leg"  
