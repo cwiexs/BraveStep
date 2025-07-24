@@ -119,12 +119,31 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function getNextExerciseText() {
-    if (currentExerciseIndex + 1 < day.exercises.length) {
-      const nextExercise = day.exercises[currentExerciseIndex + 1];
-      return nextExercise ? nextExercise.name : "Pabaiga";
-    }
-    return "Pabaiga";
+  // Kurioje serijoje esame?
+  const allExerciseSteps = exercise.steps.filter(s => s.type === "exercise");
+  const currentExerciseStepIdx = exercise.steps
+    .filter((s, idx) => idx <= currentStepIndex)
+    .filter(s => s.type === "exercise").length - 1;
+
+  // Jei dar yra likusių serijų – rodyti sekančią seriją (to paties pratimo)
+  if (
+    step.type === "rest" &&
+    currentExerciseStepIdx + 1 < allExerciseSteps.length
+  ) {
+    // Sekanti serija to paties pratimo
+    const nextSet = allExerciseSteps[currentExerciseStepIdx + 1].set;
+    return `Sekanti serija: ${exercise.name} serija ${nextSet}/${allExerciseSteps.length}`;
   }
+
+  // Jei jau visos serijos baigtos – rodomas sekantis pratimas
+  if (currentExerciseIndex + 1 < day.exercises.length) {
+    const nextExercise = day.exercises[currentExerciseIndex + 1];
+    return `Sekantis pratimas: ${nextExercise ? nextExercise.name : "Pabaiga"}`;
+  }
+  return "Pabaiga";
+}
+
+
 
   function goToPrevious() {
     if (currentStepIndex > 0) {
@@ -177,11 +196,12 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   </p>
 )}
 
-            {(step.type === "rest" || step.type === "rest_after") && (
-              <p className="text-lg font-medium text-blue-900 mb-2">
-                Poilsis: {step.duration}
-              </p>
-            )}
+{(step.type === "rest" || step.type === "rest_after") && (
+  <p className="text-sm text-gray-500 italic mt-2">
+    🔜 {getNextExerciseText()}
+  </p>
+)}
+
 
             {/* Laikmatis rodomas jei tik reikia (tiek per laikomus pratimus, tiek per poilsį) */}
             {secondsLeft > 0 && (step.duration.includes("sek") || step.duration.includes("sec")) && (
