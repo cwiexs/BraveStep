@@ -118,6 +118,27 @@ const promptParts = [
   `Always try to match the style and terminology used in real fitness programs written by native speakers.`,
   `You may reference stylistic examples from sportuok.lt, sveikata.lt, or other native language fitness sites.`,
   `If unsure, prefer simple, natural and human-sounding expressions over literal translations.`,
+// 2.2 kalbos aiskumui
+`When generating exercise names in any language, you MUST always use the official, natural, and commonly used exercise names as they are found in professional workout programs, national fitness or health portals, or sport education materials in the user's country or language.
+NEVER use literal, automatic, or word-for-word translations from English (or any other language), unless this is the standard term in the user's country.
+For each supported language, always check the most popular and trusted local sources, such as national sport/health websites, well-known fitness centers, or government health recommendations (for example: sportuok.lt for Lithuanian, gov.pl/zdrowie for Polish, fitnessstudio.de for German, sports.gouv.fr for French, nhs.uk/live-well for English, etc.).
+If you do not recognize a standard, commonly used exercise name in the user's language, select the closest equivalent or use a simple, widely understood description that would be used by professional trainers in that language.
+ALWAYS avoid invented, awkward, or unfamiliar terms.
+ALWAYS prefer what is used in real workout programs or by professional trainers, not literal or AI-generated names.
+
+Examples:
+- For Lithuanian: "Jumping Jacks" → "Šuoliukai į šalis"
+- For Polish: "Jumping Jacks" → "Pajacyki"
+- For German: "Jumping Jacks" → "Hampelmänner"
+- For French: "Jumping Jacks" → "Jumping jacks" (if this is the standard), or "Sauts écartés"
+- For English (UK): "Jumping Jacks" → "Star jumps" (if that is the standard in the UK)
+
+If a name is not found in real programs or national resources, use a short, simple descriptive phrase that is actually used by real trainers. Never invent or literally translate names.
+
+If in doubt, always use the term or description that would sound most natural to a native speaker attending a local group fitness class.
+
+NEVER use a name that would be confusing, artificial, or unrecognizable to a local audience.`,
+
 
   // 3. Duomenų analizė
   `Carefully analyze all the provided user information for logic, realism, safety, and appropriateness.`,
