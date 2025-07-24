@@ -12,6 +12,30 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [paused, setPaused] = useState(false);
   const wakeLockRef = useRef(null);
   const timerRef = useRef(null);
+const handlePhaseRef = useRef(false);
+
+function handlePhaseComplete() {
+  if (handlePhaseRef.current) return;
+  handlePhaseRef.current = true;
+  setTimeout(() => { handlePhaseRef.current = false }, 400); // po 200 ms vėl leidžiam
+
+  if (timerRef.current) clearInterval(timerRef.current);
+  new Audio("/beep.mp3").play().catch(()=>{});
+  if (currentStepIndex + 1 < exercise.steps.length) {
+    console.log(`>>> handlePhaseComplete: Peršokama į kitą step (${currentStepIndex + 1})`);
+    setCurrentStepIndex(prev => prev + 1);
+    setPlayedWarnings([]);
+  } else if (currentExerciseIndex + 1 < day.exercises.length) {
+    console.log(">>> handlePhaseComplete: Baigėsi pratimo steps, peršokama į kitą pratimą");
+    setCurrentExerciseIndex(prev => prev + 1);
+    setCurrentStepIndex(0);
+    setPlayedWarnings([]);
+  } else {
+    console.log(">>> handlePhaseComplete: Treniruotė baigta!");
+    alert("Treniruotė baigta!");
+    onClose();
+  }
+}
 
   // Debug: išvesk visą struktūrą į konsolę paleidžiant
   useEffect(() => {
@@ -105,24 +129,6 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     // eslint-disable-next-line
   }, [secondsLeft, waitingForUser, phase, paused]);
 
-  function handlePhaseComplete() {
-    if (timerRef.current) clearInterval(timerRef.current);
-    new Audio("/beep.mp3").play().catch(()=>{});
-    if (currentStepIndex + 1 < exercise.steps.length) {
-      console.log(`>>> handlePhaseComplete: Peršokama į kitą step (${currentStepIndex + 1})`);
-      setCurrentStepIndex(prev => prev + 1);
-      setPlayedWarnings([]);
-    } else if (currentExerciseIndex + 1 < day.exercises.length) {
-      console.log(">>> handlePhaseComplete: Baigėsi pratimo steps, peršokama į kitą pratimą");
-      setCurrentExerciseIndex(prev => prev + 1);
-      setCurrentStepIndex(0);
-      setPlayedWarnings([]);
-    } else {
-      console.log(">>> handlePhaseComplete: Treniruotė baigta!");
-      alert("Treniruotė baigta!");
-      onClose();
-    }
-  }
 
   function handleManualContinue() {
     if (timerRef.current) clearInterval(timerRef.current);
