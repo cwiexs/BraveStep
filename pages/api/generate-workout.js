@@ -240,7 +240,7 @@ NEVER use abstract or general terms (e.g., "Stretching exercises", "Warm-up", "S
   `Stretching exercises MUST be logically balanced with the main workout. If the main exercises target upper body muscles (e.g., push-ups, planks), then stretching should focus on shoulders, chest, and back. If the workout targets legs (e.g., squats, lunges), then stretching should include hamstrings, quadriceps, and calves.`,
   `Warm-up exercises must also logically prepare the user for the targeted muscles. For example, do not include arm swings if the workout only targets legs.`,
   `Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.`,
-  `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into 1–5 named stretches, each with its own title and description.`,
+  `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into named stretches, each with its own title and description.`,
 
 
 // 12. STRUCTURED FORMAT WITH SYMBOLS AND STEP-BASED EXERCISES
