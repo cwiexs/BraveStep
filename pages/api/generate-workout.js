@@ -234,6 +234,37 @@ This prompt ensures all generated workout plans are scientifically sound, effect
 If no official or standard exercise name exists, use a simple, descriptive title that is easily understood by beginners and local trainers, and add a brief explanation if needed.
 Do NOT use literal translations, machine-generated, or made-up names that are not used by real trainers or in professional workout materials for that language or region.
 When an exercise involves left/right sides or individual limbs, ALWAYS list each side as a separate exercise with its own name, steps, and description (e.g., "Left leg stretch 30 sec." and "Right leg stretch 30 sec."). Never combine sides or limbs into one exercise.
+When an exercise or stretch involves both sides of the body (e.g., left/right, both legs, both arms) or individual limbs, you MUST generate a SEPARATE EXERCISE for each side or limb.
+
+— Each exercise must have its own name, steps, and description, and must focus ONLY on one specific side or limb. 
+— DO NOT use phrases such as "each side", "both legs", "per side", "for both arms", "alternating", or "repeat for the other side" in a single exercise. 
+— NEVER instruct the user to switch sides within one exercise.
+
+FORBIDDEN EXAMPLES (do not allow these anywhere in any exercise):  
+- "each leg"  
+- "per side"  
+- "for both arms"  
+- "alternating"  
+- "repeat for the other side"  
+
+INSTEAD, ALWAYS split such actions into separate exercises.  
+For example, **instead of**:
+
+    @name: Thigh stretch (30 sec each leg)  
+    @steps: Hold your left leg... then repeat for the right leg.
+
+**You must generate:**
+
+    @name: Left thigh stretch  
+    @steps: Hold your left leg for 30 seconds...
+
+    @name: Right thigh stretch  
+    @steps: Hold your right leg for 30 seconds...
+
+Each exercise must mention only the specific side or limb (not both), and no switching sides in the steps or description.
+
+**If any of the forbidden phrases or logic appears, you MUST split it into separate exercises before returning the plan.**
+
 NEVER use abstract or general terms (e.g., "Stretching exercises", "Warm-up", "Strength movements") – always break them down into individually named exercises.`,
 
   `Always use any available exercise slots to expand general categories into clearly named, separate exercises.`,
@@ -302,7 +333,8 @@ RULES:
 ];
 
 promptParts.push(
-  `15. EXTRA RECOMMENDATIONS (hydration + fresh air)
+  `##EXTRA_RECOMMENDATIONS##
+  15. EXTRA RECOMMENDATIONS (hydration + fresh air)
 
 For every workout day, you MUST generate 2 unique lifestyle-related recommendations using the following exact format:
 
@@ -324,6 +356,9 @@ IMPORTANT RULES:
 - DO NOT copy wording from this prompt into the final response.
 `
 );
+
+// Pridėti šią eilutę prieš for ciklą
+promptParts.push(`##FIELD_DESCRIPTIONS##`);
 
 for (const [key, value] of Object.entries(userData)) {
   if (
