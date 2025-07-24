@@ -11,6 +11,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [playedWarnings, setPlayedWarnings] = useState([]);
   const [paused, setPaused] = useState(false);
   const wakeLockRef = useRef(null);
+  const timerRef = useRef(null);
 
   // Debug: išvesk visą struktūrą į konsolę paleidžiant
   useEffect(() => {
@@ -51,41 +52,61 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     };
   }, []);
 
+  // Viską išvalyti, kai step ar pratimas keičiasi!
   useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+
     // Debug: kai keičiasi žingsnis arba pauzė, parodyk kas bus vykdoma
     console.log(`>>> useEffect: phase='${phase}', paused=${paused}, step.type='${step.type}', step.duration='${step.duration}'`);
-    if (phase === "intro" || paused) return;
+    if (phase === "intro" || paused) {
+      setSecondsLeft(0);
+      setWaitingForUser(false);
+      return;
+    }
 
-    // Jei reikia laikmačio (trukmė sekundėmis)
     if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
       setSecondsLeft(parseSeconds(step.duration));
       setPhase(step.type);
       setWaitingForUser(false);
       console.log(">>> Paleidžiamas laikmatis:", parseSeconds(step.duration), "sek.");
     } else {
+      setSecondsLeft(0);
       setWaitingForUser(true);
       console.log(">>> Laukiama naudotojo paspaudimo");
     }
+    setPlayedWarnings([]);
     // eslint-disable-next-line
   }, [currentExerciseIndex, currentStepIndex, phase, paused]);
 
+  // Laikmatis – paleidžiamas ir valdomas teisingai
   useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+
     if (secondsLeft > 0 && !paused) {
-      const interval = setInterval(() => setSecondsLeft(prev => prev - 1), 1000);
-      if (!playedWarnings.includes(secondsLeft)) {
-        if ([5,4,3,2,1].includes(secondsLeft)) {
-          new Audio(`/${secondsLeft}.mp3`).play().catch(()=>{});
-          setPlayedWarnings(prev => [...prev, secondsLeft]);
-        }
+      timerRef.current = setInterval(() => {
+        setSecondsLeft(prev => prev - 1);
+      }, 1000);
+
+      if ([5,4,3,2,1].includes(secondsLeft) && !playedWarnings.includes(secondsLeft)) {
+        new Audio(`/${secondsLeft}.mp3`).play().catch(()=>{});
+        setPlayedWarnings(prev => [...prev, secondsLeft]);
       }
-      return () => clearInterval(interval);
+
+      return () => {
+        if (timerRef.current) clearInterval(timerRef.current);
+      };
     } else if (secondsLeft === 0 && !waitingForUser && phase !== "intro") {
       handlePhaseComplete();
     }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
     // eslint-disable-next-line
   }, [secondsLeft, waitingForUser, phase, paused]);
 
   function handlePhaseComplete() {
+    if (timerRef.current) clearInterval(timerRef.current);
     new Audio("/beep.mp3").play().catch(()=>{});
     if (currentStepIndex + 1 < exercise.steps.length) {
       console.log(`>>> handlePhaseComplete: Peršokama į kitą step (${currentStepIndex + 1})`);
@@ -104,6 +125,8 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function handleManualContinue() {
+    if (timerRef.current) clearInterval(timerRef.current);
+
     if (phase === "intro") {
       setPhase("exercise");
       if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
@@ -119,32 +142,33 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function getNextExerciseText() {
-  // Kurioje serijoje esame?
-  const allExerciseSteps = exercise.steps.filter(s => s.type === "exercise");
-  const currentExerciseStepIdx = exercise.steps
-    .filter((s, idx) => idx <= currentStepIndex)
-    .filter(s => s.type === "exercise").length - 1;
+    // Kurioje serijoje esame?
+    const allExerciseSteps = exercise.steps.filter(s => s.type === "exercise");
+    const currentExerciseStepIdx = exercise.steps
+      .filter((s, idx) => idx <= currentStepIndex)
+      .filter(s => s.type === "exercise").length - 1;
 
-  // Jei dar yra likusių serijų – rodyti sekančią seriją (to paties pratimo)
-  if (
-    step.type === "rest" &&
-    currentExerciseStepIdx + 1 < allExerciseSteps.length
-  ) {
-    // Sekanti serija to paties pratimo
-    const nextSet = allExerciseSteps[currentExerciseStepIdx + 1].set;
-    return `${exercise.name} serija ${nextSet}/${allExerciseSteps.length}`;
+    // Jei dar yra likusių serijų – rodyti sekančią seriją (to paties pratimo)
+    if (
+      step.type === "rest" &&
+      currentExerciseStepIdx + 1 < allExerciseSteps.length
+    ) {
+      // Sekanti serija to paties pratimo
+      const nextSet = allExerciseSteps[currentExerciseStepIdx + 1].set;
+      return `${exercise.name} serija ${nextSet}/${allExerciseSteps.length}`;
+    }
+
+    // Jei jau visos serijos baigtos – rodomas sekantis pratimas
+    if (currentExerciseIndex + 1 < day.exercises.length) {
+      const nextExercise = day.exercises[currentExerciseIndex + 1];
+      return nextExercise ? nextExercise.name : "Pabaiga";
+    }
+    return "Pabaiga";
   }
-
-  // Jei jau visos serijos baigtos – rodomas sekantis pratimas
-  if (currentExerciseIndex + 1 < day.exercises.length) {
-    const nextExercise = day.exercises[currentExerciseIndex + 1];
-    return nextExercise ? nextExercise.name : "Pabaiga";
-  }
-  return "Pabaiga";
-}
-
 
   function goToPrevious() {
+    if (timerRef.current) clearInterval(timerRef.current);
+
     if (currentStepIndex > 0) {
       setCurrentStepIndex(prev => prev - 1);
     } else if (currentExerciseIndex > 0) {
@@ -156,6 +180,8 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function goToNext() {
+    if (timerRef.current) clearInterval(timerRef.current);
+
     if (currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
     } else if (currentExerciseIndex + 1 < day.exercises.length) {
@@ -165,10 +191,19 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function restartCurrentStep() {
+    if (timerRef.current) clearInterval(timerRef.current);
+
     if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
       setSecondsLeft(parseSeconds(step.duration));
     }
   }
+
+  // Automatiškai išvalom timerį kai komponentas užsidaro
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+  }, []);
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -189,11 +224,11 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
             
             {/* Rodome skirtingą tekstą pagal step.type */}
-{step.type === "exercise" && (
-  <p className="text-lg font-medium text-gray-900 mb-2">
-    {step.duration} - serija {step.set}/{exercise.steps.filter(s => s.type === "exercise").length}
-  </p>
-)}
+            {step.type === "exercise" && (
+              <p className="text-lg font-medium text-gray-900 mb-2">
+                {step.duration} - serija {step.set}/{exercise.steps.filter(s => s.type === "exercise").length}
+              </p>
+            )}
 
             {(step.type === "rest" || step.type === "rest_after") && (
               <p className="text-lg font-medium text-blue-900 mb-2">
