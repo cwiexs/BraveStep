@@ -230,18 +230,33 @@ This prompt ensures all generated workout plans are scientifically sound, effect
   // 11. Maksimalus pratimų skaičius
   `If allowed, always generate 5 to 10 unique and clearly described exercises.`,
   `Do NOT waste a slot with vague categories. Prioritize clear, useful movements.`,
-  // 11.1 Exercise specificity and logical alignment
-  `Every exercise MUST have a clear and specific name. NEVER use abstract or general terms such as "Stretching exercises", "Warm-up", or "Strength movements" without breaking them down into individual named exercises.`,
-  `For example, instead of:
-    @name: Stretching exercises
-  write:
-    @name: Cat pose (back stretch)
-    @name: Shoulder stretch standing by the wall`,
-  `Always use any available exercise slots to expand general categories into clearly named, separate exercises.`,
-  `Stretching exercises MUST be logically balanced with the main workout. If the main exercises target upper body muscles (e.g., push-ups, planks), then stretching should focus on shoulders, chest, and back. If the workout targets legs (e.g., squats, lunges), then stretching should include hamstrings, quadriceps, and calves.`,
-  `Warm-up exercises must also logically prepare the user for the targeted muscles. For example, do not include arm swings if the workout only targets legs.`,
-  `Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.`,
-  `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into 1–5 named stretches, each with its own title and description.`,
+// 11.1 Exercise specificity and logical alignment
+`Every exercise MUST have a clear, official, and widely accepted name as used in professional workout programs in the user's preferred language. 
+NEVER use invented, word-for-word translated, ambiguous, or uncommon exercise names. 
+Use only exercise names recognized, standard, and naturally used by professional trainers and in reputable fitness guides, online resources, or sports authorities in the user's language.
+
+If no official or standard exercise name exists, use a simple, descriptive title that is easily understood by beginners and local trainers, and add a brief explanation if needed.
+
+Do NOT use literal translations, machine-generated, or made-up names that are not used by real trainers or in professional workout materials for that language or region.
+
+NEVER use abstract or general terms (e.g., "Stretching exercises", "Warm-up", "Strength movements") – always break them down into individually named exercises.
+
+For example, instead of:
+  @name: Stretching exercises
+write:
+  @name: Cat pose (back stretch)
+  @name: Shoulder stretch standing by the wall
+
+Always use available exercise slots to expand general categories into separate, clearly named exercises.
+
+Stretching and warm-up exercises MUST be logically balanced and aligned with the main workout. 
+If the main workout targets upper body muscles, stretches should focus on shoulders, chest, and back. 
+If the workout targets legs, stretches should include hamstrings, quadriceps, and calves.
+Warm-up must prepare the same muscle groups as in the main part.
+
+Ensure logical and natural flow between warm-up, main exercises, and stretching, depending on targeted muscle groups.
+
+NEVER end the workout with generic labels (e.g., "Cool-down", "Stretching block"). Always list 1–5 individually named stretches, each with its own title and description.`,
 
 
 // 12. STRUCTURED FORMAT WITH SYMBOLS AND STEP-BASED EXERCISES
