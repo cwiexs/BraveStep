@@ -12,9 +12,28 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [paused, setPaused] = useState(false);
   const wakeLockRef = useRef(null);
 
+  // Debug: išvesk visą struktūrą į konsolę paleidžiant
+  useEffect(() => {
+    console.log(">>> PILNA workoutData struktūra:", workoutData);
+    workoutData.days.forEach((day, i) => {
+      day.exercises.forEach((ex, j) => {
+        console.log(`>>> Day ${i} Ex ${j} '${ex.name}':`);
+        ex.steps.forEach((step, k) => {
+          console.log(`    Step ${k}: type='${step.type}', set='${step.set}', duration='${step.duration}'`);
+        });
+      });
+    });
+  }, [workoutData]);
+
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
   const step = exercise.steps[currentStepIndex];
+
+  // Debug: rodyk einamą žingsnį kai keičiasi step
+  useEffect(() => {
+    console.log(`>>> DABARTINIS Step: [Day ${currentDay}] [Exercise ${currentExerciseIndex}] [Step ${currentStepIndex}]`);
+    console.log(">>> Žingsnio tipas:", step.type, "Serija:", step.set, "Trukmė:", step.duration);
+  }, [currentDay, currentExerciseIndex, currentStepIndex, step]);
 
   function parseSeconds(text) {
     const match = text.match(/(\d+)/);
@@ -33,13 +52,19 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }, []);
 
   useEffect(() => {
+    // Debug: kai keičiasi žingsnis arba pauzė, parodyk kas bus vykdoma
+    console.log(`>>> useEffect: phase='${phase}', paused=${paused}, step.type='${step.type}', step.duration='${step.duration}'`);
     if (phase === "intro" || paused) return;
-    if (step.duration.includes("sek") || step.duration.includes("sec")) {
+    if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
       setSecondsLeft(parseSeconds(step.duration));
       setPhase(step.type);
+      setWaitingForUser(false);
+      console.log(">>> Paleidžiamas laikmatis:", parseSeconds(step.duration), "sek.");
     } else {
       setWaitingForUser(true);
+      console.log(">>> Laukiama naudotojo paspaudimo");
     }
+    // eslint-disable-next-line
   }, [currentExerciseIndex, currentStepIndex, phase, paused]);
 
   useEffect(() => {
@@ -55,18 +80,23 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     } else if (secondsLeft === 0 && !waitingForUser && phase !== "intro") {
       handlePhaseComplete();
     }
+    // eslint-disable-next-line
   }, [secondsLeft, waitingForUser, phase, paused]);
 
   function handlePhaseComplete() {
     new Audio("/beep.mp3").play().catch(()=>{});
+    // Debug: kur peršoka
     if (currentStepIndex + 1 < exercise.steps.length) {
+      console.log(`>>> handlePhaseComplete: Peršokama į kitą step (${currentStepIndex + 1})`);
       setCurrentStepIndex(prev => prev + 1);
       setPlayedWarnings([]);
     } else if (currentExerciseIndex + 1 < day.exercises.length) {
+      console.log(">>> handlePhaseComplete: Baigėsi pratimo steps, peršokama į kitą pratimą");
       setCurrentExerciseIndex(prev => prev + 1);
       setCurrentStepIndex(0);
       setPlayedWarnings([]);
     } else {
+      console.log(">>> handlePhaseComplete: Treniruotė baigta!");
       alert("Treniruotė baigta!");
       onClose();
     }
@@ -75,7 +105,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   function handleManualContinue() {
     if (phase === "intro") {
       setPhase("exercise");
-      if (step.duration.includes("sek") || step.duration.includes("sec")) {
+      if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
         setSecondsLeft(parseSeconds(step.duration));
         setWaitingForUser(false);
       } else {
@@ -116,7 +146,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   function restartCurrentStep() {
-    if (step.duration.includes("sek") || step.duration.includes("sec")) {
+    if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
       setSecondsLeft(parseSeconds(step.duration));
     }
   }
@@ -158,35 +188,31 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
               </p>
             )}
 
-
-{waitingForUser && phase !== "intro" && (
-          <div className="flex flex-col items-center gap-2 mt-4">
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
-              onClick={handleManualContinue}
-            >
-              Atlikta
-            </button>
-          </div>
-        )}
-
-
+            {waitingForUser && phase !== "intro" && (
+              <div className="flex flex-col items-center gap-2 mt-4">
+                <button
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
+                  onClick={handleManualContinue}
+                >
+                  Atlikta
+                </button>
+              </div>
+            )}
 
             <div className="flex justify-center items-center gap-4 mt-6">
-  <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-    <SkipBack className="w-6 h-6 text-gray-800" />
-  </button>
-  <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-    {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-  </button>
-  <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-    <RotateCcw className="w-6 h-6 text-gray-800" />
-  </button>
-  <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-    <SkipForward className="w-6 h-6 text-gray-800" />
-  </button>
-</div> 
-
+              <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+                <SkipBack className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+              </button>
+              <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+                <RotateCcw className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+                <SkipForward className="w-6 h-6 text-gray-800" />
+              </button>
+            </div>
 
             <div className="mt-4">
               <button onClick={onClose} className="text-sm text-red-500 hover:underline">
@@ -195,8 +221,6 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             </div>
           </>
         )}
-
-        
       </div>
     </div>
   );
