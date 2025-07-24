@@ -171,11 +171,12 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
             
             {/* Rodome skirtingą tekstą pagal step.type */}
-            {step.type === "exercise" && (
-              <p className="text-lg font-medium text-gray-900 mb-2">
-                {step.duration} - serija {step.set}
-              </p>
-            )}
+{step.type === "exercise" && (
+  <p className="text-lg font-medium text-gray-900 mb-2">
+    {step.duration} - serija {step.set}/{exercise.steps.filter(s => s.type === "exercise").length}
+  </p>
+)}
+
             {(step.type === "rest" || step.type === "rest_after") && (
               <p className="text-lg font-medium text-blue-900 mb-2">
                 Poilsis: {step.duration}
