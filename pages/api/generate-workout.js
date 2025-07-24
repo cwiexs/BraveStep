@@ -204,6 +204,7 @@ IMPORTANT RULES:
 * Always adhere strictly to the above 3-part structure (Warm-up, Main Workout, Cool-down).
 * Never skip warm-up or stretching sections.
 * Explicitly name and detail each exercise, ensuring the exercises logically align with each other.
+* When an exercise involves left/right sides or individual limbs, ALWAYS list each side as a separate exercise with its own name, steps, and description. For example, instead of "leg stretch 30 sec.", write "Left leg stretch 30 sec." and "Right leg stretch 30 sec." Never combine sides or limbs into one exercise, even for stretches or mobility.
 * Adapt each part of the workout intelligently based on user's specific personal data:
 
   * Age, fitness level, body composition, medical conditions, daily activity, stress levels, available equipment, and stated personal goals.
@@ -242,42 +243,8 @@ This prompt ensures all generated workout plans are scientifically sound, effect
   `Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.`,
   `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into 1–5 named stretches, each with its own title and description.`,
 
-// 12 struktura del skirtingu galuniu
-`SPECIAL INSTRUCTIONS FOR UNILATERAL (ONE-SIDED) EXERCISES:
 
-If any exercise is performed one side at a time (such as stretching left and right leg separately, or left/right arm, etc.), you MUST represent **each side as a separate exercise step**.  
-- Do NOT combine both sides into a single step with phrases like "each leg", "each arm", or "both sides".
-- For each unilateral step, specify which side to perform, using a field like side: "left" or side: "right", or write it in the step description if language requires.
-- Each unilateral step must also have its own set number, e.g., set: 1/2 and set: 2/2, or set: 1 (left), set: 2 (right).
-- If a rest is needed between sides, include a rest step between them.
-- For clarity, always provide clear instructions so the user knows **which side to perform and when**.
-
-**EXAMPLE:**  
-Instead of:  
-- type: exercise  
-  set: 1  
-  duration: "30 sec. each leg"  
-
-You must generate:  
-- type: exercise  
-  set: 1/2  
-  duration: "30 sec."  
-  side: "left"  
-- type: rest  
-  duration: "10 sec."  
-- type: exercise  
-  set: 2/2  
-  duration: "30 sec."  
-  side: "right"  
-- type: rest_after  
-  duration: "15 sec."  
-
-If the plan is in the user's language, ensure the side is labeled naturally and clearly (e.g., "kairė koja", "dešinė ranka" in Lithuanian).
-
-Never merge both sides into one line. Each side must be an explicit, separate step for reliable machine parsing and playback.`,
-
-
-// 12.1 STRUCTURED FORMAT WITH SYMBOLS AND STEP-BASED EXERCISES
+// 12. STRUCTURED FORMAT WITH SYMBOLS AND STEP-BASED EXERCISES
 `STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
 All workout plans must follow the structure below using ONLY these exact symbols:
@@ -316,30 +283,6 @@ Each exercise must use a clear step-by-step structure under @steps. Example:
   duration: "60 sec."  
 @description: Stand straight with feet together. Jump while spreading your legs and raising your arms overhead, then return to the starting position.
 
-IMPORTANT FOR UNILATERAL (ONE-SIDED) EXERCISES:
-If an exercise is performed separately for each side (e.g., left/right leg, left/right arm), you MUST generate a separate step for EACH side, with a rest in-between if applicable.
-Do NOT merge both sides into one step or use phrasing such as "each leg" or "each arm".
-For example, instead of:
-- type: exercise  
-  set: 1  
-  duration: "30 sek. kiekvienai kojai"
-
-You MUST write:
-- type: exercise  
-  set: 1  
-  duration: "30 sek."  
-  side: "left"
-- type: rest  
-  duration: "15 sek."
-- type: exercise  
-  set: 2  
-  duration: "30 sek."  
-  side: "right"
-- type: rest_after  
-  duration: "15 sek."
-
-Alternatively, you may generate two separate exercises if the description or movement is truly distinct per side. Always prefer full step-based breakdown per side for reliable playback and clear user guidance.
-
 RULES:
 - Use only @steps to describe all exercise activity.
 - Each set must be listed as a separate step with type: exercise and a set number.
@@ -348,7 +291,6 @@ RULES:
 - Duration values must be strings and use clear, natural expressions in the user's preferred language (e.g., "30 sek." for Lithuanian).
 - Do not include any formatting, summaries, or notes outside the structured output.
 - The above structure must be used exactly to ensure reliable parsing and playback.`,
-
 
 
   // 13. Baigiamoji instrukcija
