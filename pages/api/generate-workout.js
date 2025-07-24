@@ -242,8 +242,42 @@ This prompt ensures all generated workout plans are scientifically sound, effect
   `Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.`,
   `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into 1–5 named stretches, each with its own title and description.`,
 
+// 12 struktura del skirtingu galuniu
+`SPECIAL INSTRUCTIONS FOR UNILATERAL (ONE-SIDED) EXERCISES:
 
-// 12. STRUCTURED FORMAT WITH SYMBOLS AND STEP-BASED EXERCISES
+If any exercise is performed one side at a time (such as stretching left and right leg separately, or left/right arm, etc.), you MUST represent **each side as a separate exercise step**.  
+- Do NOT combine both sides into a single step with phrases like "each leg", "each arm", or "both sides".
+- For each unilateral step, specify which side to perform, using a field like side: "left" or side: "right", or write it in the step description if language requires.
+- Each unilateral step must also have its own set number, e.g., set: 1/2 and set: 2/2, or set: 1 (left), set: 2 (right).
+- If a rest is needed between sides, include a rest step between them.
+- For clarity, always provide clear instructions so the user knows **which side to perform and when**.
+
+**EXAMPLE:**  
+Instead of:  
+- type: exercise  
+  set: 1  
+  duration: "30 sec. each leg"  
+
+You must generate:  
+- type: exercise  
+  set: 1/2  
+  duration: "30 sec."  
+  side: "left"  
+- type: rest  
+  duration: "10 sec."  
+- type: exercise  
+  set: 2/2  
+  duration: "30 sec."  
+  side: "right"  
+- type: rest_after  
+  duration: "15 sec."  
+
+If the plan is in the user's language, ensure the side is labeled naturally and clearly (e.g., "kairė koja", "dešinė ranka" in Lithuanian).
+
+Never merge both sides into one line. Each side must be an explicit, separate step for reliable machine parsing and playback.`,
+
+
+// 12.1 STRUCTURED FORMAT WITH SYMBOLS AND STEP-BASED EXERCISES
 `STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
 All workout plans must follow the structure below using ONLY these exact symbols:
