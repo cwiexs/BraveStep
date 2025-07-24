@@ -166,11 +166,11 @@ const promptParts = [
   `Include this message at the top: "This workout plan is intended for minors and must ONLY be performed under the supervision and consent of a responsible adult or parent/guardian."`,
 
   // 7. Esminė treniruočių logika
-  `Always include (but EXCLUDE rest after the final exercise; never add a rest period after the last exercise in the workout):
+  `Always include ALL of the following for every exercise:
 - number of repetitions (or duration),
 - number of sets,
 - rest time between sets,
-- rest time between exercises ,
+- rest time between exercises (EXCLUDE rest after the final exercise; never add a rest period after the last exercise in the workout),
 - short, beginner-friendly description.`,
 
   // 7.1 Treniruotes struktura
