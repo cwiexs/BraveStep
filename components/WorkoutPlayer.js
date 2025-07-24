@@ -12,30 +12,11 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [paused, setPaused] = useState(false);
   const wakeLockRef = useRef(null);
   const timerRef = useRef(null);
-const handlePhaseRef = useRef(false);
+  const handlePhaseRef = useRef(false);
 
-function handlePhaseComplete() {
-  if (handlePhaseRef.current) return;
-  handlePhaseRef.current = true;
-  setTimeout(() => { handlePhaseRef.current = false }, 400); // po 200 ms vėl leidžiam
-
-  if (timerRef.current) clearInterval(timerRef.current);
-  new Audio("/beep.mp3").play().catch(()=>{});
-  if (currentStepIndex + 1 < exercise.steps.length) {
-    console.log(`>>> handlePhaseComplete: Peršokama į kitą step (${currentStepIndex + 1})`);
-    setCurrentStepIndex(prev => prev + 1);
-    setPlayedWarnings([]);
-  } else if (currentExerciseIndex + 1 < day.exercises.length) {
-    console.log(">>> handlePhaseComplete: Baigėsi pratimo steps, peršokama į kitą pratimą");
-    setCurrentExerciseIndex(prev => prev + 1);
-    setCurrentStepIndex(0);
-    setPlayedWarnings([]);
-  } else {
-    console.log(">>> handlePhaseComplete: Treniruotė baigta!");
-    alert("Treniruotė baigta!");
-    onClose();
-  }
-}
+  const day = workoutData.days[currentDay];
+  const exercise = day.exercises[currentExerciseIndex];
+  const step = exercise.steps[currentStepIndex];
 
   // Debug: išvesk visą struktūrą į konsolę paleidžiant
   useEffect(() => {
@@ -49,10 +30,6 @@ function handlePhaseComplete() {
       });
     });
   }, [workoutData]);
-
-  const day = workoutData.days[currentDay];
-  const exercise = day.exercises[currentExerciseIndex];
-  const step = exercise.steps[currentStepIndex];
 
   // Debug: rodyk einamą žingsnį kai keičiasi step
   useEffect(() => {
@@ -76,33 +53,38 @@ function handlePhaseComplete() {
     };
   }, []);
 
-  // Viską išvalyti, kai step ar pratimas keičiasi!
+  // Keičiam laiką TIK kai keičiasi pratimas ar stepas, BET NE dėl pauzės
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
 
-    // Debug: kai keičiasi žingsnis arba pauzė, parodyk kas bus vykdoma
-    console.log(`>>> useEffect: phase='${phase}', paused=${paused}, step.type='${step.type}', step.duration='${step.duration}'`);
-    if (phase === "intro" || paused) {
+    if (phase === "intro") {
       setSecondsLeft(0);
       setWaitingForUser(false);
       return;
     }
 
+    // Jei reikia laikmačio (trukmė sekundėmis)
     if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
-      setSecondsLeft(parseSeconds(step.duration));
+      setSecondsLeft(prev => {
+        // Jei keičiasi žingsnis (ne dėl pauzės), iš naujo
+        if (!paused) return parseSeconds(step.duration);
+        // Jei pauzė, nieko nekeičiam
+        return prev;
+      });
       setPhase(step.type);
       setWaitingForUser(false);
+      setPlayedWarnings([]);
       console.log(">>> Paleidžiamas laikmatis:", parseSeconds(step.duration), "sek.");
     } else {
       setSecondsLeft(0);
       setWaitingForUser(true);
+      setPlayedWarnings([]);
       console.log(">>> Laukiama naudotojo paspaudimo");
     }
-    setPlayedWarnings([]);
     // eslint-disable-next-line
-  }, [currentExerciseIndex, currentStepIndex, phase, paused]);
+  }, [currentExerciseIndex, currentStepIndex, phase]);
 
-  // Laikmatis – paleidžiamas ir valdomas teisingai
+  // Laikmatis
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -129,6 +111,28 @@ function handlePhaseComplete() {
     // eslint-disable-next-line
   }, [secondsLeft, waitingForUser, phase, paused]);
 
+  function handlePhaseComplete() {
+    if (handlePhaseRef.current) return;
+    handlePhaseRef.current = true;
+    setTimeout(() => { handlePhaseRef.current = false }, 400); // trumpas uždelsimas
+
+    if (timerRef.current) clearInterval(timerRef.current);
+    new Audio("/beep.mp3").play().catch(()=>{});
+    if (currentStepIndex + 1 < exercise.steps.length) {
+      console.log(`>>> handlePhaseComplete: Peršokama į kitą step (${currentStepIndex + 1})`);
+      setCurrentStepIndex(prev => prev + 1);
+      setPlayedWarnings([]);
+    } else if (currentExerciseIndex + 1 < day.exercises.length) {
+      console.log(">>> handlePhaseComplete: Baigėsi pratimo steps, peršokama į kitą pratimą");
+      setCurrentExerciseIndex(prev => prev + 1);
+      setCurrentStepIndex(0);
+      setPlayedWarnings([]);
+    } else {
+      console.log(">>> handlePhaseComplete: Treniruotė baigta!");
+      alert("Treniruotė baigta!");
+      onClose();
+    }
+  }
 
   function handleManualContinue() {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -242,9 +246,12 @@ function handlePhaseComplete() {
               </p>
             )}
 
-            {/* Laikmatis rodomas jei tik reikia (tiek per laikomus pratimus, tiek per poilsį) */}
-            {secondsLeft > 0 && (step.duration.includes("sek") || step.duration.includes("sec")) && (
-              <p className="text-4xl text-gray-900 font-bold mb-4">{secondsLeft} sek.</p>
+            {/* Laikmatis rodomas visada, kai yra laikas */}
+            {(step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) && (
+              <p className="text-4xl text-gray-900 font-bold mb-4">
+                {secondsLeft > 0 ? `${secondsLeft} sek.` : null}
+                {paused && <span className="block text-xl text-red-600 mt-2">Pauzė</span>}
+              </p>
             )}
 
             {/* Pratimo aprašymas visada */}
