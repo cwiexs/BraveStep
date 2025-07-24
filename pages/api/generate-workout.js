@@ -170,7 +170,7 @@ const promptParts = [
 - number of repetitions (or duration),
 - number of sets,
 - rest time between sets,
-- rest time between exercises,
+- rest time between exercises (do not include rest after the final exercise),
 - short, beginner-friendly description.`,
 
   // 7.1 Treniruotes struktura
