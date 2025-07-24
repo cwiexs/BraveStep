@@ -282,6 +282,30 @@ Each exercise must use a clear step-by-step structure under @steps. Example:
   duration: "60 sec."  
 @description: Stand straight with feet together. Jump while spreading your legs and raising your arms overhead, then return to the starting position.
 
+IMPORTANT FOR UNILATERAL (ONE-SIDED) EXERCISES:
+If an exercise is performed separately for each side (e.g., left/right leg, left/right arm), you MUST generate a separate step for EACH side, with a rest in-between if applicable.
+Do NOT merge both sides into one step or use phrasing such as "each leg" or "each arm".
+For example, instead of:
+- type: exercise  
+  set: 1  
+  duration: "30 sek. kiekvienai kojai"
+
+You MUST write:
+- type: exercise  
+  set: 1  
+  duration: "30 sek."  
+  side: "left"
+- type: rest  
+  duration: "15 sek."
+- type: exercise  
+  set: 2  
+  duration: "30 sek."  
+  side: "right"
+- type: rest_after  
+  duration: "15 sek."
+
+Alternatively, you may generate two separate exercises if the description or movement is truly distinct per side. Always prefer full step-based breakdown per side for reliable playback and clear user guidance.
+
 RULES:
 - Use only @steps to describe all exercise activity.
 - Each set must be listed as a separate step with type: exercise and a set number.
@@ -290,6 +314,7 @@ RULES:
 - Duration values must be strings and use clear, natural expressions in the user's preferred language (e.g., "30 sek." for Lithuanian).
 - Do not include any formatting, summaries, or notes outside the structured output.
 - The above structure must be used exactly to ensure reliable parsing and playback.`,
+
 
 
   // 13. Baigiamoji instrukcija
