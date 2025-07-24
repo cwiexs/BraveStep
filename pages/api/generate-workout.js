@@ -230,56 +230,62 @@ This prompt ensures all generated workout plans are scientifically sound, effect
   // 11. Maksimalus pratimų skaičius
   `Generate as many unique and clearly described exercises as needed to safely fill the user's available workout time ("minutesPerWorkout") and match their fitness level, goals, and recovery needs. There is no fixed maximum or minimum unless the user requests it.`,
 
-  // 11.1 Exercise specificity and logical alignment
-  `Every exercise MUST have a clear, official, and widely accepted name as used in professional workout programs in the user's preferred language. NEVER use invented, word-for-word translated, ambiguous, or uncommon exercise names. Use only exercise names recognized, standard, and naturally used by professional trainers and in reputable fitness guides or sports authorities in the user's language.
+// 11.1 Exercise specificity and logical alignment
+`Every exercise MUST have a clear, official, and widely accepted name as used in professional workout programs in the user's preferred language. NEVER use invented, word-for-word translated, ambiguous, or uncommon exercise names. Use only exercise names recognized, standard, and naturally used by professional trainers and in reputable fitness guides or sports authorities in the user's language.
 If no official or standard exercise name exists, use a simple, descriptive title that is easily understood by beginners and local trainers, and add a brief explanation if needed.
 Do NOT use literal translations, machine-generated, or made-up names that are not used by real trainers or in professional workout materials for that language or region.
-When an exercise involves left/right sides or individual limbs, ALWAYS list each side as a separate exercise with its own name, steps, and description (e.g., "Left leg stretch 30 sec." and "Right leg stretch 30 sec."). Never combine sides or limbs into one exercise.
-When an exercise or stretch involves both sides of the body (e.g., left/right, both legs, both arms) or individual limbs, you MUST generate a SEPARATE EXERCISE for each side or limb.
 
-* Each exercise must have its own name, steps, and description, and must focus ONLY on one specific side or limb. 
-* DO NOT use phrases such as "each side", "both legs", "per side", "for both arms", "alternating", or "repeat for the other side" in a single exercise. 
-* NEVER instruct the user to switch sides within one exercise.
+When an exercise is a static stretch, isolation, or true single-limb movement (such as static stretching, single-leg squats, lunges to one side, single-arm rows, or similar), ALWAYS list each side as a separate exercise with its own name, steps, and description (e.g., "Left leg stretch 30 sec." and "Right leg stretch 30 sec."). Never combine sides or limbs into one exercise.
 
-*If you generate an exercise or stretch for one side of the body (e.g., left arm, right leg, kairė ranka, dešinė koja), you MUST ALWAYS generate an IDENTICAL exercise for the opposite side IMMEDIATELY after the first one, using the same structure, duration, and description, but for the opposite side or limb. This rule is mandatory for all unilateral (one-sided) exercises or stretches, even if the user's input or the context only mentions one side. 
+When an exercise is a dynamic, cardio, or compound movement that naturally involves both sides alternately or together (such as running in place, high knees, jumping jacks, mountain climbers, skipping, butt kicks, etc.), ALWAYS generate these as a single exercise, with a clear and commonly used name and description. NEVER split these exercises into left/right or create separate entries for each side – this is unnatural and incorrect.
 
-* Never output only a left- or right-side exercise without a matching opposite-side version. 
-* If a plan ever includes, for example, "Left arm stretch", the very next exercise must be "Right arm stretch" with identical structure and instructions (adapted only for the side).
+Each exercise must have its own name, steps, and description, and must focus ONLY on what is natural for that movement:
+* For true unilateral or static stretches/isolation exercises – split into left and right (never combine).
+* For dynamic or compound exercises (cardio, running, jumping jacks, etc.) – always keep as one exercise (never split into sides).
 
-If you are unable to generate both sides (for any reason), you MUST show an error instead of returning the plan.
+DO NOT use phrases such as "each side", "both legs", "per side", "for both arms", "alternating", or "repeat for the other side" in a single static or unilateral exercise.
+NEVER instruct the user to switch sides within one static or unilateral exercise.
 
-FORBIDDEN EXAMPLES (do not allow these anywhere in any exercise):  
-- "each leg"  
-- "per side"  
-- "for both arms"  
-- "alternating"  
-- "repeat for the other side"  
+If you generate an exercise or stretch for one side of the body (e.g., left arm, right leg, kairė ranka, dešinė koja), you MUST ALWAYS generate an IDENTICAL exercise for the opposite side IMMEDIATELY after the first one, using the same structure, duration, and description, but for the opposite side or limb. This rule is mandatory for all unilateral (one-sided) static or isolation exercises or stretches, even if the user's input or the context only mentions one side.
 
-INSTEAD, ALWAYS split such actions into separate exercises.  
-For example, **instead of**:
+Never output only a left- or right-side exercise without a matching opposite-side version.
+If a plan ever includes, for example, "Left arm stretch", the very next exercise must be "Right arm stretch" with identical structure and instructions (adapted only for the side).
 
-    @name: Thigh stretch (30 sec each leg)  
+If you are unable to generate both sides (for any reason) for static/unilateral exercises, you MUST show an error instead of returning the plan.
+
+FORBIDDEN EXAMPLES for static/unilateral exercises (do not allow these anywhere in any such exercise):
+- "each leg"
+- "per side"
+- "for both arms"
+- "alternating"
+- "repeat for the other side"
+
+INSTEAD, ALWAYS split such actions into separate exercises for static/unilateral movements.
+For example, instead of:
+    @name: Thigh stretch (30 sec each leg)
     @steps: Hold your left leg... then repeat for the right leg.
-
-**You must generate:**
-
-    @name: Left thigh stretch  
+You must generate:
+    @name: Left thigh stretch
     @steps: Hold your left leg for 30 seconds...
-
-    @name: Right thigh stretch  
+    @name: Right thigh stretch
     @steps: Hold your right leg for 30 seconds...
 
-Each exercise must mention only the specific side or limb (not both), and no switching sides in the steps or description.
+Each static/unilateral exercise must mention only the specific side or limb (not both), and no switching sides in the steps or description.
 
-**If any of the forbidden phrases or logic appears, you MUST split it into separate exercises before returning the plan.**
+EXCEPTION:
+Do NOT split dynamic or cardio exercises that naturally involve both sides of the body working together or alternately (such as running in place, high knees, jumping jacks, mountain climbers, skipping, butt kicks, or similar).
+These exercises must be generated as a SINGLE exercise with a clear name and description (e.g., "Aukšti keliai vietoje").
+NEVER create or split these exercises into "left" and "right" (e.g., "Aukšti keliai į kairę" or "Aukšti keliai į dešinę") – this is incorrect and unnatural.
 
-NEVER use abstract or general terms (e.g., "Stretching exercises", "Warm-up", "Strength movements") – always break them down into individually named exercises.`,
+If any of the forbidden phrases or logic appears for static/unilateral exercises, you MUST split it into separate exercises before returning the plan.
 
-  `Always use any available exercise slots to expand general categories into clearly named, separate exercises.`,
-  `Stretching exercises MUST be logically balanced with the main workout. If the main exercises target upper body muscles (e.g., push-ups, planks), then stretching should focus on shoulders, chest, and back. If the workout targets legs (e.g., squats, lunges), then stretching should include hamstrings, quadriceps, and calves.`,
-  `Warm-up exercises must also logically prepare the user for the targeted muscles. For example, do not include arm swings if the workout only targets legs.`,
-  `Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.`,
-  `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into named stretches, each with its own title and description.`,
+NEVER use abstract or general terms (e.g., "Stretching exercises", "Warm-up", "Strength movements") – always break them down into individually named exercises.
+
+Always use any available exercise slots to expand general categories into clearly named, separate exercises.
+Stretching exercises MUST be logically balanced with the main workout. If the main exercises target upper body muscles (e.g., push-ups, planks), then stretching should focus on shoulders, chest, and back. If the workout targets legs (e.g., squats, lunges), then stretching should include hamstrings, quadriceps, and calves.
+Warm-up exercises must also logically prepare the user for the targeted muscles. For example, do not include arm swings if the workout only targets legs.
+Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.
+NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into named stretches, each with its own title and description.`,
 
 
 // 12. STRUCTURED FORMAT WITH SYMBOLS AND STEP-BASED EXERCISES
