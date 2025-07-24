@@ -171,7 +171,6 @@ const promptParts = [
 - number of sets,
 - rest time between sets,
 - rest time between exercises,
-- Always EXCLUDE rest after THE FINAL exercise; NEVER add a rest period after the last exercise in the workout,
 - short, beginner-friendly description.`,
 
   // 7.1 Treniruotes struktura
