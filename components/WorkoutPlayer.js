@@ -151,77 +151,82 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-xl text-center">
-        {phase === "intro" ? (
-          <>
-            <h2 className="text-2xl font-bold mb-4">💡 Motyvacija</h2>
-            <p className="mb-4 text-gray-800 whitespace-pre-wrap">{workoutData.introduction}</p>
-            <button
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold"
-              onClick={handleManualContinue}
-            >
-              Pradėti treniruotę
+return (
+  <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+    <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-xl text-center">
+      {phase === "intro" ? (
+        <>
+          <h2 className="text-2xl font-bold mb-4">💡 Motyvacija</h2>
+          <p className="mb-4 text-gray-800 whitespace-pre-wrap">{workoutData.introduction}</p>
+          <button
+            className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold"
+            onClick={handleManualContinue}
+          >
+            Pradėti treniruotę
+          </button>
+        </>
+      ) : (
+        <>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
+          
+          {/* Rodome skirtingą tekstą pagal step.type */}
+          {step.type === "exercise" && (
+            <p className="text-lg font-medium text-gray-900 mb-2">
+              {step.duration} - serija {step.set}
+            </p>
+          )}
+
+          {(step.type === "rest" || step.type === "rest_after") && (
+            <p className="text-lg font-medium text-blue-900 mb-2">
+              Poilsis: {step.duration}
+            </p>
+          )}
+
+          {/* Laikmatis tik jei yra trukmė sekundėmis IR step yra poilsis */}
+          {(step.type === "rest" || step.type === "rest_after") && secondsLeft > 0 && (
+            <p className="text-4xl text-gray-900 font-bold mb-4">{secondsLeft} sek.</p>
+          )}
+
+          {/* Pratimo aprašymas visada */}
+          <p className="text-sm text-gray-500 italic mb-6">{exercise.description}</p>
+
+          {/* Tik kai laukiam vartotojo, rodom „Atlikta“ */}
+          {waitingForUser && step.type === "exercise" && (
+            <div className="flex flex-col items-center gap-2 mt-4">
+              <button
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
+                onClick={handleManualContinue}
+              >
+                Atlikta
+              </button>
+            </div>
+          )}
+
+          {/* Mygtukų valdymas */}
+          <div className="flex justify-center items-center gap-4 mt-6">
+            <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+              <SkipBack className="w-6 h-6 text-gray-800" />
             </button>
-          </>
-        ) : (
-          <>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
-            {step.type === "exercise" && (
-              <p className="text-lg font-medium text-gray-900 mb-2">
-                {step.duration}- serija {step.set}
-              </p>
-            )}
-            {(step.type === "rest" || step.type === "rest_after") && (
-              <p className="text-lg font-medium text-gray-900 mb-2">
-                Poilsis: {step.duration}
-              </p>
-            )}
-            {secondsLeft > 0 && (
-              <p className="text-4xl text-gray-900 font-bold mb-4">{secondsLeft} sek.</p>
-            )}
-            <p className="text-sm text-gray-500 italic mb-6">{exercise.description}</p>
-            {(step.type === "rest" || step.type === "rest_after") && (
-              <p className="text-sm text-gray-500 italic mt-2">
-                🔜 Sekantis pratimas: {getNextExerciseText()}
-              </p>
-            )}
+            <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+              {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+            </button>
+            <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+              <RotateCcw className="w-6 h-6 text-gray-800" />
+            </button>
+            <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
+              <SkipForward className="w-6 h-6 text-gray-800" />
+            </button>
+          </div>
 
-            {waitingForUser && phase !== "intro" && (
-              <div className="flex flex-col items-center gap-2 mt-4">
-                <button
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
-                  onClick={handleManualContinue}
-                >
-                  Atlikta
-                </button>
-              </div>
-            )}
-
-            <div className="flex justify-center items-center gap-4 mt-6">
-              <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-                <SkipBack className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-              </button>
-              <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-                <RotateCcw className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-                <SkipForward className="w-6 h-6 text-gray-800" />
-              </button>
-            </div>
-
-            <div className="mt-4">
-              <button onClick={onClose} className="text-sm text-red-500 hover:underline">
-                Baigti sesiją
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+          <div className="mt-4">
+            <button onClick={onClose} className="text-sm text-red-500 hover:underline">
+              Baigti sesiją
+            </button>
+          </div>
+        </>
+      )}
     </div>
-  );
+  </div>
+);
+
 }
