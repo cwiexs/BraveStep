@@ -112,7 +112,11 @@ const promptParts = [
   // 2.1 Kalbos aiškumas ir terminų vartojimas
   `When generating content in the user's preferred language, you MUST use natural and commonly used vocabulary, as found in local fitness guides, government health portals, or official sport websites.`,
   `DO NOT translate fitness terms directly from English word-by-word.`,
+  `Examples:
+  - Instead of "komplektai", use "serijos" or "kartus".
+  - Instead of "darykite apskritimus", say "Sukite pečius ratu" or "Atlikite 10 ratų į vieną pusę, tada į kitą."`,
   `Always try to match the style and terminology used in real fitness programs written by native speakers.`,
+  `You may reference stylistic examples from sportuok.lt, sveikata.lt, or other native language fitness sites.`,
   `If unsure, prefer simple, natural and human-sounding expressions over literal translations.`,
 
   // 3. Duomenų analizė
@@ -146,6 +150,10 @@ const promptParts = [
   // 5.2. Psichologiškai palaikančios motyvacinės žinutės
   `If any of the user's values indicate emotional distress (e.g., stress level 9–10, very low sleep, high anxiety), you must also adapt the motivational messages.`,
   `Motivational texts must be emotionally supportive, psychologically aware, and gently uplifting.`,
+  `Examples:
+- "Even if your mind feels overwhelmed today, this small step is already a victory."
+- "You may feel stuck in thoughts about the past or future. This workout is a way to return to the present moment."
+- "Everything is okay. You’re not alone in this. Let this be a soft beginning, not a pressure."`,
   `Avoid aggressive or overly enthusiastic tones when stress is high. Focus instead on calm, warm, and grounding language.`,
   `The goal of motivation is to help the user feel emotionally safe, seen, and gently guided — not pushed.`,
   `Write motivational messages as if you truly care. Imagine you're speaking to a friend who is struggling but trying.`,
@@ -166,34 +174,41 @@ const promptParts = [
 - short, beginner-friendly description.`,
 
   // 7.1 Treniruotes struktura
- `When generating personalized workout plans, you MUST strictly follow this scientifically validated, optimal structure, adapting it intelligently based on each user's age, body composition, fitness level, available time, stress level, and other personal factors:
+ ` When generating personalized workout plans, you MUST strictly follow this scientifically validated, optimal structure, adapting it intelligently based on each user's age, body composition, fitness level, available time, stress level, and other personal factors:
 
 1. **WARM-UP:**
+
    * Duration: Approximately 5–15 minutes.
    * Include dynamic stretches and light cardio to prepare targeted muscle groups.
    * Clearly specify each warm-up exercise individually by name.
 
 2. **MAIN WORKOUT:**
+
    * Clearly focused exercises based on user's stated goals and physical condition (full-body functional training or specific splits for upper/lower body or cardio/core training).
    * Prefer compound, functional movements (e.g., squats, push-ups, lunges, pulls).
    * Use scientifically supported training splits or full-body workouts:
+
      * Example split patterns: 4-2-1 model (4 days strength, 2 days cardio, 1 day mobility), or weekly full-body approach with integrated cardio and mobility.
      * Apply logical periodization: vary intensity and volume appropriately for user's fitness progression.
    * Clearly name each exercise and indicate target muscle group.
    * Specify repetitions, sets, rest periods between sets, and rest periods between exercises.
 
 3. **COOL-DOWN / STRETCHING:**
+
    * Duration: Approximately 3–10 minutes.
    * Include slow-paced aerobic movements to decrease heart rate and static stretching to target muscles used during the main workout.
    * Clearly specify each stretching/cool-down exercise individually by name.
 
 IMPORTANT RULES:
+
 * Always adhere strictly to the above 3-part structure (Warm-up, Main Workout, Cool-down).
 * Never skip warm-up or stretching sections.
 * Explicitly name and detail each exercise, ensuring the exercises logically align with each other.
-* When an exercise involves left/right sides or individual limbs, ALWAYS list each side as a separate exercise with its own name, steps, and description (e.g., "Left leg stretch 30 sec." and "Right leg stretch 30 sec."). Never combine sides or limbs into one exercise, even for stretches or mobility.
-* Adapt the number, duration, and structure of exercises, sets, and repetitions to safely fill the user's available workout time ("minutesPerWorkout"), match their fitness level, goals, and recovery needs. There is no fixed maximum or minimum unless the user requests it.
-* Use only as many exercises as needed for the safest, most effective, and enjoyable plan – the plan can contain more or fewer exercises than usual if justified by the available time and user needs.
+* Adapt each part of the workout intelligently based on user's specific personal data:
+
+  * Age, fitness level, body composition, medical conditions, daily activity, stress levels, available equipment, and stated personal goals.
+  * High stress or fatigue levels must lead to gentler, recovery-focused exercises and calming motivational messaging.
+  * Younger or beginner users require simplified instructions and lighter exercise intensity.
 * Provide clearly structured, supportive motivational messages tailored to the user's psychological and emotional state at both the beginning and end of the workout.
 
 This prompt ensures all generated workout plans are scientifically sound, effective, safe, and personally adapted to each user's unique profile.`,
@@ -205,30 +220,31 @@ This prompt ensures all generated workout plans are scientifically sound, effect
   `If the user has minimal equipment (e.g., only a mat), ALWAYS provide a full workout using bodyweight exercises and floor exercises.`,
   `Focus on what CAN be done, not what is missing.`,
 
-  // 10. Dėl bendrinių ar neaiškių pratimų
+  // 10. DĖL BENDRINIŲ AR NEAIŠKIŲ PRATIMŲ
   `NEVER use general labels like "Dynamic warm-up" without breaking them down into specific exercises.`,
   `For example, replace "Dynamic warm-up" with a list like: "Neck circles, arm swings, jumping jacks, leg swings, and high knees – 30 seconds each."`,
   `Each listed item MUST be translated into the user's preferred language.`,
   `NEVER mix language fragments (e.g., don't show "1 kartas" or "no rest" if preferred language is not English). Translate all timing, repetitions, rest, and descriptions fully.`,
 
-  // 11. Pratimų pavadinimų profesionalumas
-  `Every exercise MUST have a clear, official, and widely accepted name as used in professional workout programs in the user's preferred language. 
-NEVER use invented, word-for-word translated, ambiguous, or uncommon exercise names. 
-Use only exercise names recognized, standard, and naturally used by professional trainers and in reputable fitness guides or sports authorities in the user's language.
+  // 11. Maksimalus pratimų skaičius
+  `Generate as many unique and clearly described exercises as needed to safely fill the user's available workout time ("minutesPerWorkout") and match their fitness level, goals, and recovery needs. There is no fixed maximum or minimum unless the user requests it.`,
+
+  // 11.1 Exercise specificity and logical alignment
+  `Every exercise MUST have a clear, official, and widely accepted name as used in professional workout programs in the user's preferred language. NEVER use invented, word-for-word translated, ambiguous, or uncommon exercise names. Use only exercise names recognized, standard, and naturally used by professional trainers and in reputable fitness guides or sports authorities in the user's language.
 If no official or standard exercise name exists, use a simple, descriptive title that is easily understood by beginners and local trainers, and add a brief explanation if needed.
 Do NOT use literal translations, machine-generated, or made-up names that are not used by real trainers or in professional workout materials for that language or region.
+When an exercise involves left/right sides or individual limbs, ALWAYS list each side as a separate exercise with its own name, steps, and description (e.g., "Left leg stretch 30 sec." and "Right leg stretch 30 sec."). Never combine sides or limbs into one exercise.
 NEVER use abstract or general terms (e.g., "Stretching exercises", "Warm-up", "Strength movements") – always break them down into individually named exercises.`,
 
-  // 12. Pratimų logika ir eiga
-  `Stretching and warm-up exercises MUST be logically balanced and aligned with the main workout. 
-If the main workout targets upper body muscles, stretches should focus on shoulders, chest, and back. 
-If the workout targets legs, stretches should include hamstrings, quadriceps, and calves.
-Warm-up must prepare the same muscle groups as in the main part.
-Ensure logical and natural flow between warm-up, main exercises, and stretching, depending on targeted muscle groups.
-NEVER end the workout with generic labels (e.g., "Cool-down", "Stretching block"). Always list 1–5 individually named stretches, each with its own title and description.`,
+  `Always use any available exercise slots to expand general categories into clearly named, separate exercises.`,
+  `Stretching exercises MUST be logically balanced with the main workout. If the main exercises target upper body muscles (e.g., push-ups, planks), then stretching should focus on shoulders, chest, and back. If the workout targets legs (e.g., squats, lunges), then stretching should include hamstrings, quadriceps, and calves.`,
+  `Warm-up exercises must also logically prepare the user for the targeted muscles. For example, do not include arm swings if the workout only targets legs.`,
+  `Ensure that there is always a logical and natural flow between warm-up, main exercises, and stretching, depending on the muscle groups involved.`,
+  `NEVER end the workout with a generic label like "Cool-down" or "Stretching block". Always expand it into 1–5 named stretches, each with its own title and description.`,
 
-  // 13. STRUKTŪRA IR FORMATAVIMAS
-  `STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
+
+// 12. STRUCTURED FORMAT WITH SYMBOLS AND STEP-BASED EXERCISES
+`STRUCTURED OUTPUT FORMAT (USE ONLY THESE SYMBOLS FOR MACHINE PARSING):
 
 All workout plans must follow the structure below using ONLY these exact symbols:
 
@@ -275,15 +291,15 @@ RULES:
 - Do not include any formatting, summaries, or notes outside the structured output.
 - The above structure must be used exactly to ensure reliable parsing and playback.`,
 
-  // 14. Baigiamoji instrukcija
+
+  // 13. Baigiamoji instrukcija
   `Make sure that every day has one starting motivational message and one ending motivational message.`,
   `For every exercise, include short explanation that is friendly for beginners.`,
   `Only use the user’s preferred language for all content.`,
 
-  // 15. Vartotojo duomenų sekcija
+  // 14. Vartotojo duomenų sekcija
   `Here are the field descriptions and their values:`
 ];
-
 
 promptParts.push(
   `15. EXTRA RECOMMENDATIONS (hydration + fresh air)
