@@ -196,6 +196,13 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   </p>
 )}
 
+{(step.type === "rest" || step.type === "rest_after") && (
+  <p className="text-sm text-gray-500 italic mt-2">
+    🔜 {getNextExerciseText()}
+  </p>
+)}
+
+
             {/* Laikmatis rodomas jei tik reikia (tiek per laikomus pratimus, tiek per poilsį) */}
             {secondsLeft > 0 && (step.duration.includes("sek") || step.duration.includes("sec")) && (
               <p className="text-4xl text-gray-900 font-bold mb-4">{secondsLeft} sek.</p>
