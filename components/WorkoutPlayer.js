@@ -132,17 +132,16 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   ) {
     // Sekanti serija to paties pratimo
     const nextSet = allExerciseSteps[currentExerciseStepIdx + 1].set;
-    return `Sekanti serija: ${exercise.name} serija ${nextSet}/${allExerciseSteps.length}`;
+    return `${exercise.name} serija ${nextSet}/${allExerciseSteps.length}`;
   }
 
   // Jei jau visos serijos baigtos – rodomas sekantis pratimas
   if (currentExerciseIndex + 1 < day.exercises.length) {
     const nextExercise = day.exercises[currentExerciseIndex + 1];
-    return `Sekantis pratimas: ${nextExercise ? nextExercise.name : "Pabaiga"}`;
+    return nextExercise ? nextExercise.name : "Pabaiga";
   }
   return "Pabaiga";
 }
-
 
 
   function goToPrevious() {
@@ -196,12 +195,11 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   </p>
 )}
 
-{(step.type === "rest" || step.type === "rest_after") && (
-  <p className="text-sm text-gray-500 italic mt-2">
-    🔜 {getNextExerciseText()}
-  </p>
-)}
-
+            {(step.type === "rest" || step.type === "rest_after") && (
+              <p className="text-lg font-medium text-blue-900 mb-2">
+                Poilsis: {step.duration}
+              </p>
+            )}
 
             {/* Laikmatis rodomas jei tik reikia (tiek per laikomus pratimus, tiek per poilsį) */}
             {secondsLeft > 0 && (step.duration.includes("sek") || step.duration.includes("sec")) && (
