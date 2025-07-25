@@ -410,6 +410,9 @@ promptParts.push(`today: "${today}" [The current date. Use this together with da
 - If you generate a workout plan: For EVERY DAY, start with a unique motivational message to encourage starting the workout, and finish with a unique motivational message for the end of the workout. For EVERY EXERCISE, add a short, beginner-friendly description. If any exercise has a complicated name, explain it briefly. The weekly structure must match the client's schedule, available equipment, and goal. If any data is missing, make your best professional assumptions.`
   );
 
+  // Prieš FINAL VALIDATION bloką
+`BEFORE submitting the final plan, you MUST fully verify that all required fields and structural elements are present, all constraints above are respected, and no forbidden patterns remain. If ANY mistake exists, fix it and re-check before submitting.`
+
 promptParts.push(
   `FINAL VALIDATION AND SELF-CHECK BEFORE RESPONDING:
 
