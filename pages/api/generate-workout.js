@@ -410,6 +410,27 @@ promptParts.push(`today: "${today}" [The current date. Use this together with da
 - If you generate a workout plan: For EVERY DAY, start with a unique motivational message to encourage starting the workout, and finish with a unique motivational message for the end of the workout. For EVERY EXERCISE, add a short, beginner-friendly description. If any exercise has a complicated name, explain it briefly. The weekly structure must match the client's schedule, available equipment, and goal. If any data is missing, make your best professional assumptions.`
   );
 
+promptParts.push(
+  `FINAL VALIDATION AND SELF-CHECK BEFORE RESPONDING:
+
+Before returning your final output, you MUST perform an internal validation checklist. ONLY return your answer if ALL the following are true:
+- Every workout day (##DAY X##) starts with one (!!motivation_start!!) and ends with one (!!motivation_end!!).
+- Each day is strictly structured as: warm-up (named exercises), main workout (named exercises), and cool-down/stretching (named exercises), in this exact order.
+- There are NO missing or duplicated motivational messages, and no sections are skipped.
+- Each exercise is fully structured (@@exercise@@, @name, @steps, @description) and each set/rest step is included and clear.
+- There are NO exercises or stretches for "both sides" – left/right sides are ALWAYS split into separate exercises.
+- There are NO forbidden phrases like "each leg", "per side", "for both arms", "alternating", or "repeat for the other side".
+- ALL fields and user preferences are respected (e.g., language, equipment, time).
+- No generic or abstract section names are present (e.g., "Stretching block", "Cool-down", etc.) – ONLY real, named exercises.
+- No required section or motivational message is missing.
+
+If ANY requirement above is not met, you MUST correct the output and re-validate before responding.
+
+Never mention this validation step in the visible response. Only show the final, validated workout plan.`
+);
+
+
+
   const aiPrompt = promptParts.join("\n\n");
 
   // 7. Siunčiam į OpenAI
