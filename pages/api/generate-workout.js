@@ -427,8 +427,8 @@ promptParts.push(`today: "${today}" [The current date. Use this together with da
           { role: "system", content: "You are a professional fitness coach and data safety validator." },
           { role: "user", content: aiPrompt },
         ],
-        max_tokens: 1200,
-        temperature: 0.7,
+        max_tokens: 8000,
+        temperature: 1.0,
       }),
     });
   } catch (error) {
