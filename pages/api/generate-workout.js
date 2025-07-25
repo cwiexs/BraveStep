@@ -428,7 +428,7 @@ promptParts.push(`today: "${today}" [The current date. Use this together with da
           { role: "user", content: aiPrompt },
         ],
         max_tokens: 8000,
-        temperature: 1.0,
+        temperature: 0.9,
       }),
     });
   } catch (error) {
