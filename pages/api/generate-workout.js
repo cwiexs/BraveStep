@@ -452,7 +452,7 @@ Never mention this validation step in the visible response. Only show the final,
           { role: "user", content: aiPrompt },
         ],
         max_tokens: 8000,
-        temperature: 0.9,
+        temperature: 0.7,
       }),
     });
   } catch (error) {
