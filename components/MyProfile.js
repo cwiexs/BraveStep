@@ -561,9 +561,9 @@ const sections = [
     title: "section.sport",
     fields: [
       {
-  name: "__sportsTestButton",
-  type: "custom"
-}
+        name: "__sportsTestButton",
+        type: "custom"
+      },
       {
         name: "minutesPerWorkout",
         label: "form.minutesPerWorkout",
