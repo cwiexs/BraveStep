@@ -21,6 +21,12 @@ export default async function handler(req, res) {
     return res.status(404).json({ error: "User not found" });
   }
 
+// Gauti paskutinę sporto ataskaitą
+const latestSportReport = await prisma.sportsHabitsReport.findFirst({
+  where: { userId: user.id },
+  orderBy: { createdAt: "desc" },
+});
+
   // 3. Atmetam jautrius laukus
   const {
   password,
@@ -360,6 +366,10 @@ RULES:
   `Here are the field descriptions and their values:`
 ];
 
+
+
+
+
 promptParts.push(
   `##EXTRA_RECOMMENDATIONS##
   15. EXTRA RECOMMENDATIONS (hydration + fresh air)
@@ -403,12 +413,25 @@ for (const [key, value] of Object.entries(userData)) {
 const today = new Date().toISOString().slice(0, 10);
 promptParts.push(`today: "${today}" [The current date. Use this together with dateOfBirth to calculate the user's age.]`);
 
+// Pridedam sporto testo ivertinima 
+if (latestSportReport?.aiAnalysis) {
+  promptParts.push(
+    `##SPORTS_PROFILE_ANALYSIS##
+This is the latest sports habits AI analysis generated from a detailed user test on ${latestSportReport.createdAt.toISOString().slice(0, 10)}:
+
+"""${latestSportReport.aiAnalysis}"""
+
+Use this to better understand the user's psychology, strengths, weaknesses, training preferences and body profile.`
+  );
+}
 
   promptParts.push(
     `IMPORTANT INSTRUCTIONS: 
 - NEVER generate a workout plan if there are any doubts about the safety, realism, or appropriateness of the input data. 
 - If you generate a workout plan: For EVERY DAY, start with a unique motivational message to encourage starting the workout, and finish with a unique motivational message for the end of the workout. For EVERY EXERCISE, add a short, beginner-friendly description. If any exercise has a complicated name, explain it briefly. The weekly structure must match the client's schedule, available equipment, and goal. If any data is missing, make your best professional assumptions.`
   );
+
+
 
   // Prieš FINAL VALIDATION bloką
 `BEFORE submitting the final plan, you MUST fully verify that all required fields and structural elements are present, all constraints above are respected, and no forbidden patterns remain. If ANY mistake exists, fix it and re-check before submitting.`
