@@ -78,8 +78,9 @@ export default function SportsHabitsTest({ onClose }) {
 
   return (
     <div>
-      <h3 className="text-2xl font-bold mb-3 text-blue-800">{t("test.sportIntroTitle")}</h3>
-      <p className="mb-6 text-gray-700">{t("test.sportIntroText")}</p>
+      <h3 className="text-2xl font-bold mb-3 text-blue-800">{t("test.introTitle")}</h3>
+     <p className="mb-6 text-gray-700">{t("test.introText")}</p>
+
 
       <div className="w-full h-4 bg-gray-200 rounded mb-8">
         <div
