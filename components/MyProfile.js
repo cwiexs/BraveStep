@@ -560,10 +560,7 @@ const sections = [
     key: "sport",
     title: "section.sport",
     fields: [
-      {
-        name: "__sportsTestButton",
-        type: "custom"
-      },
+      
       {
         name: "minutesPerWorkout",
         label: "form.minutesPerWorkout",
