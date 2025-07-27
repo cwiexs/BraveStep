@@ -419,33 +419,46 @@
     "cat_preferences": "Preferences",
     "cat_habits": "Habits",
 
-    "q_endurance_vs_strength": "Do you prefer endurance training over strength training?",
-    "q_cardio_preference": "Do you enjoy cardio exercises (running, biking)?",
-    "q_heavy_weights": "Do you like lifting heavy weights for fewer reps?",
-    "q_light_weights_high_reps": "Do you prefer light weights with high repetitions?",
-    "q_long_distance_running": "Do you enjoy long-distance running?",
-    "q_sprint_training": "Do you enjoy sprint workouts?",
-    "q_yoga_preference": "Do you enjoy yoga or stretching routines?",
-    "q_team_sports_interest": "Do you like team-based sports?",
-    "q_individual_sports_preference": "Do you prefer exercising alone?",
-    "q_motivation_from_challenges": "Are you motivated by physical challenges?",
-    "q_focus_on_upper_body": "Do you focus more on upper-body workouts?",
-    "q_focus_on_lower_body": "Do you focus more on lower-body workouts?",
-    "q_core_strength_priority": "Is core strength a priority for you?",
-    "q_enjoys_outdoor_activities": "Do you enjoy outdoor workouts?",
-    "q_gym_training_preference": "Do you prefer going to the gym?",
-    "q_home_training_preference": "Do you like training at home?",
-    "q_exercise_variety": "Do you like trying many different exercises?",
-    "q_exercise_consistency": "Are you consistent with your exercise routine?",
-    "q_workout_duration_preference": "Do you prefer longer workouts over short intense ones?",
-    "q_high_intensity_training": "Do you like high-intensity interval training (HIIT)?"
+ "q_endurance_general": "I enjoy general endurance training (e.g., long runs, cycling, swimming).",
+  "q_strength_general": "I prefer general strength training with weights.",
+  "q_cardio_activities": "I enjoy cardio activities (running, aerobics, cycling).",
+  "q_lifting_heavy_weights": "I like lifting heavy weights.",
+  "q_high_reps_lighter_weights": "I prefer doing higher repetitions with lighter weights.",
+  "q_long_runs": "I enjoy long-distance running.",
+  "q_short_sprints": "I prefer short, intense sprint workouts.",
+  "q_interval_training": "I enjoy interval training (combining cardio and strength).",
+  "q_bodyweight_exercises": "I often do bodyweight exercises.",
+  "q_flexibility_stretching": "I dedicate significant time to stretching exercises.",
+  "q_yoga_practice": "I enjoy practicing yoga.",
+  "q_mobility_focus": "Improving my body's mobility and flexibility is important to me.",
+  "q_team_sports": "I enjoy participating in team sports.",
+  "q_solo_training": "I usually prefer to train alone.",
+  "q_competitive_motivation": "Competition with others motivates me.",
+  "q_personal_challenges": "I enjoy setting personal fitness challenges.",
+  "q_upper_body_focus": "I often focus on upper body training.",
+  "q_lower_body_focus": "I focus more on training my lower body.",
+  "q_core_strength_importance": "Having a strong core (abdominal area) is important to me.",
+  "q_balanced_training": "I aim for balanced training of all body parts.",
+  "q_outdoor_training": "I enjoy working out outdoors.",
+  "q_gym_training": "I frequently train in a gym.",
+  "q_home_training": "I regularly work out at home.",
+  "q_equipment_free_training": "I enjoy equipment-free workouts.",
+  "q_training_variety": "I like having variety in my workouts.",
+  "q_structured_routine": "I follow a clear and structured workout plan.",
+  "q_consistent_training": "I train regularly, without long breaks.",
+  "q_longer_less_intense_sessions": "I prefer longer, less intense workout sessions.",
+  "q_short_high_intensity_sessions": "I prefer short, high-intensity workouts (HIIT).",
+  "q_daily_physical_activity": "I try to be physically active every day."
+
   },
 
 
 
  "form.sportsHabitsTestLabel": "Sports Habits Test",
   "form.takeSportsHabitsTest": "Take Sports Test",
-  "form.sportsHabitsTestTitle": "Sports Habits Test"
+  "form.sportsHabitsTestTitle": "Sports Habits Test",
+  "info.sportsHabitsTest": "This test helps assess your workout preferences, physical strengths and weaknesses, and your psychological profile for training. Answer each question from 1 to 5, where 1 means 'strongly disagree' and 5 means 'strongly agree'."
+
 
 
 
