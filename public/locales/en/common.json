@@ -443,8 +443,8 @@
 
 
 
- "sportsHabitsTestLabel": "Sports Habits Test",
-  "takeSportsHabitsTest": "Take Sports Test",
+ "form.sportsHabitsTestLabel": "Sports Habits Test",
+  "form.takeSportsHabitsTest": "Take Sports Test",
   "form.sportsHabitsTestTitle": "Sports Habits Test"
 
 
