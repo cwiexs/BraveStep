@@ -400,12 +400,52 @@
 "test.last_done": "Last completed:",
 "test.not_done": "Test not completed yet",
 
-"test.successMessage": "Well done! Your answers were successfully saved."
+"test.successMessage": "Well done! Your answers were successfully saved.",
 
 
 
+  "test": {
+    "sportIntroTitle": "Discover your training personality",
+    "sportIntroText": "Answer the questions to help us understand your exercise style and preferences. This helps create the best plan for you.",
+    "submit": "Generate Report",
+    "generating": "Generating...",
+    "successMessage": "Report successfully created!",
+    "cat_type": "Type Preference",
+    "cat_strength": "Strength",
+    "cat_endurance": "Endurance",
+    "cat_flexibility": "Flexibility",
+    "cat_psychology": "Psychology",
+    "cat_muscle_balance": "Muscle Focus",
+    "cat_preferences": "Preferences",
+    "cat_habits": "Habits",
+
+    "q_endurance_vs_strength": "Do you prefer endurance training over strength training?",
+    "q_cardio_preference": "Do you enjoy cardio exercises (running, biking)?",
+    "q_heavy_weights": "Do you like lifting heavy weights for fewer reps?",
+    "q_light_weights_high_reps": "Do you prefer light weights with high repetitions?",
+    "q_long_distance_running": "Do you enjoy long-distance running?",
+    "q_sprint_training": "Do you enjoy sprint workouts?",
+    "q_yoga_preference": "Do you enjoy yoga or stretching routines?",
+    "q_team_sports_interest": "Do you like team-based sports?",
+    "q_individual_sports_preference": "Do you prefer exercising alone?",
+    "q_motivation_from_challenges": "Are you motivated by physical challenges?",
+    "q_focus_on_upper_body": "Do you focus more on upper-body workouts?",
+    "q_focus_on_lower_body": "Do you focus more on lower-body workouts?",
+    "q_core_strength_priority": "Is core strength a priority for you?",
+    "q_enjoys_outdoor_activities": "Do you enjoy outdoor workouts?",
+    "q_gym_training_preference": "Do you prefer going to the gym?",
+    "q_home_training_preference": "Do you like training at home?",
+    "q_exercise_variety": "Do you like trying many different exercises?",
+    "q_exercise_consistency": "Are you consistent with your exercise routine?",
+    "q_workout_duration_preference": "Do you prefer longer workouts over short intense ones?",
+    "q_high_intensity_training": "Do you like high-intensity interval training (HIIT)?"
+  },
 
 
+
+ "sportsHabitsTestLabel": "Sports Habits Test",
+  "takeSportsHabitsTest": "Take Sports Test",
+  "sportsHabitsTestTitle": "Sports Habits Test"
 
 
 

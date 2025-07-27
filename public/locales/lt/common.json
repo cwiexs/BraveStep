@@ -404,11 +404,51 @@
 "test.last_done": "Paskutinį kartą atliktas:",
 "test.not_done": "Testas dar neatliktas",
 
-"test.successMessage": "Puikiai padirbėta! Jūsų atsakymai sėkmingai išsaugoti."
+"test.successMessage": "Puikiai padirbėta! Jūsų atsakymai sėkmingai išsaugoti.",
 
 
 
+  "test": {
+    "sportIntroTitle": "Atrask savo sportavimo stilių",
+    "sportIntroText": "Atsakyk į klausimus, kad padėtume suprasti tavo sportinius įpročius ir pageidavimus. Tai padės sukurti tau asmeniškai pritaikytą sporto planą.",
+    "submit": "Sukurti ataskaitą",
+    "generating": "Kuriama...",
+    "successMessage": "Ataskaita sėkmingai sukurta!",
+    "cat_type": "Treniruotės tipas",
+    "cat_strength": "Jėga",
+    "cat_endurance": "Ištvermė",
+    "cat_flexibility": "Lankstumas",
+    "cat_psychology": "Psichologija",
+    "cat_muscle_balance": "Raumenų balansas",
+    "cat_preferences": "Pageidavimai",
+    "cat_habits": "Įpročiai",
 
+    "q_endurance_vs_strength": "Ar labiau mėgsti ištvermės treniruotes nei jėgos?",
+    "q_cardio_preference": "Ar tau patinka kardio pratimai (bėgimas, dviratis)?",
+    "q_heavy_weights": "Ar mėgsti kelti sunkius svorius su mažesniu pakartojimų skaičiumi?",
+    "q_light_weights_high_reps": "Ar mieliau renkiesi lengvesnius svorius su daugiau pakartojimų?",
+    "q_long_distance_running": "Ar mėgsti ilgus bėgimus?",
+    "q_sprint_training": "Ar mėgsti sprinto treniruotes?",
+    "q_yoga_preference": "Ar mėgsti jogą ar tempimo pratimus?",
+    "q_team_sports_interest": "Ar tau patinka komandinis sportas?",
+    "q_individual_sports_preference": "Ar labiau patinka sportuoti vienam?",
+    "q_motivation_from_challenges": "Ar tave motyvuoja fiziniai iššūkiai?",
+    "q_focus_on_upper_body": "Ar labiau koncentruojiesi į viršutinės kūno dalies treniruotes?",
+    "q_focus_on_lower_body": "Ar labiau treniruoji apatinę kūno dalį?",
+    "q_core_strength_priority": "Ar tau svarbu stiprinti pilvo presą ir kūno centrą?",
+    "q_enjoys_outdoor_activities": "Ar mėgsti sportuoti lauke?",
+    "q_gym_training_preference": "Ar mieliau sportuoji sporto salėje?",
+    "q_home_training_preference": "Ar mėgsti sportuoti namuose?",
+    "q_exercise_variety": "Ar tau patinka įvairūs pratimai?",
+    "q_exercise_consistency": "Ar sportuoji reguliariai?",
+    "q_workout_duration_preference": "Ar labiau mėgsti ilgesnes treniruotes nei trumpas intensyvias?",
+    "q_high_intensity_training": "Ar mėgsti aukšto intensyvumo treniruotes (HIIT)?"
+  },
+
+  
+  "sportsHabitsTestLabel": "Sporto įpročių testas",
+  "takeSportsHabitsTest": "Atlikti sporto testą",
+  "sportsHabitsTestTitle": "Sporto įpročių testas"
 
 
 

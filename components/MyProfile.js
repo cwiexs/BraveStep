@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { useTranslation } from "next-i18next";
 import { CheckCircle2, Info } from "lucide-react";
 import EatingHabitsTest from "./EatingHabitsTest";
+import SportsHabitsTest from "./SportsHabitsTest";
 
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
@@ -605,6 +606,8 @@ const sections = [
 function MyProfile() {
   const [bodyTypeModalOpen, setBodyTypeModalOpen] = useState(false);
   const [eatingHabitsModalOpen, setEatingHabitsModalOpen] = useState(false); 
+  const [sportsHabitsModalOpen, setSportsHabitsModalOpen] = useState(false);
+
   const { t } = useTranslation();
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -1032,6 +1035,15 @@ const finalData = {
 
           )
       )}
+    
+      <Modal
+        open={sportsHabitsModalOpen}
+        onClose={() => setSportsHabitsModalOpen(false)}
+        title={t("form.sportsHabitsTestTitle")}
+      >
+        <SportsHabitsTest onClose={() => setSportsHabitsModalOpen(false)} />
+      </Modal>
+
     </div>
   );
 }

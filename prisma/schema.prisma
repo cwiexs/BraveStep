@@ -125,7 +125,7 @@ model User {
   updated_at                 DateTime   @default(now()) @updatedAt
 
   generatedPlans             GeneratedPlan[]
-
+  sportsHabitsReports  SportsHabitsReport[]
   @@map("users")
 }
 
@@ -152,4 +152,13 @@ model ArchivedPlan {
   completionStatus Json?
   createdAt        DateTime
   archivedAt       DateTime @default(now())
+}
+
+model SportsHabitsReport {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  userId      String
+  answers     Json
+  aiAnalysis  String
+  user        User     @relation(fields: [userId], references: [id])
 }
