@@ -588,19 +588,7 @@ const sections = [
       },
     ],
   },
-  {
-    key: "privileges",
-    title: "section.privileges",
-    fields: [
-      {
-        name: "accessLevel",
-        label: "form.accessLevel",
-        type: "number",
-        readOnly: true,
-        infoKey: "info.accessLevel",
-      },
-    ],
-  },
+  
 ];
 
 // ———— KOMPONENTAS ————
