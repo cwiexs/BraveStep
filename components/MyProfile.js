@@ -561,6 +561,10 @@ const sections = [
     title: "section.sport",
     fields: [
       {
+  name: "__sportsTestButton",
+  type: "custom"
+}
+      {
         name: "minutesPerWorkout",
         label: "form.minutesPerWorkout",
         type: "number",
@@ -762,6 +766,43 @@ const finalData = {
 
 {sec.fields.map(f => {
   const val = fields[f.name] ?? "";
+
+  if (sec.key === "sport" && f.name === "minutesPerWorkout") {
+  return (
+    <React.Fragment key={f.name}>
+      {/* Mygtukas sporto testui */}
+      <div className="mb-4">
+        <label className="block mb-1 font-medium text-blue-900">
+          {t("form.sportsHabitsTestLabel")}
+          <InfoTooltip infoKey="info.sportsHabitsTest" />
+        </label>
+        <button
+          type="button"
+          onClick={() => setSportsHabitsModalOpen(true)}
+          className="bg-blue-100 text-blue-900 rounded px-4 py-2 font-medium hover:bg-blue-200 transition"
+        >
+          {t("form.takeSportsHabitsTest")}
+        </button>
+      </div>
+
+      {/* minutesPerWorkout laukelis */}
+      <div className="mb-4">
+        <label className="block mb-1 font-medium text-blue-900">
+          {t(f.label)}
+          <InfoTooltip infoKey={f.infoKey} />
+        </label>
+        <input
+          type="number"
+          name={f.name}
+          value={val}
+          onChange={e => handleChange(f.name, e.target.value)}
+          className="w-full border rounded px-3 py-2"
+          placeholder={t(f.label)}
+        />
+      </div>
+    </React.Fragment>
+  );
+}
 
   // Jei yra visibleIf ir ji grąžina false — nerodom šio lauko
   if (f.visibleIf && !f.visibleIf(fields)) return null;
