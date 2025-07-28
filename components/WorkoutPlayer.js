@@ -221,7 +221,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
         {phase === "intro" ? (
           <>
             <h2 className="text-2xl font-bold mb-4">💡 Motyvacija</h2>
-            <p className="mb-4 text-gray-800 whitespace-pre-wrap">{workoutData.introduction}</p>
+            <p className="mb-4 text-gray-800 whitespace-pre-wrap">{workoutData.days[0]?.motivationStart}</p>
             <button
               className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold"
               onClick={handleManualContinue}
