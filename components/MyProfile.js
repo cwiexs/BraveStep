@@ -603,7 +603,7 @@ const sections = [
       {
         name: "equipmentAvailable",
         label: "form.equipmentAvailable",
-        type: "array",
+        type: "text",
         infoKey: "info.equipmentAvailable",
       },
     ],

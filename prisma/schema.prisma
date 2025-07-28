@@ -98,7 +98,7 @@ model User {
   minutesPerWorkout          Int?
   workoutsPerWeek            Int?
   workoutLocation            WorkoutLocation?
-  equipmentAvailable         String[]   @db.VarChar(100)
+  equipmentAvailable         String?   @db.VarChar(200)
   dietType                   String?    @db.VarChar(50)
   favoriteFoods              String?   @db.VarChar(100)
   dislikedFoods              String?   @db.VarChar(100)
