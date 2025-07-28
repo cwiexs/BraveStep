@@ -425,11 +425,14 @@ Use this to better understand the user's psychology, strengths, weaknesses, trai
   );
 }
 
-  promptParts.push(
-    `IMPORTANT INSTRUCTIONS: 
+promptParts.push(
+  `IMPORTANT INSTRUCTIONS: 
 - NEVER generate a workout plan if there are any doubts about the safety, realism, or appropriateness of the input data. 
-- If you generate a workout plan: For EVERY DAY, start with a unique motivational message to encourage starting the workout, and finish with a unique motivational message for the end of the workout. For EVERY EXERCISE, add a short, beginner-friendly description. If any exercise has a complicated name, explain it briefly. The weekly structure must match the client's schedule, available equipment, and goal. If any data is missing, make your best professional assumptions.`
-  );
+- If you generate a workout plan: Always treat it as a standalone daily session. Start with a unique motivational message (!!motivation_start!!) to encourage beginning the workout, and finish with a unique motivational message (!!motivation_end!!) to reinforce completion and motivation. 
+- For EVERY EXERCISE, add a short, beginner-friendly description. If the exercise name is complicated or uncommon, briefly explain it in simple terms. 
+- Adapt the plan to the user's available equipment, fitness level, and goal. If any data is missing, make your best professional assumptions.`
+);
+
 
 
 
