@@ -32,6 +32,7 @@ enum PhysicalActivityLevel {
   medium
   high
   very_high
+  other
 }
 
 enum WorkSchedule {
