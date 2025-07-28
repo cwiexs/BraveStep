@@ -40,6 +40,7 @@ enum WorkSchedule {
   shift
   flexible
   normal
+  other
 }
 
 enum WorkoutLocation {
@@ -78,6 +79,7 @@ model User {
   jobType                    String?    @db.VarChar(50)
   workHoursPerDay            Float?
   workSchedule               WorkSchedule?
+  workScheduleOther          String?
   wakeUpTime                 String?    @db.VarChar(20)
   bedTime                    String?    @db.VarChar(20)
   sleepHours                 Float?
@@ -94,12 +96,12 @@ model User {
   minutesPerWorkout          Int?
   workoutsPerWeek            Int?
   workoutLocation            WorkoutLocation?
-  equipmentAvailable         String[]   @db.VarChar(50)
+  equipmentAvailable         String[]   @db.VarChar(100WorkSchedule)
   dietType                   String?    @db.VarChar(50)
-  favoriteFoods              String?   @db.VarChar(50)
-  dislikedFoods              String?   @db.VarChar(50)
+  favoriteFoods              String?   @db.VarChar(100)
+  dislikedFoods              String?   @db.VarChar(100)
   cuisinePreference          String?   @db.VarChar(50)
-  supplements                String?   @db.VarChar(50)
+  supplements                String?   @db.VarChar(100)
   coffeePerDay               Int?
   teaPerDay                  Int?
   sugarPerDay                Int?

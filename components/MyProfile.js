@@ -6,6 +6,26 @@ import { CheckCircle2, Info } from "lucide-react";
 import EatingHabitsTest from "./EatingHabitsTest";
 import SportsHabitsTest from "./SportsHabitsTest";
 
+const TextInputWithCounter = ({ name, value, onChange, placeholder, maxLength }) => {
+  const remainingChars = maxLength - (value?.length || 0);
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        name={name}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        className="w-full border rounded px-3 py-2 pr-20"
+        placeholder={placeholder}
+        maxLength={maxLength}
+      />
+      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+        {remainingChars} / {maxLength}
+      </span>
+    </div>
+  );
+};
+
 const Modal = ({ open, onClose, title, children }) => {
   if (!open) return null;
   return (
@@ -588,7 +608,19 @@ const sections = [
       },
     ],
   },
-  
+  {
+    key: "privileges",
+    title: "section.privileges",
+    fields: [
+      {
+        name: "accessLevel",
+        label: "form.accessLevel",
+        type: "number",
+        readOnly: true,
+        infoKey: "info.accessLevel",
+      },
+    ],
+  },
 ];
 
 // ———— KOMPONENTAS ————
@@ -690,24 +722,35 @@ const finalData = {
   );
 
   // Siuntimas į serverį
-  const handleSave = async () => {
-    setLoading(true);
-    setSuccess("");
-    setError("");
-    try {
-      const res = await fetch("/api/users", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalData),
-      });
-      if (!res.ok) throw new Error(await res.text());
-      setSuccess(t("form.saveSuccess"));
-      setInitialFields(fields);
-    } catch (e) {
-      setError(t("form.saveError") + ": " + (e.message || e));
+// ENUM LAUKŲ SAUGOJIMO PATAISA HANDLE SAVE METODE:
+
+const handleSave = async () => {
+  setLoading(true);
+  setSuccess("");
+  setError("");
+  const processed = { ...fields };
+  for (const sec of sections) {
+    for (const f of sec.fields) {
+      if (f.type === "enum" && !f.noOther && fields[f.name] && !f.options.includes(fields[f.name])) {
+        processed[f.name] = "other";
+        processed[`${f.name}Other`] = fields[f.name];
+      }
     }
-    setLoading(false);
-  };
+  }
+  try {
+    const res = await fetch("/api/users", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(processed),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    setSuccess(t("form.saveSuccess"));
+    setInitialFields(fields);
+  } catch (e) {
+    setError(t("form.saveError") + ": " + (e.message || e));
+  }
+  setLoading(false);
+};
 
   if (status === "loading") return <div>{t("loading")}...</div>;
 
@@ -920,7 +963,23 @@ const finalData = {
     );
   }
 
-
+if (f.type === "text") {
+  return (
+    <div key={f.name} className="mb-4">
+      <label className="block mb-1 font-medium text-blue-900">
+        {t(f.label)}
+        <InfoTooltip infoKey={f.infoKey} />
+      </label>
+      <TextInputWithCounter
+        name={f.name}
+        value={val}
+        onChange={v => handleChange(f.name, v)}
+        placeholder={t(f.label)}
+        maxLength={100} // gali būti keičiama pagal tavo schema.prisma
+      />
+    </div>
+  );
+}
 
 
 
