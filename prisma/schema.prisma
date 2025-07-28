@@ -90,6 +90,7 @@ model User {
   favoriteActivities         String[]   @db.VarChar(50)
   gymMember                  Boolean?
   physicalActivityLevel      PhysicalActivityLevel?
+  physicalActivityLevelOther String?
   stepsPerDay                Int?
   currentSports              String[]   @db.VarChar(50)
   newActivitiesInterest      String[]   @db.VarChar(50)
