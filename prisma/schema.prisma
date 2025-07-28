@@ -79,7 +79,7 @@ model User {
   jobType                    String?    @db.VarChar(50)
   workHoursPerDay            Float?
   workSchedule               WorkSchedule?
-  workScheduleOther          String?
+  workScheduleOther          String?  
   wakeUpTime                 String?    @db.VarChar(20)
   bedTime                    String?    @db.VarChar(20)
   sleepHours                 Float?
@@ -96,7 +96,7 @@ model User {
   minutesPerWorkout          Int?
   workoutsPerWeek            Int?
   workoutLocation            WorkoutLocation?
-  equipmentAvailable         String[]   @db.VarChar(100WorkSchedule)
+  equipmentAvailable         String[]   @db.VarChar(100)
   dietType                   String?    @db.VarChar(50)
   favoriteFoods              String?   @db.VarChar(100)
   dislikedFoods              String?   @db.VarChar(100)
