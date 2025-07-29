@@ -1,5 +1,7 @@
+// Atnaujinta versija su treniruotės įvertinimo langeliu
 import { useEffect, useState, useRef } from "react";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw } from 'lucide-react';
+import { useRouter } from 'next/router';
 
 export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentDay, setCurrentDay] = useState(0);
@@ -10,13 +12,94 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [playedWarnings, setPlayedWarnings] = useState([]);
   const [paused, setPaused] = useState(false);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [rating, setRating] = useState(3);
+  const [comment, setComment] = useState("");
+  const [submitted, setSubmitted] = useState(false);
   const wakeLockRef = useRef(null);
   const timerRef = useRef(null);
   const handlePhaseRef = useRef(false);
+  const router = useRouter();
 
   const day = workoutData.days[currentDay];
   const exercise = day.exercises[currentExerciseIndex];
   const step = exercise.steps[currentStepIndex];
+
+  function handlePhaseComplete() {
+    if (handlePhaseRef.current) return;
+    handlePhaseRef.current = true;
+    setTimeout(() => { handlePhaseRef.current = false }, 400);
+
+    if (timerRef.current) clearInterval(timerRef.current);
+    new Audio("/beep.mp3").play().catch(() => { });
+
+    if (currentStepIndex + 1 < exercise.steps.length) {
+      setCurrentStepIndex(prev => prev + 1);
+      setPlayedWarnings([]);
+    } else if (currentExerciseIndex + 1 < day.exercises.length) {
+      setCurrentExerciseIndex(prev => prev + 1);
+      setCurrentStepIndex(0);
+      setPlayedWarnings([]);
+    } else {
+      setShowFeedback(true); // Vietoje alert - rodyti įvertinimo langą
+    }
+  }
+
+  async function submitFeedback() {
+    await fetch('/api/complete-plan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        planId: workoutData.id,
+        difficultyRating: rating,
+        userComment: comment
+      })
+    });
+    setSubmitted(true);
+    setTimeout(() => {
+      setShowFeedback(false);
+      onClose();
+    }, 1500);
+  }
+
+  if (showFeedback) {
+    const emojis = ['😵‍💫', '😓', '😌', '💪', '🔥'];
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg max-w-lg text-center">
+          <h2 className="text-xl font-bold mb-2">💬 {workoutData?.days[0]?.motivationEnd || 'Puikiai padirbėta!'}</h2>
+          <p className="text-sm text-gray-600 mb-4">Kaip įvertintum treniruotės sunkumą?</p>
+
+          <div className="flex justify-center gap-2 mb-4">
+            {emojis.map((emoji, i) => (
+              <button
+                key={i}
+                onClick={() => setRating(i + 1)}
+                className={`text-3xl ${rating === i + 1 ? 'scale-125' : ''}`}
+              >{emoji}</button>
+            ))}
+          </div>
+
+          <textarea
+            placeholder="Tavo komentaras apie šią treniruotę..."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="w-full p-2 border rounded mb-4"
+            rows={3}
+          />
+
+          <button
+            onClick={submitFeedback}
+            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+          >
+            Baigti treniruotę
+          </button>
+
+          {submitted && <p className="text-green-600 mt-2">Ačiū už įvertinimą!</p>}
+        </div>
+      </div>
+    )
+  }
 
   // Debug: išvesk visą struktūrą į konsolę paleidžiant
   useEffect(() => {
