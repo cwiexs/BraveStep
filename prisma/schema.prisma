@@ -138,19 +138,23 @@ model User {
 
 model GeneratedPlan {
   id                 String              @id @default(uuid())
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId             String
+  type               String              // GRĄŽINTA – reikalinga senam kodui
+  planData           Json                // Originaliai sugeneruotas planas
+  modifiedPlanData   Json?               // Jei vartotojas jį koregavo
+  feedbackNotes      String?             @db.VarChar(500) // Kodėl planas buvo koreguotas
+  completionStatus   Json?               // Pvz., { "day1": true, "day2": false }
+  wasCompleted       Boolean             @default(false)  // Naujas laukas – ar planas atliktas
+  difficultyRating   Int?                // Naujas – 1–5 skalė
+  userComment        String?             // Naujas – komentaras
   createdAt          DateTime            @default(now())
-  planData           Json
-  wasCompleted       Boolean             @default(false) //  žymi, ar planas buvo tikrai atliktas
-  difficultyRating   Int?                // 1 – per lengva, 3 – tobula, 5 – per sunku
-  userComment        String?             // Komentaras apie visą planą
-  exerciseHistory    ExerciseHistory[]   // Ryšys su pratimais
-  type               String
-
-  user               User                @relation(fields: [userId], references: [id])
+  updatedAt          DateTime            @updatedAt
+  exerciseHistory    ExerciseHistory[]   // ryšys su istorija
 
   @@index([userId, createdAt])
 }
+
 
 
 
