@@ -63,7 +63,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   if (showFeedback) {
-    const emojis = ['😵‍💫', '😓', '😌', '💪', '🔥'];
+  const emojis = ['😣', '😟', '😌', '😄', '🔥'];
     return (
       <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
         <div className="bg-white p-6 rounded-lg max-w-lg text-center">
