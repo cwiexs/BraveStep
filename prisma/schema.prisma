@@ -145,6 +145,7 @@ model GeneratedPlan {
   difficultyRating   Int?                // 1 – per lengva, 3 – tobula, 5 – per sunku
   userComment        String?             // Komentaras apie visą planą
   exerciseHistory    ExerciseHistory[]   // Ryšys su pratimais
+  type               String
 
   user               User                @relation(fields: [userId], references: [id])
 
