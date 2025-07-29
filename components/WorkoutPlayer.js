@@ -194,11 +194,6 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     // eslint-disable-next-line
   }, [secondsLeft, waitingForUser, phase, paused]);
 
-  function handlePhaseComplete() {
-    if (handlePhaseRef.current) return;
-    handlePhaseRef.current = true;
-    setTimeout(() => { handlePhaseRef.current = false }, 400); // trumpas uždelsimas
-
     if (timerRef.current) clearInterval(timerRef.current);
     new Audio("/beep.mp3").play().catch(()=>{});
     if (currentStepIndex + 1 < exercise.steps.length) {
