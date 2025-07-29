@@ -213,7 +213,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     } else {
       console.log(">>> handlePhaseComplete: Treniruotė baigta!");
        setShowFeedback(true);
-      onClose();
+
     }
   }
 
