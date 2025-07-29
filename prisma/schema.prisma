@@ -130,33 +130,29 @@ model User {
 
   generatedPlans             GeneratedPlan[]
   sportsHabitsReports  SportsHabitsReport[]
+
+  exerciseHistory  ExerciseHistory[]
+
   @@map("users")
 }
 
 model GeneratedPlan {
-  id                String   @id @default(uuid())
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId            String
-  type              String
-  planData          Json      // Originaliai sugeneruotas planas
-  modifiedPlanData  Json?     // Jei vartotojas jį koregavo
-  feedbackNotes     String?   @db.VarChar(500) // Kodėl planas buvo koreguotas
-  completionStatus  Json?     // Pvz., { "day1": true, "day2": false }
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id                 String              @id @default(uuid())
+  userId             String
+  createdAt          DateTime            @default(now())
+  planData           Json
+  wasCompleted       Boolean             @default(false) //  žymi, ar planas buvo tikrai atliktas
+  difficultyRating   Int?                // 1 – per lengva, 3 – tobula, 5 – per sunku
+  userComment        String?             // Komentaras apie visą planą
+  exerciseHistory    ExerciseHistory[]   // Ryšys su pratimais
+
+  user               User                @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
 }
 
-model ArchivedPlan {
-  id               String   @id @default(uuid())
-  userId           String
-  type             String
-  originalPlan     Json
-  modifiedPlan     Json?
-  feedback         String?  @db.VarChar(500)
-  completionStatus Json?
-  createdAt        DateTime
-  archivedAt       DateTime @default(now())
-}
+
+
 
 model SportsHabitsReport {
   id          String   @id @default(cuid())
@@ -166,3 +162,20 @@ model SportsHabitsReport {
   aiAnalysis  String
   user        User     @relation(fields: [userId], references: [id])
 }
+
+model ExerciseHistory {
+  id              String   @id @default(uuid())
+  userId          String
+  planId          String
+  workoutDate     DateTime  @default(now())
+  exerciseName    String
+  muscleGroups    String[]
+  difficulty      String
+  userRating      Int?
+  comment         String?
+  createdAt       DateTime  @default(now())
+
+  user            User            @relation(fields: [userId], references: [id])
+  plan            GeneratedPlan   @relation(fields: [planId], references: [id])
+}
+
