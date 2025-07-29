@@ -1,6 +1,9 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "./auth/[...nextauth]";
 import { prisma } from "../../lib/prisma";
+import { generateExerciseHistorySummary } from "../../components/utils/generateExerciseHistorySummary";
+
+
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -20,6 +23,15 @@ export default async function handler(req, res) {
   if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
+// 2.1 Gauti atliktų pratimų santrauką
+const exerciseHistorySummary = await generateExerciseHistorySummary(user.id);
+console.log("🧠 Į AI siunčiama treniruočių istorija:", exerciseHistorySummary);
+
+// 2.2 Jeigu yra atliktų pratimų – pridėti prie AI prompto
+if (exerciseHistorySummary.length > 0) {
+  promptParts.push("##EXERCISE_HISTORY_SUMMARY##");
+  promptParts.push(JSON.stringify(exerciseHistorySummary, null, 2));
+}
 
 // Gauti paskutinę sporto ataskaitą
 const latestSportReport = await prisma.sportsHabitsReport.findFirst({

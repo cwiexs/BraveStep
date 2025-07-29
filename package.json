@@ -32,6 +32,9 @@
     "node": "22.x"
   },
   "devDependencies": {
-    "prisma": "^6.10.1"
+    "@types/node": "^24.1.0",
+    "@types/react": "^19.1.9",
+    "prisma": "^6.10.1",
+    "typescript": "^5.8.3"
   }
 }
