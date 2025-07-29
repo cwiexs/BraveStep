@@ -28,10 +28,11 @@ const exerciseHistorySummary = await generateExerciseHistorySummary(user.id);
 console.log("🧠 Į AI siunčiama treniruočių istorija:", exerciseHistorySummary);
 
 // 2.2 Jeigu yra atliktų pratimų – pridėti prie AI prompto
-if (exerciseHistorySummary.length > 0) {
+if (Array.isArray(exerciseHistorySummary) && exerciseHistorySummary.length > 0) {
   promptParts.push("##EXERCISE_HISTORY_SUMMARY##");
   promptParts.push(JSON.stringify(exerciseHistorySummary, null, 2));
 }
+
 
 // Gauti paskutinę sporto ataskaitą
 const latestSportReport = await prisma.sportsHabitsReport.findFirst({

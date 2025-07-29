@@ -21,5 +21,6 @@ export default async function handler(req, res) {
 
   if (!lastPlan) return res.status(200).json({ plan: null });
 
-  res.status(200).json({ plan: lastPlan.planData });
+res.status(200).json({ plan: lastPlan ? lastPlan.planData : null });
+
 }
