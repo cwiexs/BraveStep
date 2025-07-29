@@ -3,9 +3,11 @@
   "version": "1.0.1",
   "scripts": {
     "dev": "next dev",
-    "build": "npx prisma generate && next build",
+    "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "postinstall": "npx prisma generate"
+
+
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.9.1",
@@ -37,4 +39,5 @@
     "prisma": "^6.10.1",
     "typescript": "^5.8.3"
   }
+  
 }
