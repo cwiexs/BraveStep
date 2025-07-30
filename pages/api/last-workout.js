@@ -40,15 +40,14 @@ export default async function handler(req, res) {
 
     console.log("✅ Paskutinis planas rastas:", lastPlan.id);
 
-return res.status(200).json({
-  plan: {
-    id: lastPlan.id,
-    planData: lastPlan.planData,
-    wasCompleted: lastPlan.wasCompleted,
-    createdAt: lastPlan.createdAt,
-  }
-});
-
+    return res.status(200).json({
+      plan: lastPlan.planData || null,
+      debug: {
+        id: lastPlan.id,
+        wasCompleted: lastPlan.wasCompleted,
+        createdAt: lastPlan.createdAt,
+      },
+    });
 
   } catch (err) {
     console.error("💥 Klaida /api/last-workout:", err);
