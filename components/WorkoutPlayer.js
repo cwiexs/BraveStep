@@ -1,7 +1,4 @@
-// Atnaujinta versija su treniruotės įvertinimo langeliu
 import { useEffect, useState, useRef } from "react";
-import { SkipBack, SkipForward, Pause, Play, RotateCcw } from 'lucide-react';
-import { useRouter } from 'next/router';
 
 export default function WorkoutPlayer({ workoutData, onClose }) {
   const [currentDay, setCurrentDay] = useState(0);
@@ -18,22 +15,30 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const [submitted, setSubmitted] = useState(false);
   const wakeLockRef = useRef(null);
   const timerRef = useRef(null);
-  const router = useRouter();
 
-  const day = workoutData.days[currentDay];
-  const exercise = day.exercises[currentExerciseIndex];
-  const step = exercise.steps[currentStepIndex];
+  // Saugiai gauname einamą žingsnį
+  const day = workoutData?.days?.[currentDay];
+  const exercise = day?.exercises?.[currentExerciseIndex];
+  const step = exercise?.steps?.[currentStepIndex];
 
+  // Saugiklis – jei kažko trūksta, tiesiog rodom apibendrinimą
+  if ((!day || !exercise || !step) && !showFeedback && phase !== "intro") {
+    setShowFeedback(true);
+  }
+
+  // Submit feedback įrašymas
   async function submitFeedback() {
-    await fetch('/api/complete-plan', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        planId: workoutData.id,
-        difficultyRating: rating,
-        userComment: comment
-      })
-    });
+    try {
+      await fetch('/api/complete-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId: workoutData.id,
+          difficultyRating: rating,
+          userComment: comment
+        })
+      });
+    } catch (e) {}
     setSubmitted(true);
     setTimeout(() => {
       setShowFeedback(false);
@@ -41,112 +46,99 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     }, 1500);
   }
 
+  // FEEDBACK LANGAS
   if (showFeedback) {
     const emojis = ['😣', '😟', '😌', '😄', '🔥'];
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg max-w-lg text-center">
-          <h2 className="text-xl font-bold mb-2">💬 {workoutData?.days[0]?.motivationEnd || 'Puikiai padirbėta!'}</h2>
-          <p className="text-sm text-gray-600 mb-4">Kaip įvertintum treniruotės sunkumą?</p>
-
-          <div className="flex justify-center gap-2 mb-4">
+      <div style={{
+        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+      }}>
+        <div style={{
+          background: 'white', borderRadius: 12, maxWidth: 380, padding: 24, textAlign: 'center'
+        }}>
+          <h2 style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 8 }}>
+            {workoutData?.days?.[0]?.motivationEnd || 'Puikiai padirbėta!'}
+          </h2>
+          <p style={{ color: '#666', fontSize: 14, marginBottom: 16 }}>
+            Kaip įvertintum treniruotės sunkumą?
+          </p>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 16 }}>
             {emojis.map((emoji, i) => (
               <button
                 key={i}
                 onClick={() => setRating(i + 1)}
-                className={`text-3xl ${rating === i + 1 ? 'scale-125' : ''}`}
+                style={{
+                  fontSize: 32,
+                  transform: rating === i + 1 ? 'scale(1.3)' : 'none',
+                  border: 'none',
+                  background: 'transparent',
+                  cursor: 'pointer'
+                }}
               >{emoji}</button>
             ))}
           </div>
-
           <textarea
             placeholder="Tavo komentaras apie šią treniruotę..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
-            className="w-full p-2 border rounded mb-4"
+            style={{ width: '100%', padding: 8, borderRadius: 6, border: '1px solid #ddd', marginBottom: 16 }}
             rows={3}
           />
-
           <button
             onClick={submitFeedback}
-            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+            style={{
+              background: '#059669', color: 'white', padding: '8px 28px',
+              borderRadius: 6, fontWeight: 'bold', border: 'none', cursor: 'pointer'
+            }}
           >
             Baigti treniruotę
           </button>
-
-          {submitted && <p className="text-green-600 mt-2">Ačiū už įvertinimą!</p>}
+          {submitted && <p style={{ color: '#059669', marginTop: 10 }}>Ačiū už įvertinimą!</p>}
         </div>
       </div>
-    )
+    );
   }
 
-  // Debug: išvesk visą struktūrą į konsolę paleidžiant
-  useEffect(() => {
-    console.log(">>> PILNA workoutData struktūra:", workoutData);
-    workoutData.days.forEach((day, i) => {
-      day.exercises.forEach((ex, j) => {
-        console.log(`>>> Day ${i} Ex ${j} '${ex.name}':`);
-        ex.steps.forEach((step, k) => {
-          console.log(`    Step ${k}: type='${step.type}', set='${step.set}', duration='${step.duration}'`);
-        });
-      });
-    });
-  }, [workoutData]);
-
-  // Debug: rodyk einamą žingsnį kai keičiasi step
-  useEffect(() => {
-    console.log(`>>> DABARTINIS Step: [Day ${currentDay}] [Exercise ${currentExerciseIndex}] [Step ${currentStepIndex}]`);
-    console.log(">>> Žingsnio tipas:", step.type, "Serija:", step.set, "Trukmė:", step.duration);
-  }, [currentDay, currentExerciseIndex, currentStepIndex, step]);
-
-  function parseSeconds(text) {
-    const match = text.match(/(\d+)/);
-    return match ? parseInt(match[1]) : 0;
-  }
-
+  // Užrakinam ekraną nuo užmigimo (jei palaiko naršyklė)
   useEffect(() => {
     if ('wakeLock' in navigator) {
       navigator.wakeLock.request('screen').then(lock => {
         wakeLockRef.current = lock;
-      }).catch(console.error);
+      }).catch(() => {});
     }
     return () => {
       if (wakeLockRef.current) wakeLockRef.current.release();
     };
   }, []);
 
-  // Keičiam laiką TIK kai keičiasi pratimas ar stepas, BET NE dėl pauzės
+  function parseSeconds(text) {
+    const match = text?.match(/(\d+)/);
+    return match ? parseInt(match[1]) : 0;
+  }
+
+  // Paleidžiam laikmatį kai reikia
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
 
-    if (phase === "intro") {
+    if (phase === "intro" || !step) {
       setSecondsLeft(0);
       setWaitingForUser(false);
       return;
     }
-
-    // Jei reikia laikmačio (trukmė sekundėmis)
     if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
-      setSecondsLeft(prev => {
-        // Jei keičiasi žingsnis (ne dėl pauzės), iš naujo
-        if (!paused) return parseSeconds(step.duration);
-        // Jei pauzė, nieko nekeičiam
-        return prev;
-      });
-      setPhase(step.type);
+      setSecondsLeft(parseSeconds(step.duration));
       setWaitingForUser(false);
       setPlayedWarnings([]);
-      console.log(">>> Paleidžiamas laikmatis:", parseSeconds(step.duration), "sek.");
     } else {
       setSecondsLeft(0);
       setWaitingForUser(true);
       setPlayedWarnings([]);
-      console.log(">>> Laukiama naudotojo paspaudimo");
     }
-    // eslint-disable-next-line
-  }, [currentExerciseIndex, currentStepIndex, phase]);
+  // eslint-disable-next-line
+  }, [currentExerciseIndex, currentStepIndex, phase, step]);
 
-  // Laikmatis
+  // Tikrasis laikmatis
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -154,31 +146,20 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
       timerRef.current = setInterval(() => {
         setSecondsLeft(prev => prev - 1);
       }, 1000);
-
-      if ([5,4,3,2,1].includes(secondsLeft) && !playedWarnings.includes(secondsLeft)) {
-        new Audio(`/${secondsLeft}.mp3`).play().catch(()=>{});
-        setPlayedWarnings(prev => [...prev, secondsLeft]);
-      }
-
-      return () => {
-        if (timerRef.current) clearInterval(timerRef.current);
-      };
-    } else if (secondsLeft === 0 && !waitingForUser && phase !== "intro") {
+      return () => { if (timerRef.current) clearInterval(timerRef.current); }
+    } else if (secondsLeft === 0 && !waitingForUser && phase !== "intro" && step) {
       handlePhaseComplete();
     }
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-    // eslint-disable-next-line
-  }, [secondsLeft, waitingForUser, phase, paused]);
+    return () => { if (timerRef.current) clearInterval(timerRef.current); }
+  // eslint-disable-next-line
+  }, [secondsLeft, waitingForUser, phase, paused, step]);
 
   function handleManualContinue() {
     if (timerRef.current) clearInterval(timerRef.current);
 
     if (phase === "intro") {
       setPhase("exercise");
-      if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
+      if (step && step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
         setSecondsLeft(parseSeconds(step.duration));
         setWaitingForUser(false);
       } else {
@@ -192,94 +173,80 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   function handlePhaseComplete() {
     if (timerRef.current) clearInterval(timerRef.current);
-    new Audio("/beep.mp3").play().catch(()=>{});
+    try { new Audio("/beep.mp3").play().catch(()=>{}); } catch {}
 
-    if (currentStepIndex + 1 < exercise.steps.length) {
+    // Jei dar yra žingsnių
+    if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
       setPlayedWarnings([]);
-    } else if (currentExerciseIndex + 1 < day.exercises.length) {
+    }
+    // Jei dar yra pratimų
+    else if (day && currentExerciseIndex + 1 < day.exercises.length) {
       setCurrentExerciseIndex(prev => prev + 1);
       setCurrentStepIndex(0);
       setPlayedWarnings([]);
-    } else {
-      console.log(">>> handlePhaseComplete: Treniruotė baigta!");
+    }
+    // Baigėsi visi žingsniai ir pratimai
+    else {
       setShowFeedback(true);
     }
   }
 
-  function getNextExerciseText() {
-    // Kurioje serijoje esame?
-    const allExerciseSteps = exercise.steps.filter(s => s.type === "exercise");
-    const currentExerciseStepIdx = exercise.steps
-      .filter((s, idx) => idx <= currentStepIndex)
-      .filter(s => s.type === "exercise").length - 1;
-
-    // Jei dar yra likusių serijų – rodyti sekančią seriją (to paties pratimo)
-    if (
-      step.type === "rest" &&
-      currentExerciseStepIdx + 1 < allExerciseSteps.length
-    ) {
-      // Sekanti serija to paties pratimo
-      const nextSet = allExerciseSteps[currentExerciseStepIdx + 1].set;
-      return `${exercise.name} serija ${nextSet}/${allExerciseSteps.length}`;
-    }
-
-    // Jei jau visos serijos baigtos – rodomas sekantis pratimas
-    if (currentExerciseIndex + 1 < day.exercises.length) {
-      const nextExercise = day.exercises[currentExerciseIndex + 1];
-      return nextExercise ? nextExercise.name : "Pabaiga";
-    }
-    return "Pabaiga";
-  }
-
+  // Valdymas – atgal, pirmyn ir restart
   function goToPrevious() {
     if (timerRef.current) clearInterval(timerRef.current);
 
-    if (currentStepIndex > 0) {
+    if (step && currentStepIndex > 0) {
       setCurrentStepIndex(prev => prev - 1);
-    } else if (currentExerciseIndex > 0) {
+    } else if (exercise && currentExerciseIndex > 0) {
       const prevIndex = currentExerciseIndex - 1;
       setCurrentExerciseIndex(prevIndex);
-      const prevExercise = day.exercises[prevIndex];
-      setCurrentStepIndex(prevExercise.steps.length - 1);
+      const prevExercise = day?.exercises?.[prevIndex];
+      setCurrentStepIndex(prevExercise?.steps?.length ? prevExercise.steps.length - 1 : 0);
     }
   }
-
   function goToNext() {
     if (timerRef.current) clearInterval(timerRef.current);
 
-    if (currentStepIndex + 1 < exercise.steps.length) {
+    if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
-    } else if (currentExerciseIndex + 1 < day.exercises.length) {
+    } else if (day && currentExerciseIndex + 1 < day.exercises.length) {
       setCurrentExerciseIndex(prev => prev + 1);
       setCurrentStepIndex(0);
     }
   }
-
   function restartCurrentStep() {
     if (timerRef.current) clearInterval(timerRef.current);
-
-    if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
+    if (step && step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
       setSecondsLeft(parseSeconds(step.duration));
     }
   }
 
-  // Automatiškai išvalom timerį kai komponentas užsidaro
+  // Išvalom timerį kai užsidaro
   useEffect(() => {
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); }
   }, []);
 
+  // Paprastas UI, jokių papildomų dekoracijų
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-      <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-xl text-center">
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
+    }}>
+      <div style={{
+        background: 'white', borderRadius: 12, maxWidth: 400, width: '100%', padding: 24, textAlign: 'center'
+      }}>
         {phase === "intro" ? (
           <>
-            <h2 className="text-2xl font-bold mb-4">💡 Motyvacija</h2>
-            <p className="mb-4 text-gray-800 whitespace-pre-wrap">{workoutData.days[0]?.motivationStart}</p>
+            <h2 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>Motyvacija</h2>
+            <p style={{ marginBottom: 20, color: '#333', whiteSpace: 'pre-wrap' }}>
+              {workoutData?.days?.[0]?.motivationStart || ""}
+            </p>
             <button
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded font-semibold"
+              style={{
+                background: '#059669', color: 'white', padding: '10px 36px',
+                borderRadius: 7, fontWeight: 'bold', border: 'none', cursor: 'pointer'
+              }}
               onClick={handleManualContinue}
             >
               Pradėti treniruotę
@@ -287,55 +254,54 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
           </>
         ) : (
           <>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">{exercise.name}</h2>
-            {step.type === "exercise" && (
-              <p className="text-lg font-medium text-gray-900 mb-2">
-                {step.duration} - serija {step.set}/{exercise.steps.filter(s => s.type === "exercise").length}
+            <h2 style={{ fontSize: 20, fontWeight: 'bold', color: '#222', marginBottom: 6 }}>
+              {exercise?.name || "Pratimas"}
+            </h2>
+            {step?.type === "exercise" && (
+              <p style={{ fontSize: 16, fontWeight: '500', marginBottom: 6 }}>
+                {step.duration} - serija {step.set}/{exercise?.steps?.filter(s => s.type === "exercise").length}
               </p>
             )}
-            {(step.type === "rest" || step.type === "rest_after") && (
-              <p className="text-lg font-medium text-blue-900 mb-2">
+            {(step?.type === "rest" || step?.type === "rest_after") && (
+              <p style={{ fontSize: 16, fontWeight: '500', color: '#155e75', marginBottom: 6 }}>
                 Poilsis: {step.duration}
               </p>
             )}
-            {(step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) && (
-              <p className="text-4xl text-gray-900 font-bold mb-4">
+            {(step?.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) && (
+              <p style={{
+                fontSize: 38, fontWeight: 'bold', color: '#222', marginBottom: 10
+              }}>
                 {secondsLeft > 0 ? `${secondsLeft} sek.` : null}
-                {paused && <span className="block text-xl text-red-600 mt-2">Pauzė</span>}
+                {paused && <span style={{ display: 'block', fontSize: 18, color: '#d90000', marginTop: 4 }}>Pauzė</span>}
               </p>
             )}
-            <p className="text-sm text-gray-500 italic mb-6">{exercise.description}</p>
-            {waitingForUser && step.type === "exercise" && (
-              <div className="flex flex-col items-center gap-2 mt-4">
+            <p style={{ fontSize: 13, color: '#666', fontStyle: 'italic', marginBottom: 18 }}>
+              {exercise?.description}
+            </p>
+            {waitingForUser && step?.type === "exercise" && (
+              <div style={{ margin: '18px 0' }}>
                 <button
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
+                  style={{
+                    background: '#2563eb', color: 'white', padding: '8px 24px',
+                    borderRadius: 6, fontWeight: 'bold', border: 'none', cursor: 'pointer'
+                  }}
                   onClick={handleManualContinue}
                 >
                   Atlikta
                 </button>
               </div>
             )}
-            {(step.type === "rest" || step.type === "rest_after") && (
-              <p className="text-sm text-gray-500 italic mt-2">
-                🔜 Sekantis pratimas: {getNextExerciseText()}
-              </p>
-            )}
-            <div className="flex justify-center items-center gap-4 mt-6">
-              <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-                <SkipBack className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-              </button>
-              <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-                <RotateCcw className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-                <SkipForward className="w-6 h-6 text-gray-800" />
-              </button>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 16 }}>
+              <button onClick={goToPrevious}>⏮️</button>
+              <button onClick={() => setPaused(p => !p)}>{paused ? "▶️" : "⏸️"}</button>
+              <button onClick={restartCurrentStep}>🔄</button>
+              <button onClick={goToNext}>⏭️</button>
             </div>
-            <div className="mt-4">
-              <button onClick={onClose} className="text-sm text-red-500 hover:underline">
+            <div style={{ marginTop: 18 }}>
+              <button onClick={onClose} style={{
+                fontSize: 14, color: '#d90000', background: 'none',
+                border: 'none', textDecoration: 'underline', cursor: 'pointer'
+              }}>
                 Baigti sesiją
               </button>
             </div>
