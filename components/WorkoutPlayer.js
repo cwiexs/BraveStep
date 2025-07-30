@@ -3,7 +3,7 @@ import { SkipBack, SkipForward, Pause, Play, RotateCcw } from 'lucide-react';
 import { useRouter } from 'next/router';
 
 // Pagrindinis treniruotės grotuvo komponentas
-export default function WorkoutPlayer({ workoutData, onClose }) {
+export default function WorkoutPlayer({ generatedPlan, onClose }) {
   // --- Būsenos ir valdymo kintamieji ---
   const [currentDay, setCurrentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
@@ -172,15 +172,16 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   async function submitFeedback() {
   try {
     // Siunčiame difficultyRating  
-    await fetch('/api/complete-plan', {
+await fetch('/api/complete-plan', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    planId: workoutData.id,
-    difficultyRating: rating, // 1–5
+    planId: generatedPlan.id,       // ← TIKRAS DB PLAN ID!
+    difficultyRating: rating,
     userComment: comment
   })
 });
+
   } catch (e) {}
   setSubmitted(true);
   setTimeout(() => {

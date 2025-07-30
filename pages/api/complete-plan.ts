@@ -13,7 +13,7 @@ export default async function handler(
 
   // Gauti reikiamus duomenis iš kūno
   const { planId, difficultyRating, userComment } = req.body;
-
+console.log("API gavo kūną:", req.body);
   // Patikrinti ar yra planId ir difficultyRating (optional, bet rekomenduojama)
   if (!planId) {
     return res.status(400).json({ error: 'Missing planId' });
