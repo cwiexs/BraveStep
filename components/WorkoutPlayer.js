@@ -90,6 +90,13 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
     )
   }
 
+  // Universalus saugiklis prieš renderį
+if ((!day || !exercise || !step) && !showFeedback && phase !== "intro") {
+  // Tiesiog iškeliame feedback langą
+  setShowFeedback(true);
+  return null; // Nutraukiam renderį!
+}
+
   useEffect(() => {
     if ('wakeLock' in navigator) {
       navigator.wakeLock.request('screen').then(lock => {
