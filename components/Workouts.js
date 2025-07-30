@@ -128,8 +128,10 @@ export default function Workouts() {
           {showPlayer && (
             <WorkoutPlayer
               workoutData={parsedPlan}
+              planId={plan.id} 
               onClose={() => setShowPlayer(false)}
             />
+
           )}
         </>
       )}
