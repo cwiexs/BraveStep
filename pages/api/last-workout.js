@@ -28,8 +28,7 @@ export default async function handler(req, res) {
     const lastPlan = await prisma.generatedPlan.findFirst({
       where: {
         userId: user.id,
-        type: "sport", // jeigu reikia, koreguok šį tipą
-        wasCompleted: true, // gali pašalinti, jei nori gauti ir nebaigtus
+
       },
       orderBy: { createdAt: "desc" },
     });
