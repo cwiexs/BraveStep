@@ -170,29 +170,24 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
   // --- Pabaigos lango (summary) feedback funkcionalumas ---
   async function submitFeedback() {
-    try {
-      // Siunčiam į backend plan ID, įvertinimą ir komentarą
-      await fetch('/api/complete-plan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          planId: workoutData.id,
-          difficultyRating: rating,
-          userComment: comment
-        })
-      });
-      // JEI reikia – antras request statusui atnaujinti (jei backend nepadaro automatiškai)
-      // await fetch('/api/update-plan-status', {
-      //   method: 'PATCH',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ planId: workoutData.id, status: 'completed' })
-      // });
-    } catch (e) {}
-    setSubmitted(true);
-    setTimeout(() => {
-      onClose();
-    }, 1500);
-  }
+  try {
+    // Siunčiame difficultyRating  
+    await fetch('/api/complete-plan', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({
+    planId: workoutData.id,
+    difficultyRating: rating, // 1–5
+    userComment: comment
+  })
+});
+  } catch (e) {}
+  setSubmitted(true);
+  setTimeout(() => {
+    onClose();
+  }, 1500);
+}
+
 
   // --- Motyvacinis pradžios langas ---
   if (phase === "intro") {
@@ -298,45 +293,64 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   }
 
   // --- Pabaigos (summary) langas su įvertinimu ir komentaru ---
-  if (phase === "summary") {
-    const emojis = ['😣', '😟', '😌', '😄', '🔥'];
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-        <div className="bg-white p-6 rounded-lg max-w-lg text-center">
-          <h2 className="text-2xl font-bold mb-2">🎉 Sveikiname, treniruotė baigta!</h2>
-          <p className="mb-4 text-gray-800 whitespace-pre-wrap">
-            {workoutData?.days?.[0]?.motivationEnd || "Ačiū, kad sportavai!"}
-          </p>
-          <p className="text-sm text-gray-600 mb-2">Kaip įvertintum treniruotę?</p>
-          <div className="flex justify-center gap-2 mb-4">
-            {emojis.map((emoji, i) => (
-              <button
-                key={i}
-                onClick={() => setRating(i + 1)}
-                className={`text-3xl ${rating === i + 1 ? 'scale-125' : ''}`}
-                type="button"
-              >{emoji}</button>
-            ))}
-          </div>
-          <textarea
-            placeholder="Tavo komentaras apie treniruotę..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            className="w-full p-2 border rounded mb-4"
-            rows={3}
-          />
-          <button
-            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-            onClick={submitFeedback}
-            disabled={submitted}
-          >
-            Baigti treniruotę
-          </button>
-          {submitted && <p className="text-green-600 mt-2">Ačiū už įvertinimą!</p>}
+  // --- Pabaigos (summary) langas su aiškiais įvertinimo mygtukais ---
+if (phase === "summary") {
+  // Reitingavimo variantai: -2, -1, 0, +1, +2
+  const options = [
+  { value: 1, label: '😣', text: 'Per sunku' },
+  { value: 2, label: '😟', text: 'Šiek tiek sunku' },
+  { value: 3, label: '😌', text: 'Tobulas balansas' },
+  { value: 4, label: '🙂', text: 'Šiek tiek lengva' },
+  { value: 5, label: '😄', text: 'Per lengva' },
+];
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg max-w-lg text-center">
+        <h2 className="text-2xl font-bold mb-2">🎉 Sveikiname, treniruotė baigta!</h2>
+        <p className="mb-4 text-gray-800 whitespace-pre-wrap">
+          {workoutData?.days?.[0]?.motivationEnd || "Ačiū, kad sportavai!"}
+        </p>
+        <p className="text-sm text-gray-600 mb-2 font-semibold">Kaip įvertintum treniruotės sunkumą?</p>
+        <div className="flex justify-center gap-2 mb-2">
+          {options.map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => setRating(opt.value)}
+              className={`text-3xl p-1 rounded-full border-2 
+                ${rating === opt.value ? 'border-green-500 bg-green-50' : 'border-transparent'}
+                hover:border-green-400`}
+              type="button"
+              title={opt.text}
+            >{opt.label}</button>
+          ))}
         </div>
+        <div className="flex justify-center gap-2 mb-4">
+          {options.map((opt) => (
+            <span key={opt.value} className={`text-xs ${rating === opt.value ? 'font-bold text-green-700' : 'text-gray-400'}`}>
+              {opt.text}
+            </span>
+          ))}
+        </div>
+        <textarea
+          placeholder="Tavo komentaras apie treniruotę..."
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          className="w-full p-2 border rounded mb-4"
+          rows={3}
+        />
+        <button
+          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+          onClick={submitFeedback}
+          disabled={submitted}
+        >
+          Baigti treniruotę
+        </button>
+        {submitted && <p className="text-green-600 mt-2">Ačiū už įvertinimą!</p>}
       </div>
-    )
-  }
+    </div>
+  )
+}
+
 
   // --- Klaidų atvejis: jei nėra fazės (neturėtų nutikti) ---
   return null;
