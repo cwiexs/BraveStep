@@ -24,11 +24,20 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const exercise = day?.exercises?.[currentExerciseIndex];
   const step = exercise?.steps?.[currentStepIndex];
 
-  // UNIVERSALUS saugiklis – jei duomenys baigėsi, rodom summary ir nieko nerenderinam daugiau
+// 1. Tik 'useEffect' pakeičia state!
+useEffect(() => {
   if ((!day || !exercise || !step) && !showFeedback && phase !== "intro") {
     setShowFeedback(true);
-    return null;
   }
+  // eslint-disable-next-line
+}, [day, exercise, step, showFeedback, phase]);
+
+// 2. O renderio metu – tiesiog nieko nerenderinam:
+if ((!day || !exercise || !step) && !showFeedback && phase !== "intro") {
+  return null;
+}
+
+
 
   async function submitFeedback() {
     try {
