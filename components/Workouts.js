@@ -125,14 +125,13 @@ export default function Workouts() {
             ))}
           </div>
 
-          {showPlayer && (
-            <WorkoutPlayer
-              workoutData={parsedPlan}
-              planId={plan.id} 
-              onClose={() => setShowPlayer(false)}
-            />
-
-          )}
+{showPlayer && (
+  <WorkoutPlayer
+    workoutData={parsedPlan}
+    planId={plan?.id} // <- ŠITAS YRA GYVYBIŠKAI SVARBUS!
+    onClose={() => setShowPlayer(false)}
+  />
+)}
         </>
       )}
     </div>
