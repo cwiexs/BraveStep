@@ -19,18 +19,16 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const timerRef = useRef(null);
   const router = useRouter();
 
-  // Saugus žingsnių gavimas
+  // SAUGUS gavimas
   const day = workoutData?.days?.[currentDay];
   const exercise = day?.exercises?.[currentExerciseIndex];
   const step = exercise?.steps?.[currentStepIndex];
 
-  // Jei nėra žingsnių, parodyk apibendrinimą
-  useEffect(() => {
-    if ((!day || !exercise || !step) && !showFeedback && phase !== "intro") {
-      setShowFeedback(true);
-    }
-    // eslint-disable-next-line
-  }, [day, exercise, step, showFeedback, phase]);
+  // UNIVERSALUS saugiklis – jei duomenys baigėsi, rodom summary ir nieko nerenderinam daugiau
+  if ((!day || !exercise || !step) && !showFeedback && phase !== "intro") {
+    setShowFeedback(true);
+    return null;
+  }
 
   async function submitFeedback() {
     try {
@@ -89,13 +87,6 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
       </div>
     )
   }
-
-  // Universalus saugiklis prieš renderį
-if ((!day || !exercise || !step) && !showFeedback && phase !== "intro") {
-  // Tiesiog iškeliame feedback langą
-  setShowFeedback(true);
-  return null; // Nutraukiam renderį!
-}
 
   useEffect(() => {
     if ('wakeLock' in navigator) {
