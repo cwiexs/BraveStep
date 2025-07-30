@@ -25,25 +25,7 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
   const exercise = day.exercises[currentExerciseIndex];
   const step = exercise.steps[currentStepIndex];
 
-  function handlePhaseComplete() {
-    if (handlePhaseRef.current) return;
-    handlePhaseRef.current = true;
-    setTimeout(() => { handlePhaseRef.current = false }, 400);
-
-    if (timerRef.current) clearInterval(timerRef.current);
-    new Audio("/beep.mp3").play().catch(() => { });
-
-    if (currentStepIndex + 1 < exercise.steps.length) {
-      setCurrentStepIndex(prev => prev + 1);
-      setPlayedWarnings([]);
-    } else if (currentExerciseIndex + 1 < day.exercises.length) {
-      setCurrentExerciseIndex(prev => prev + 1);
-      setCurrentStepIndex(0);
-      setPlayedWarnings([]);
-    } else {
-      setShowFeedback(true); // Vietoje alert - rodyti įvertinimo langą
-    }
-  }
+  
 
   async function submitFeedback() {
     await fetch('/api/complete-plan', {
@@ -211,6 +193,8 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
 
     }
   }
+  
+
 
   function handleManualContinue() {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -228,6 +212,23 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
       handlePhaseComplete();
     }
   }
+
+  function handlePhaseComplete() {
+  if (timerRef.current) clearInterval(timerRef.current);
+  new Audio("/beep.mp3").play().catch(()=>{});
+
+  if (currentStepIndex + 1 < exercise.steps.length) {
+    setCurrentStepIndex(prev => prev + 1);
+    setPlayedWarnings([]);
+  } else if (currentExerciseIndex + 1 < day.exercises.length) {
+    setCurrentExerciseIndex(prev => prev + 1);
+    setCurrentStepIndex(0);
+    setPlayedWarnings([]);
+  } else {
+    console.log(">>> handlePhaseComplete: Treniruotė baigta!");
+    setShowFeedback(true);
+  }
+}
 
   function getNextExerciseText() {
     // Kurioje serijoje esame?
@@ -379,4 +380,4 @@ export default function WorkoutPlayer({ workoutData, onClose }) {
       </div>
     </div>
   );
-}
+
