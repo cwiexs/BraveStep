@@ -13,20 +13,28 @@ export default function Workouts() {
   const [loading, setLoading] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
 
-  useEffect(() => {
-    if (session) {
-      fetch("/api/last-workout")
-        .then(res => res.json())
-        .then(data => {
+useEffect(() => {
+  if (session) {
+    fetch("/api/last-workout")
+      .then(res => res.json())
+      .then(data => {
+        if (data.plan?.planData?.text) {
           setPlan(data.plan);
-          setParsedPlan(parseWorkoutText(data.plan.text));
-        })
-        .catch(() => {
+          setParsedPlan(parseWorkoutText(data.plan.planData.text));
+        } else {
+          console.warn("⚠️ Nėra planData.text duomenų planui:", data.plan);
           setPlan(null);
           setParsedPlan(null);
-        });
-    }
-  }, [session]);
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Klaida gaunant planą:", err);
+        setPlan(null);
+        setParsedPlan(null);
+      });
+  }
+}, [session]);
+
 
   async function handleGeneratePlan() {
     setLoading(true);
