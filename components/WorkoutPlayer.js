@@ -4,6 +4,10 @@ import { useRouter } from 'next/router';
 
 // Pagrindinis treniruotės grotuvo komponentas
 export default function WorkoutPlayer({ generatedPlan, onClose }) {
+  if (!generatedPlan || !generatedPlan.workoutData) {
+  return <div className="text-red-500">Klaida: Trūksta treniruotės duomenų.</div>;
+}
+
    // Susikuriame workoutData iš generatedPlan
   const workoutData = generatedPlan.workoutData;
   // --- Būsenos ir valdymo kintamieji ---
