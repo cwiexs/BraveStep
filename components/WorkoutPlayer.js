@@ -4,6 +4,8 @@ import { useRouter } from 'next/router';
 
 // Pagrindinis treniruotės grotuvo komponentas
 export default function WorkoutPlayer({ generatedPlan, onClose }) {
+   // Susikuriame workoutData iš generatedPlan
+  const workoutData = generatedPlan.workoutData;
   // --- Būsenos ir valdymo kintamieji ---
   const [currentDay, setCurrentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
