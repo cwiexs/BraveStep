@@ -33,13 +33,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // Atnaujinam įrašą
-    await prisma.generatedPlan.update({
-      where: { id: planId },
-      data: {
-        difficultyRating: difficultyRating ?? undefined,
-        userComment: userComment ?? undefined,
-      },
-    });
+await prisma.generatedPlan.update({
+  where: { id: planId },
+  data: {
+    difficultyRating: difficultyRating ?? undefined,
+    userComment: userComment ?? undefined,
+    wasCompleted: true, 
+  },
+});
 
     return res.status(200).json({ message: 'Feedback saved successfully' });
 
