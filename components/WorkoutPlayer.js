@@ -176,7 +176,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    planId: workoutData.id, // <-- čia TIKRAS planId (string)
+  planId,
     difficultyRating: rating, // 1-5
     userComment: comment
   })
