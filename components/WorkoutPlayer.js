@@ -33,6 +33,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // --- Užrakinam ekraną nuo užmigimo treniruotės metu (jei palaiko naršyklė) ---
   useEffect(() => {
+    console.log("✅ planId gavau:", planId);
     if ('wakeLock' in navigator) {
       navigator.wakeLock.request('screen').then(lock => {
         wakeLockRef.current = lock;
