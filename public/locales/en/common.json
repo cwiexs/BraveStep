@@ -461,7 +461,9 @@
 
   "form.invalidDateFormat": "Invalid date format (e.g. 1980-07-15)",
   "form.dateInputHelper": "Enter your date of birth: YYYYMMDD or YYYY-MM-DD",
-  "form.datePlaceholder": "YYYY-MM-DD"
+  "form.datePlaceholder": "YYYY-MM-DD",
+  "form.invalidCalendarDate": "Such date does not exist in the calendar"
+
 
 
 

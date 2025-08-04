@@ -464,7 +464,9 @@
 
   "form.invalidDateFormat": "Blogas datos formatas (pvz. 1980-07-15)",
   "form.dateInputHelper": "Įrašykite gimimo datą: YYYYMMDD arba YYYY-MM-DD",
-  "form.datePlaceholder": "YYYY-MM-DD"
+  "form.datePlaceholder": "YYYY-MM-DD",
+  "form.invalidCalendarDate": "Tokios datos kalendoriuje nėra"
+
 
 
 

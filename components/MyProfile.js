@@ -60,18 +60,27 @@ const Modal = ({ open, onClose, title, children }) => {
 };
 
 // Custom input for date (manual entry with helper)
+function isValidDate(dateStr) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  return (
+    date.getFullYear() === year &&
+    date.getMonth() === month - 1 &&
+    date.getDate() === day
+  );
+}
+
 const DateInput = ({ name, value, onChange, placeholder }) => {
   const { t } = useTranslation();
   const [error, setError] = useState("");
 
-  // Išgrynina iš API ar naudotojo – visada rodo tik YYYY-MM-DD
   const getDisplayValue = val => {
     if (!val) return "";
     if (/^\d{4}-\d{2}-\d{2}T/.test(val)) return val.slice(0, 10);
     return val;
   };
 
-  // Formatuoja YYYY-MM-DD iš skaitmenų – automatiškai deda brūkšnelius
   const formatDate = val => {
     const digits = val.replace(/\D/g, "");
     if (digits.length <= 4) return digits;
@@ -83,12 +92,15 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
     const raw = e.target.value;
     const formatted = formatDate(raw);
     onChange(formatted);
-    // Rodoma klaida tik jei yra pilna data, bet blogas formatas
-    if (
-      formatted.length === 10 &&
-      !/^\d{4}-\d{2}-\d{2}$/.test(formatted)
-    ) {
-      setError(t("form.invalidDateFormat"));
+
+    if (formatted.length === 10) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(formatted)) {
+        setError(t("form.invalidDateFormat"));
+      } else if (!isValidDate(formatted)) {
+        setError(t("form.invalidCalendarDate")); // pridėk šį vertimą žemiau!
+      } else {
+        setError("");
+      }
     } else {
       setError("");
     }
