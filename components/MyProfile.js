@@ -240,7 +240,7 @@ const EnumSelectWithOther = ({
   return (
     <div className="mb-4">
       <div className="flex items-center gap-2 mb-1 font-medium text-blue-900">
-        <label htmlFor={name}>{t(label)}</label>
+        <span>{t(label)}</span>
         {infoKey && <InfoTooltip infoKey={infoKey} />}
       </div>
       <select
@@ -296,7 +296,7 @@ const SimpleEnumSelect = ({
   return (
     <div className="mb-4">
       <div className="flex items-center gap-2 mb-1 font-medium text-blue-900">
-        <label htmlFor={name}>{t(label)}</label>
+        <span>{t(label)}</span>
         {infoKey && <InfoTooltip infoKey={infoKey} />}
       </div>
       <select
