@@ -923,17 +923,22 @@ const handleSave = async () => {
   // Gender — paprastas select be "other"
   if (f.type === "enum" && f.name === "gender") {
     return (
-      <div key={f.name} className="mb-4">
-        
-        <SimpleEnumSelect
-          name={f.name}
-          value={val}
-          onChange={v => handleChange(f.name, v)}
-          options={f.options}
-          labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-          infoKey={f.infoKey}
-        />
-      </div>
+      <div className="mb-4">
+  <div className="mb-1 font-medium text-blue-900 flex items-center gap-2">
+    <label htmlFor={f.name} className="cursor-pointer">
+      {t(`profile.${f.name}`)}
+    </label>
+    {f.infoKey && <InfoTooltip infoKey={f.infoKey} />}
+  </div>
+
+  <SimpleEnumSelect
+    name={f.name}
+    value={val}
+    onChange={v => handleChange(f.name, v)}
+    options={f.options}
+    labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+  />
+</div>
     );
   }
 
