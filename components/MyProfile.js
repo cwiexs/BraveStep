@@ -88,23 +88,26 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
     return digits.slice(0, 4) + "-" + digits.slice(4, 6) + "-" + digits.slice(6, 8);
   };
 
-  const handleInputChange = e => {
-    const raw = e.target.value;
-    const formatted = formatDate(raw);
-    onChange(formatted);
+const handleInputChange = e => {
+  const raw = e.target.value;
+  const formatted = formatDate(raw);
+  onChange(formatted);
 
-    if (formatted.length === 10) {
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(formatted)) {
-        setError(t("form.invalidDateFormat"));
-      } else if (!isValidDate(formatted)) {
-        setError(t("form.invalidCalendarDate")); // pridėk šį vertimą žemiau!
-      } else {
-        setError("");
-      }
+  if (formatted.length === 10) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(formatted)) {
+      setError(t("form.invalidDateFormat"));
+    } else if (!isValidDate(formatted)) {
+      setError(t("form.invalidCalendarDate"));
+    } else if (isFutureDate(formatted)) {
+      setError(t("form.dateCannotBeFuture")); // pridėk šį vertimą žemiau!
     } else {
       setError("");
     }
-  };
+  } else {
+    setError("");
+  }
+};
+
 
   return (
     <div>
