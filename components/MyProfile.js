@@ -232,20 +232,20 @@ const EnumSelectWithOther = ({
   setOtherValue,
   labelOther,
   infoKey,
-  label, // <- BŪTINA, perduodamas label
+  label,
 }) => {
   const { t } = useTranslation();
   const isOther = !options.includes(value);
 
   return (
     <div className="mb-4">
-     <label className="mb-1 font-medium text-blue-900 flex items-center gap-2">
-  {t(label)}
-  {infoKey && <InfoTooltip infoKey={infoKey} />}
-</label>
-
+      <div className="flex items-center gap-2 mb-1 font-medium text-blue-900">
+        <label htmlFor={name}>{t(label)}</label>
+        {infoKey && <InfoTooltip infoKey={infoKey} />}
+      </div>
       <select
         name={name}
+        id={name}
         className="w-full border rounded px-2 py-2"
         value={isOther ? "other" : value}
         onChange={e => {
@@ -281,6 +281,7 @@ const EnumSelectWithOther = ({
   );
 };
 
+
 // Paprastas ENUM select (be "other" logikos)
 const SimpleEnumSelect = ({
   name,
@@ -289,18 +290,18 @@ const SimpleEnumSelect = ({
   options,
   infoKey,
   labelOther,
-  label, // <- BŪTINA, perduodamas label
+  label,
 }) => {
   const { t } = useTranslation();
   return (
     <div className="mb-4">
-     <label className="mb-1 font-medium text-blue-900 flex items-center gap-2">
-  {t(label)}
-  {infoKey && <InfoTooltip infoKey={infoKey} />}
-</label>
-
+      <div className="flex items-center gap-2 mb-1 font-medium text-blue-900">
+        <label htmlFor={name}>{t(label)}</label>
+        {infoKey && <InfoTooltip infoKey={infoKey} />}
+      </div>
       <select
         name={name}
+        id={name}
         className="w-full border rounded px-2 py-2"
         value={value}
         onChange={e => onChange(e.target.value)}
