@@ -60,6 +60,7 @@ const Modal = ({ open, onClose, title, children }) => {
 };
 
 // Custom input for date (manual entry with helper)
+// Tikrina ar data validi kalendoriuje
 function isValidDate(dateStr) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
   const [year, month, day] = dateStr.split("-").map(Number);
@@ -69,6 +70,15 @@ function isValidDate(dateStr) {
     date.getMonth() === month - 1 &&
     date.getDate() === day
   );
+}
+
+// Tikrina ar data iš ateities
+function isFutureDate(dateStr) {
+  const today = new Date();
+  const [year, month, day] = dateStr.split("-").map(Number);
+  const date = new Date(year, month - 1, day);
+  today.setHours(0, 0, 0, 0);
+  return date > today;
 }
 
 const DateInput = ({ name, value, onChange, placeholder }) => {
@@ -88,26 +98,25 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
     return digits.slice(0, 4) + "-" + digits.slice(4, 6) + "-" + digits.slice(6, 8);
   };
 
-const handleInputChange = e => {
-  const raw = e.target.value;
-  const formatted = formatDate(raw);
-  onChange(formatted);
+  const handleInputChange = e => {
+    const raw = e.target.value;
+    const formatted = formatDate(raw);
+    onChange(formatted);
 
-  if (formatted.length === 10) {
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(formatted)) {
-      setError(t("form.invalidDateFormat"));
-    } else if (!isValidDate(formatted)) {
-      setError(t("form.invalidCalendarDate"));
-    } else if (isFutureDate(formatted)) {
-      setError(t("form.dateCannotBeFuture")); // pridėk šį vertimą žemiau!
+    if (formatted.length === 10) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(formatted)) {
+        setError(t("form.invalidDateFormat"));
+      } else if (!isValidDate(formatted)) {
+        setError(t("form.invalidCalendarDate"));
+      } else if (isFutureDate(formatted)) {
+        setError(t("form.dateCannotBeFuture"));
+      } else {
+        setError("");
+      }
     } else {
       setError("");
     }
-  } else {
-    setError("");
-  }
-};
-
+  };
 
   return (
     <div>
