@@ -281,8 +281,8 @@ const SimpleEnumSelect = ({
   return (
     <div className="mb-4">
       <div className="mb-1 font-medium text-blue-900 flex items-center gap-2">
-        <label htmlFor={name}>{t(label)}
-        {infoKey && <InfoTooltip infoKey={infoKey} />}</label>
+        <label htmlFor={name}>{t(label)}</label>
+        {infoKey && <InfoTooltip infoKey={infoKey} />}
       </div>
       <select
         name={name}
@@ -924,9 +924,7 @@ const handleSave = async () => {
   if (f.type === "enum" && f.name === "gender") {
     return (
       <div key={f.name} className="mb-4">
-        <label className="block mb-1 font-medium text-blue-900">
-          {t(f.label)}
-        </label>
+        
         <SimpleEnumSelect
           name={f.name}
           value={val}
@@ -982,7 +980,9 @@ const handleSave = async () => {
     const isSimple = f.name === "gender" || f.noOther;
     return (
       <div key={f.name} className="mb-4">
-        
+        <label className="block mb-1 font-medium text-blue-900">
+          {t(f.label)}
+        </label>
         {isSimple ? (
           <SimpleEnumSelect
             name={f.name}
