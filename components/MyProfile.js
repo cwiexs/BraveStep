@@ -65,24 +65,48 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
 
   // Automatinis formatavimas su brūkšneliais
   const formatDateString = (input) => {
-    let digits = input.replace(/\D/g, '');
-    if (digits.length > 8) digits = digits.slice(0, 8);
-    let parts = [];
-    if (digits.length >= 4) parts.push(digits.slice(0, 4));
-    if (digits.length >= 6) {
-      parts.push(digits.slice(4, 6));
-      parts.push(digits.slice(6, 8));
-    } else if (digits.length > 4) {
-      parts.push(digits.slice(4));
+    // Jei tuščia – nieko
+    if (!input) return "";
+    // Jei trini – leisk tiesiogiai keisti (neprievartauk formato)
+    const digits = input.replace(/\D/g, '');
+    // Jei nėra naujų skaitmenų – leisk ranka įvesti
+    if (digits.length === 0) return input;
+    let result = "";
+    if (digits.length <= 4) {
+      result = digits;
+    } else if (digits.length <= 6) {
+      result = digits.slice(0, 4) + "-" + digits.slice(4);
+    } else {
+      result =
+        digits.slice(0, 4) +
+        "-" +
+        digits.slice(4, 6) +
+        "-" +
+        digits.slice(6, 8);
     }
-    return parts.join('-');
+    return result;
   };
 
-  // Paprasta validacija (tik YYYY-MM-DD)
+  // Validacija YYYY-MM-DD
   const validate = val => {
     const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
     if (ymd.test(val)) return val;
     return null;
+  };
+
+  // Reaguoja į įvedimą
+  const handleInputChange = e => {
+    const raw = e.target.value;
+    // Tik leistini simboliai: skaičiai ir brūkšneliai
+    if (/^[0-9\-]*$/.test(raw)) {
+      const formatted = formatDateString(raw);
+      onChange(formatted);
+      setError(
+        formatted && !validate(formatted)
+          ? "Blogas datos formatas (pvz. 1980-07-15)"
+          : ""
+      );
+    }
   };
 
   return (
@@ -91,18 +115,12 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
         type="text"
         name={name}
         value={value || ""}
-        onChange={e => {
-          const formatted = formatDateString(e.target.value);
-          onChange(formatted);
-          setError(
-            formatted && !validate(formatted)
-              ? "Blogas datos formatas (pvz. 1980-07-15)"
-              : ""
-          );
-        }}
+        onChange={handleInputChange}
         className="w-full border rounded px-3 py-2"
         placeholder={placeholder || "YYYY-MM-DD"}
         autoComplete="off"
+        inputMode="numeric"
+        pattern="[0-9\-]*"
       />
       <div className="text-xs text-gray-500 mt-1">
         Įrašykite gimimo datą: <b>YYYYMMDD</b> arba <b>YYYY-MM-DD</b>
@@ -111,6 +129,7 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
     </div>
   );
 };
+
 
 
 // Info tooltip komponentas (suderintas su lokalizacija)
