@@ -65,30 +65,42 @@ const Modal = ({ open, onClose, title, children }) => {
 const DateInput = ({ name, value, onChange, placeholder }) => {
   const [error, setError] = useState("");
 
-  // Gaunam display value (apkarpom tik jeigu ateina ISO stringas su laiku)
+  // Formatuoja YYYY-MM-DD iškart, kai įvedami skaičiai
+  const formatDate = val => {
+    const digits = val.replace(/\D/g, "");
+    let result = "";
+    if (digits.length <= 4) {
+      result = digits;
+    } else if (digits.length <= 6) {
+      result = digits.slice(0, 4) + "-" + digits.slice(4);
+    } else {
+      result =
+        digits.slice(0, 4) +
+        "-" +
+        digits.slice(4, 6) +
+        "-" +
+        digits.slice(6, 8);
+    }
+    return result;
+  };
+
+  // Kai gauna iš API su laiku – rodo tik datą
   const getDisplayValue = val => {
     if (!val) return "";
-    // Jei formatas YYYY-MM-DDT... arba YYYY-MM-DD 00:00:00...
     if (/^\d{4}-\d{2}-\d{2}T/.test(val)) return val.slice(0, 10);
     return val;
   };
 
-  // Kai žmogus įveda: automatiškai įterpk brūkšnelius, bet tik kai rašoma iš kairės į dešinę
+  // Įvedimo logika
   const handleInputChange = e => {
-    let raw = e.target.value.replace(/\s/g, "");
-    // Leidžiam tik skaičius ir brūkšnelius
-    raw = raw.replace(/[^0-9\-]/g, "");
-    // Automatinis formatavimas tik kai rašoma 6 ar 8 skaitmenys iš eilės (bet ne kai trinama)
-    let formatted = raw;
-    const digits = raw.replace(/\D/g, "");
-    if (digits.length === 8 && raw.length <= 8) {
-      formatted = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
-    } else if (digits.length === 6 && raw.length <= 6) {
-      formatted = `${digits.slice(0, 4)}-${digits.slice(4)}`;
-    }
+    const raw = e.target.value;
+    const formatted = formatDate(raw);
     onChange(formatted);
     // Validacija
-    if (formatted && !/^\d{4}-\d{2}-\d{2}$/.test(formatted)) {
+    if (
+      formatted.length === 10 &&
+      !/^\d{4}-\d{2}-\d{2}$/.test(formatted)
+    ) {
       setError("Blogas datos formatas (pvz. 1980-07-15)");
     } else {
       setError("");
@@ -116,9 +128,6 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
     </div>
   );
 };
-
-
-
 
 
 // Info tooltip komponentas (suderintas su lokalizacija)
