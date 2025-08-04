@@ -60,56 +60,38 @@ const Modal = ({ open, onClose, title, children }) => {
 };
 
 // Custom input for date (manual entry with helper)
-import React, { useState } from "react";
+
 
 const DateInput = ({ name, value, onChange, placeholder }) => {
   const [error, setError] = useState("");
 
-  // Apkarpo, jei gaunamas ISO stringas su laiku
+  // Gaunam display value (apkarpom tik jeigu ateina ISO stringas su laiku)
   const getDisplayValue = val => {
     if (!val) return "";
     // Jei formatas YYYY-MM-DDT... arba YYYY-MM-DD 00:00:00...
-    if (/^\d{4}-\d{2}-\d{2}/.test(val)) {
-      return val.slice(0, 10);
-    }
+    if (/^\d{4}-\d{2}-\d{2}T/.test(val)) return val.slice(0, 10);
     return val;
   };
 
-  // Automatinis formatavimas į YYYY-MM-DD
-  const formatDateString = input => {
-    // Leidžiame trinti ar redaguoti
-    if (!input) return "";
-    const digits = input.replace(/\D/g, "");
-    if (digits.length <= 4) return digits;
-    if (digits.length <= 6)
-      return digits.slice(0, 4) + "-" + digits.slice(4);
-    return (
-      digits.slice(0, 4) +
-      "-" +
-      digits.slice(4, 6) +
-      "-" +
-      digits.slice(6, 8)
-    );
-  };
-
-  // Tikrina, ar data tinkama
-  const validate = val => {
-    const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
-    if (ymd.test(val)) return val;
-    return null;
-  };
-
-  // Įvedimo logika su automatiniais brūkšneliais ir klaidų rodymu
+  // Kai žmogus įveda: automatiškai įterpk brūkšnelius, bet tik kai rašoma iš kairės į dešinę
   const handleInputChange = e => {
-    const raw = e.target.value;
-    if (/^[0-9\-]*$/.test(raw)) {
-      const formatted = formatDateString(raw);
-      onChange(formatted);
-      setError(
-        formatted && !validate(formatted)
-          ? "Blogas datos formatas (pvz. 1980-07-15)"
-          : ""
-      );
+    let raw = e.target.value.replace(/\s/g, "");
+    // Leidžiam tik skaičius ir brūkšnelius
+    raw = raw.replace(/[^0-9\-]/g, "");
+    // Automatinis formatavimas tik kai rašoma 6 ar 8 skaitmenys iš eilės (bet ne kai trinama)
+    let formatted = raw;
+    const digits = raw.replace(/\D/g, "");
+    if (digits.length === 8 && raw.length <= 8) {
+      formatted = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+    } else if (digits.length === 6 && raw.length <= 6) {
+      formatted = `${digits.slice(0, 4)}-${digits.slice(4)}`;
+    }
+    onChange(formatted);
+    // Validacija
+    if (formatted && !/^\d{4}-\d{2}-\d{2}$/.test(formatted)) {
+      setError("Blogas datos formatas (pvz. 1980-07-15)");
+    } else {
+      setError("");
     }
   };
 
@@ -125,6 +107,7 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
         autoComplete="off"
         inputMode="numeric"
         pattern="[0-9\-]*"
+        maxLength={10}
       />
       <div className="text-xs text-gray-500 mt-1">
         Įrašykite gimimo datą: <b>YYYYMMDD</b> arba <b>YYYY-MM-DD</b>
