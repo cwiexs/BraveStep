@@ -988,7 +988,7 @@ if (f.type === "enum") {
     <div key={f.name} className="mb-4">
       <div className="mb-1 font-medium text-blue-900 flex items-center gap-2">
         <label htmlFor={f.name} className="cursor-pointer">
-          {t(`profile.${f.name}`)}
+          {t(`fields.${f.name}`)}
         </label>
         {f.infoKey && <InfoTooltip infoKey={f.infoKey} />}
       </div>
