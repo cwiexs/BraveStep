@@ -230,57 +230,61 @@ const EnumSelectWithOther = ({
   const isOther = !options.includes(value);
 
   return (
-    <div className="flex flex-col gap-2 w-full">
-      <div className="flex items-center gap-2">
-        <select
-          name={name}
-          className="w-full border rounded px-2 py-2"
-          value={isOther ? "other" : value}
-          onChange={e => {
-            if (e.target.value === "other") {
-              onChange("");
-            } else {
-              onChange(e.target.value);
-            }
-          }}
-        >
-          <option value="" disabled>
-            {t("form.select")}
-          </option>
-          {options.map(opt => (
-            <option key={opt} value={opt}>
-              {labelOther(opt)}
-            </option>
-          ))}
-          <option value="other">{t("form.other")}</option>
-        </select>
+    <div className="mb-4">
+      {/* InfoTooltip perkeltas į label */}
+      <label className="block mb-1 font-medium text-blue-900 flex items-center gap-2">
+        {t(name)} {/* gali prireikti t(label) vietoj t(name), jei perduodi label */}
         <InfoTooltip infoKey={infoKey} />
-      </div>
-      {/* Jei pasirinkta "other" – rodom didelį tekstinį lauką */}
+      </label>
+      <select
+        name={name}
+        className="w-full border rounded px-2 py-2"
+        value={isOther ? "other" : value}
+        onChange={e => {
+          if (e.target.value === "other") {
+            onChange("");
+          } else {
+            onChange(e.target.value);
+          }
+        }}
+      >
+        <option value="" disabled>
+          {t("form.select")}
+        </option>
+        {options.map(opt => (
+          <option key={opt} value={opt}>
+            {labelOther(opt)}
+          </option>
+        ))}
+        <option value="other">{t("form.other")}</option>
+      </select>
       {isOther && (
-          <textarea
-            className="border rounded px-2 py-2 w-full min-h-[48px] max-h-40"
-            value={otherValue}
-            onChange={e => {
-              setOtherValue(e.target.value);       // saugo į otherValues
-              onChange(e.target.value);            // iš karto atnaujina ir pagrindinį field
-            }}
-            placeholder={t("form.enterOther") || "Enter... "}
-          />
-        )}
+        <textarea
+          className="border rounded px-2 py-2 w-full min-h-[48px] max-h-40 mt-2"
+          value={otherValue}
+          onChange={e => {
+            setOtherValue(e.target.value);
+            onChange(e.target.value);
+          }}
+          placeholder={t("form.enterOther") || "Enter... "}
+        />
+      )}
+    </div>
+  );
+};
 
-
-            </div>
-          );
-        };
-
-// Paprastas ENUM select (be "other" logikos) — naudojamas gender
+// Paprastas ENUM select (be "other" logikos)
 const SimpleEnumSelect = ({
   name, value, onChange, options, infoKey, labelOther,
 }) => {
   const { t } = useTranslation();
   return (
-    <div className="flex items-center gap-2">
+    <div className="mb-4">
+      {/* InfoTooltip perkeltas į label */}
+      <label className="block mb-1 font-medium text-blue-900 flex items-center gap-2">
+        {t(name)} {/* gali prireikti t(label) vietoj t(name), jei perduodi label */}
+        <InfoTooltip infoKey={infoKey} />
+      </label>
       <select
         name={name}
         className="w-full border rounded px-2 py-2"
@@ -296,7 +300,6 @@ const SimpleEnumSelect = ({
           </option>
         ))}
       </select>
-      <InfoTooltip infoKey={infoKey} />
     </div>
   );
 };
