@@ -224,17 +224,24 @@ const MultiInput = ({ value, onChange, placeholder }) => {
 
 // ENUM select su "other" logika TIK ten, kur reikia (bet ne gender)
 const EnumSelectWithOther = ({
-  name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey, label,
+  name,
+  value,
+  onChange,
+  options,
+  otherValue,
+  setOtherValue,
+  labelOther,
+  infoKey,
+  label, // <- BŪTINA, perduodamas label
 }) => {
   const { t } = useTranslation();
   const isOther = !options.includes(value);
 
   return (
     <div className="mb-4">
-      {/* InfoTooltip perkeltas į label */}
       <label className="block mb-1 font-medium text-blue-900 flex items-center gap-2">
-         {t(label)} {/* gali prireikti t(label) vietoj t(name), jei perduodi label */}
-        <InfoTooltip infoKey={infoKey} />
+        {t(label)}
+        {infoKey && <InfoTooltip infoKey={infoKey} />}
       </label>
       <select
         name={name}
@@ -275,15 +282,20 @@ const EnumSelectWithOther = ({
 
 // Paprastas ENUM select (be "other" logikos)
 const SimpleEnumSelect = ({
-  name, value, onChange, options, infoKey, labelOther, label,
+  name,
+  value,
+  onChange,
+  options,
+  infoKey,
+  labelOther,
+  label, // <- BŪTINA, perduodamas label
 }) => {
   const { t } = useTranslation();
   return (
     <div className="mb-4">
-      {/* InfoTooltip perkeltas į label */}
       <label className="block mb-1 font-medium text-blue-900 flex items-center gap-2">
-         {t(label)} {/* gali prireikti t(label) vietoj t(name), jei perduodi label */}
-        <InfoTooltip infoKey={infoKey} />
+        {t(label)}
+        {infoKey && <InfoTooltip infoKey={infoKey} />}
       </label>
       <select
         name={name}
@@ -303,6 +315,7 @@ const SimpleEnumSelect = ({
     </div>
   );
 };
+
 
 
 // Visų laukų ir sekcijų konfigūracija (generuojama iš schema.prisma, pavadinimai - infoKey ir label universalūs)
