@@ -924,9 +924,7 @@ const handleSave = async () => {
   if (f.type === "enum" && f.name === "gender") {
     return (
       <div key={f.name} className="mb-4">
-        <label className="block mb-1 font-medium text-blue-900">
-          {t(f.label)}
-        </label>
+        
         <SimpleEnumSelect
           name={f.name}
           value={val}
@@ -982,9 +980,7 @@ const handleSave = async () => {
     const isSimple = f.name === "gender" || f.noOther;
     return (
       <div key={f.name} className="mb-4">
-        <label className="mb-1 font-medium text-blue-900">
-          {t(f.label)}
-        </label>
+        
         {isSimple ? (
           <SimpleEnumSelect
             name={f.name}
