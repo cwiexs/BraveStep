@@ -281,8 +281,8 @@ const SimpleEnumSelect = ({
   return (
     <div className="mb-4">
       <div className="mb-1 font-medium text-blue-900 flex items-center gap-2">
-        <label htmlFor={name}>{t(label)}</label>
-        {infoKey && <InfoTooltip infoKey={infoKey} />}
+        <label htmlFor={name}>{t(label)}
+        {infoKey && <InfoTooltip infoKey={infoKey} />}</label>
       </div>
       <select
         name={name}
