@@ -233,7 +233,7 @@ const EnumSelectWithOther = ({
     <div className="mb-4">
       {/* InfoTooltip perkeltas į label */}
       <label className="block mb-1 font-medium text-blue-900 flex items-center gap-2">
-        {t(name)} {/* gali prireikti t(label) vietoj t(name), jei perduodi label */}
+         {t(label)} {/* gali prireikti t(label) vietoj t(name), jei perduodi label */}
         <InfoTooltip infoKey={infoKey} />
       </label>
       <select
@@ -282,7 +282,7 @@ const SimpleEnumSelect = ({
     <div className="mb-4">
       {/* InfoTooltip perkeltas į label */}
       <label className="block mb-1 font-medium text-blue-900 flex items-center gap-2">
-        {t(name)} {/* gali prireikti t(label) vietoj t(name), jei perduodi label */}
+         {t(label)} {/* gali prireikti t(label) vietoj t(name), jei perduodi label */}
         <InfoTooltip infoKey={infoKey} />
       </label>
       <select
