@@ -239,33 +239,36 @@ const EnumSelectWithOther = ({
 
   return (
     <div className="mb-4">
-      <div className="flex items-center gap-2 mb-1 font-medium text-blue-900">
-        <span>{t(label)}</span>
+      <label className="block mb-1 font-medium text-blue-900">
+        {t(label)}
+      </label>
+      <div className="relative flex items-center gap-2">
+        <select
+          name={name}
+          id={name}
+          className="w-full border rounded px-2 py-2"
+          value={isOther ? "other" : value}
+          onChange={e => {
+            if (e.target.value === "other") {
+              onChange("");
+            } else {
+              onChange(e.target.value);
+            }
+          }}
+        >
+          <option value="" disabled>
+            {t("form.select")}
+          </option>
+          {options.map(opt => (
+            <option key={opt} value={opt}>
+              {labelOther(opt)}
+            </option>
+          ))}
+          <option value="other">{t("form.other")}</option>
+        </select>
         {infoKey && <InfoTooltip infoKey={infoKey} />}
       </div>
-      <select
-        name={name}
-        id={name}
-        className="w-full border rounded px-2 py-2"
-        value={isOther ? "other" : value}
-        onChange={e => {
-          if (e.target.value === "other") {
-            onChange("");
-          } else {
-            onChange(e.target.value);
-          }
-        }}
-      >
-        <option value="" disabled>
-          {t("form.select")}
-        </option>
-        {options.map(opt => (
-          <option key={opt} value={opt}>
-            {labelOther(opt)}
-          </option>
-        ))}
-        <option value="other">{t("form.other")}</option>
-      </select>
+
       {isOther && (
         <textarea
           className="border rounded px-2 py-2 w-full min-h-[48px] max-h-40 mt-2"
@@ -295,26 +298,28 @@ const SimpleEnumSelect = ({
   const { t } = useTranslation();
   return (
     <div className="mb-4">
-      <div className="flex items-center gap-2 mb-1 font-medium text-blue-900">
-        <span>{t(label)}</span>
+      <label className="block mb-1 font-medium text-blue-900">
+        {t(label)}
+      </label>
+      <div className="relative flex items-center gap-2">
+        <select
+          name={name}
+          id={name}
+          className="w-full border rounded px-2 py-2"
+          value={value}
+          onChange={e => onChange(e.target.value)}
+        >
+          <option value="" disabled>
+            {t("form.select")}
+          </option>
+          {options.map(opt => (
+            <option key={opt} value={opt}>
+              {labelOther ? labelOther(opt) : opt}
+            </option>
+          ))}
+        </select>
         {infoKey && <InfoTooltip infoKey={infoKey} />}
       </div>
-      <select
-        name={name}
-        id={name}
-        className="w-full border rounded px-2 py-2"
-        value={value}
-        onChange={e => onChange(e.target.value)}
-      >
-        <option value="" disabled>
-          {t("form.select")}
-        </option>
-        {options.map(opt => (
-          <option key={opt} value={opt}>
-            {labelOther ? labelOther(opt) : opt}
-          </option>
-        ))}
-      </select>
     </div>
   );
 };
