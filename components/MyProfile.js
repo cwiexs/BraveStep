@@ -980,41 +980,44 @@ const handleSave = async () => {
     );
   }
 
-  // Kiti enumai — su "other"
-  if (f.type === "enum") {
-    const isSimple = f.name === "gender" || f.noOther;
-    return (
-      <div key={f.name} className="mb-4">
+// Kiti enumai — su "other"
+if (f.type === "enum") {
+  const isSimple = f.name === "gender" || f.noOther;
+
+  return (
+    <div key={f.name} className="mb-4">
+      <div className="mb-1 font-medium text-blue-900 flex items-center gap-2">
         <label htmlFor={f.name} className="cursor-pointer">
-      {t(`fields.${f.name}`)}
-    </label>
-        {isSimple ? (
-          <SimpleEnumSelect
-            name={f.name}
-            value={val}
-            onChange={v => handleChange(f.name, v)}
-            options={f.options}
-            labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-            infoKey={f.infoKey}
-          />
-        ) : (
-          <EnumSelectWithOther
-            name={f.name}
-            value={val}
-            onChange={v => {
-              if (v === "") {
-                handleChange(f.name, otherValues[f.name] || "");
-              } else {
-                handleChange(f.name, v);
-              }
-            }}
-            options={f.options.filter(opt => opt !== "other")}
-            otherValue={otherValues[f.name] || ""}
-            setOtherValue={v => handleOtherValue(f.name, v)}
-            labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-            infoKey={f.infoKey}
-          />
-        )}
+          {t(`profile.${f.name}`)}
+        </label>
+        {f.infoKey && <InfoTooltip infoKey={f.infoKey} />}
+      </div>
+
+      {isSimple ? (
+        <SimpleEnumSelect
+          name={f.name}
+          value={val}
+          onChange={v => handleChange(f.name, v)}
+          options={f.options}
+          labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+        />
+      ) : (
+        <EnumSelectWithOther
+          name={f.name}
+          value={val}
+          onChange={v => {
+            if (v === "") {
+              handleChange(f.name, otherValues[f.name] || "");
+            } else {
+              handleChange(f.name, v);
+            }
+          }}
+          options={f.options.filter(opt => opt !== "other")}
+          otherValue={otherValues[f.name] || ""}
+          setOtherValue={v => handleOtherValue(f.name, v)}
+          labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
+        />
+      )}
         {/* PAPILDOMA: */}
         {f.name === "bodyType" && val === "unknown" && (
           <div className="mt-3">
