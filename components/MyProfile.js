@@ -224,7 +224,7 @@ const MultiInput = ({ value, onChange, placeholder }) => {
 
 // ENUM select su "other" logika TIK ten, kur reikia (bet ne gender)
 const EnumSelectWithOther = ({
-  name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey,
+  name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey, label,
 }) => {
   const { t } = useTranslation();
   const isOther = !options.includes(value);
@@ -275,7 +275,7 @@ const EnumSelectWithOther = ({
 
 // Paprastas ENUM select (be "other" logikos)
 const SimpleEnumSelect = ({
-  name, value, onChange, options, infoKey, labelOther,
+  name, value, onChange, options, infoKey, labelOther, label,
 }) => {
   const { t } = useTranslation();
   return (
