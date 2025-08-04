@@ -457,8 +457,11 @@
  "form.sportsHabitsTestLabel": "Sports Habits Test",
   "form.takeSportsHabitsTest": "Take Sports Test",
   "form.sportsHabitsTestTitle": "Sports Habits Test",
-  "info.sportsHabitsTest": "This test helps assess your workout preferences, physical strengths and weaknesses, and your psychological profile for training. Answer each question from 1 to 5, where 1 means 'strongly disagree' and 5 means 'strongly agree'."
+  "info.sportsHabitsTest": "This test helps assess your workout preferences, physical strengths and weaknesses, and your psychological profile for training. Answer each question from 1 to 5, where 1 means 'strongly disagree' and 5 means 'strongly agree'.",
 
+  "form.invalidDateFormat": "Invalid date format (e.g. 1980-07-15)",
+  "form.dateInputHelper": "Enter your date of birth: YYYYMMDD or YYYY-MM-DD",
+  "form.datePlaceholder": "YYYY-MM-DD"
 
 
 

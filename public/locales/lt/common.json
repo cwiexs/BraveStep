@@ -460,9 +460,11 @@
   "form.sportsHabitsTestLabel": "Sporto įpročių testas",
   "form.takeSportsHabitsTest": "Atlikti sporto testą",
   "form.sportsHabitsTestTitle": "Sporto įpročių testas",
-  "info.sportsHabitsTest": "Šis testas padeda įvertinti jūsų sportinius įpročius, stipriąsias ir silpnąsias kūno vietas bei psichologinį sporto profilį. Atsakykite į kiekvieną klausimą nuo 1 iki 5, kur 1 reiškia 'visiškai nesutinku', o 5 – 'visiškai sutinku'."
+  "info.sportsHabitsTest": "Šis testas padeda įvertinti jūsų sportinius įpročius, stipriąsias ir silpnąsias kūno vietas bei psichologinį sporto profilį. Atsakykite į kiekvieną klausimą nuo 1 iki 5, kur 1 reiškia 'visiškai nesutinku', o 5 – 'visiškai sutinku'.",
 
-
+  "form.invalidDateFormat": "Blogas datos formatas (pvz. 1980-07-15)",
+  "form.dateInputHelper": "Įrašykite gimimo datą: YYYYMMDD arba YYYY-MM-DD",
+  "form.datePlaceholder": "YYYY-MM-DD"
 
 
 

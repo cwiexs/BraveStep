@@ -60,48 +60,35 @@ const Modal = ({ open, onClose, title, children }) => {
 };
 
 // Custom input for date (manual entry with helper)
-
-
 const DateInput = ({ name, value, onChange, placeholder }) => {
+  const { t } = useTranslation();
   const [error, setError] = useState("");
 
-  // Formatuoja YYYY-MM-DD iškart, kai įvedami skaičiai
-  const formatDate = val => {
-    const digits = val.replace(/\D/g, "");
-    let result = "";
-    if (digits.length <= 4) {
-      result = digits;
-    } else if (digits.length <= 6) {
-      result = digits.slice(0, 4) + "-" + digits.slice(4);
-    } else {
-      result =
-        digits.slice(0, 4) +
-        "-" +
-        digits.slice(4, 6) +
-        "-" +
-        digits.slice(6, 8);
-    }
-    return result;
-  };
-
-  // Kai gauna iš API su laiku – rodo tik datą
+  // Išgrynina iš API ar naudotojo – visada rodo tik YYYY-MM-DD
   const getDisplayValue = val => {
     if (!val) return "";
     if (/^\d{4}-\d{2}-\d{2}T/.test(val)) return val.slice(0, 10);
     return val;
   };
 
-  // Įvedimo logika
+  // Formatuoja YYYY-MM-DD iš skaitmenų – automatiškai deda brūkšnelius
+  const formatDate = val => {
+    const digits = val.replace(/\D/g, "");
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 6) return digits.slice(0, 4) + "-" + digits.slice(4);
+    return digits.slice(0, 4) + "-" + digits.slice(4, 6) + "-" + digits.slice(6, 8);
+  };
+
   const handleInputChange = e => {
     const raw = e.target.value;
     const formatted = formatDate(raw);
     onChange(formatted);
-    // Validacija
+    // Rodoma klaida tik jei yra pilna data, bet blogas formatas
     if (
       formatted.length === 10 &&
       !/^\d{4}-\d{2}-\d{2}$/.test(formatted)
     ) {
-      setError("Blogas datos formatas (pvz. 1980-07-15)");
+      setError(t("form.invalidDateFormat"));
     } else {
       setError("");
     }
@@ -115,14 +102,14 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
         value={getDisplayValue(value)}
         onChange={handleInputChange}
         className="w-full border rounded px-3 py-2"
-        placeholder={placeholder || "YYYY-MM-DD"}
+        placeholder={placeholder || t("form.datePlaceholder")}
         autoComplete="off"
         inputMode="numeric"
         pattern="[0-9\-]*"
         maxLength={10}
       />
       <div className="text-xs text-gray-500 mt-1">
-        Įrašykite gimimo datą: <b>YYYYMMDD</b> arba <b>YYYY-MM-DD</b>
+        {t("form.dateInputHelper")}
       </div>
       {error && <div className="text-red-600 text-xs mt-1">{error}</div>}
     </div>
