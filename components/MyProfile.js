@@ -980,7 +980,10 @@ const handleSave = async () => {
     const isSimple = f.name === "gender" || f.noOther;
     return (
       <div key={f.name} className="mb-4">
-        
+        <label className=" mb-1 font-medium text-blue-900">
+          {t(f.label)}
+          infoKey={f.infoKey}
+        </label>
         {isSimple ? (
           <SimpleEnumSelect
             name={f.name}
@@ -988,7 +991,7 @@ const handleSave = async () => {
             onChange={v => handleChange(f.name, v)}
             options={f.options}
             labelOther={opt => t(`enum.${f.name}.${opt}`, opt)}
-            infoKey={f.infoKey}
+            
           />
         ) : (
           <EnumSelectWithOther
