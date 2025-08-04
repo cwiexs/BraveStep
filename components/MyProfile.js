@@ -224,19 +224,10 @@ const MultiInput = ({ value, onChange, placeholder }) => {
 
 // ENUM select su "other" logika TIK ten, kur reikia (bet ne gender)
 const EnumSelectWithOther = ({
-  name,
-  value,
-  onChange,
-  options,
-  otherValue,
-  setOtherValue,
-  labelOther,
-  infoKey,
-  label,
+  name, value, onChange, options, otherValue, setOtherValue, labelOther, infoKey, label,
 }) => {
   const { t } = useTranslation();
   const isOther = !options.includes(value);
-
   return (
     <div className="mb-4">
       <div className="mb-1 font-medium text-blue-900 flex items-center gap-2">
@@ -257,9 +248,7 @@ const EnumSelectWithOther = ({
           }
         }}
       >
-        <option value="" disabled>
-          {t("form.select")}
-        </option>
+        <option value="" disabled>{t("form.select")}</option>
         {options.map(opt => (
           <option key={opt} value={opt}>
             {labelOther(opt)}
@@ -267,7 +256,6 @@ const EnumSelectWithOther = ({
         ))}
         <option value="other">{t("form.other")}</option>
       </select>
-
       {isOther && (
         <textarea
           className="border rounded px-2 py-2 w-full min-h-[48px] max-h-40 mt-2"
@@ -285,16 +273,9 @@ const EnumSelectWithOther = ({
 
 
 
-
 // Paprastas ENUM select (be "other" logikos)
 const SimpleEnumSelect = ({
-  name,
-  value,
-  onChange,
-  options,
-  infoKey,
-  labelOther,
-  label,
+  name, value, onChange, options, infoKey, labelOther, label,
 }) => {
   const { t } = useTranslation();
   return (
@@ -310,9 +291,7 @@ const SimpleEnumSelect = ({
         value={value}
         onChange={e => onChange(e.target.value)}
       >
-        <option value="" disabled>
-          {t("form.select")}
-        </option>
+        <option value="" disabled>{t("form.select")}</option>
         {options.map(opt => (
           <option key={opt} value={opt}>
             {labelOther ? labelOther(opt) : opt}
