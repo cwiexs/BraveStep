@@ -60,44 +60,48 @@ const Modal = ({ open, onClose, title, children }) => {
 };
 
 // Custom input for date (manual entry with helper)
+import React, { useState } from "react";
+
 const DateInput = ({ name, value, onChange, placeholder }) => {
   const [error, setError] = useState("");
 
-  // Automatinis formatavimas su brūkšneliais
-  const formatDateString = (input) => {
-    // Jei tuščia – nieko
-    if (!input) return "";
-    // Jei trini – leisk tiesiogiai keisti (neprievartauk formato)
-    const digits = input.replace(/\D/g, '');
-    // Jei nėra naujų skaitmenų – leisk ranka įvesti
-    if (digits.length === 0) return input;
-    let result = "";
-    if (digits.length <= 4) {
-      result = digits;
-    } else if (digits.length <= 6) {
-      result = digits.slice(0, 4) + "-" + digits.slice(4);
-    } else {
-      result =
-        digits.slice(0, 4) +
-        "-" +
-        digits.slice(4, 6) +
-        "-" +
-        digits.slice(6, 8);
+  // Apkarpo, jei gaunamas ISO stringas su laiku
+  const getDisplayValue = val => {
+    if (!val) return "";
+    // Jei formatas YYYY-MM-DDT... arba YYYY-MM-DD 00:00:00...
+    if (/^\d{4}-\d{2}-\d{2}/.test(val)) {
+      return val.slice(0, 10);
     }
-    return result;
+    return val;
   };
 
-  // Validacija YYYY-MM-DD
+  // Automatinis formatavimas į YYYY-MM-DD
+  const formatDateString = input => {
+    // Leidžiame trinti ar redaguoti
+    if (!input) return "";
+    const digits = input.replace(/\D/g, "");
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 6)
+      return digits.slice(0, 4) + "-" + digits.slice(4);
+    return (
+      digits.slice(0, 4) +
+      "-" +
+      digits.slice(4, 6) +
+      "-" +
+      digits.slice(6, 8)
+    );
+  };
+
+  // Tikrina, ar data tinkama
   const validate = val => {
     const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
     if (ymd.test(val)) return val;
     return null;
   };
 
-  // Reaguoja į įvedimą
+  // Įvedimo logika su automatiniais brūkšneliais ir klaidų rodymu
   const handleInputChange = e => {
     const raw = e.target.value;
-    // Tik leistini simboliai: skaičiai ir brūkšneliai
     if (/^[0-9\-]*$/.test(raw)) {
       const formatted = formatDateString(raw);
       onChange(formatted);
@@ -114,7 +118,7 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
       <input
         type="text"
         name={name}
-        value={value || ""}
+        value={getDisplayValue(value)}
         onChange={handleInputChange}
         className="w-full border rounded px-3 py-2"
         placeholder={placeholder || "YYYY-MM-DD"}
@@ -129,6 +133,8 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
     </div>
   );
 };
+
+
 
 
 
