@@ -62,18 +62,26 @@ const Modal = ({ open, onClose, title, children }) => {
 // Custom input for date (manual entry with helper)
 const DateInput = ({ name, value, onChange, placeholder }) => {
   const [error, setError] = useState("");
-  // Simple validation (accepts YYYY-MM-DD, YYYY/MM/DD, DD.MM.YYYY)
-  const validate = val => {
-    // Normalize
-    let norm = val.replace(/\//g, "-").replace(/\./g, "-");
-    // Support both YYYY-MM-DD and DD-MM-YYYY
-    const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
-    const dmy = /^(\d{2})-(\d{2})-(\d{4})$/;
-    if (ymd.test(norm)) return norm;
-    if (dmy.test(norm)) {
-      const [, d, m, y] = dmy.exec(norm);
-      return `${y}-${m}-${d}`;
+
+  // Automatinis formatavimas su brūkšneliais
+  const formatDateString = (input) => {
+    let digits = input.replace(/\D/g, '');
+    if (digits.length > 8) digits = digits.slice(0, 8);
+    let parts = [];
+    if (digits.length >= 4) parts.push(digits.slice(0, 4));
+    if (digits.length >= 6) {
+      parts.push(digits.slice(4, 6));
+      parts.push(digits.slice(6, 8));
+    } else if (digits.length > 4) {
+      parts.push(digits.slice(4));
     }
+    return parts.join('-');
+  };
+
+  // Paprasta validacija (tik YYYY-MM-DD)
+  const validate = val => {
+    const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
+    if (ymd.test(val)) return val;
     return null;
   };
 
@@ -84,16 +92,20 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
         name={name}
         value={value || ""}
         onChange={e => {
-          const val = e.target.value;
-          onChange(val);
-          setError(val && !validate(val) ? "Blogas datos formatas (pvz. 1980-07-15)" : "");
+          const formatted = formatDateString(e.target.value);
+          onChange(formatted);
+          setError(
+            formatted && !validate(formatted)
+              ? "Blogas datos formatas (pvz. 1980-07-15)"
+              : ""
+          );
         }}
         className="w-full border rounded px-3 py-2"
         placeholder={placeholder || "YYYY-MM-DD"}
         autoComplete="off"
       />
       <div className="text-xs text-gray-500 mt-1">
-        Leidžiami formatai: <b>YYYY-MM-DD</b> arba <b>DD.MM.YYYY</b>
+        Įrašykite gimimo datą: <b>YYYYMMDD</b> arba <b>YYYY-MM-DD</b>
       </div>
       {error && <div className="text-red-600 text-xs mt-1">{error}</div>}
     </div>
