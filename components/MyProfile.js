@@ -59,6 +59,47 @@ const Modal = ({ open, onClose, title, children }) => {
   );
 };
 
+// Custom input for date (manual entry with helper)
+const DateInput = ({ name, value, onChange, placeholder }) => {
+  const [error, setError] = useState("");
+  // Simple validation (accepts YYYY-MM-DD, YYYY/MM/DD, DD.MM.YYYY)
+  const validate = val => {
+    // Normalize
+    let norm = val.replace(/\//g, "-").replace(/\./g, "-");
+    // Support both YYYY-MM-DD and DD-MM-YYYY
+    const ymd = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const dmy = /^(\d{2})-(\d{2})-(\d{4})$/;
+    if (ymd.test(norm)) return norm;
+    if (dmy.test(norm)) {
+      const [, d, m, y] = dmy.exec(norm);
+      return `${y}-${m}-${d}`;
+    }
+    return null;
+  };
+
+  return (
+    <div>
+      <input
+        type="text"
+        name={name}
+        value={value || ""}
+        onChange={e => {
+          const val = e.target.value;
+          onChange(val);
+          setError(val && !validate(val) ? "Blogas datos formatas (pvz. 1980-07-15)" : "");
+        }}
+        className="w-full border rounded px-3 py-2"
+        placeholder={placeholder || "YYYY-MM-DD"}
+        autoComplete="off"
+      />
+      <div className="text-xs text-gray-500 mt-1">
+        Leidžiami formatai: <b>YYYY-MM-DD</b> arba <b>DD.MM.YYYY</b>
+      </div>
+      {error && <div className="text-red-600 text-xs mt-1">{error}</div>}
+    </div>
+  );
+};
+
 
 // Info tooltip komponentas (suderintas su lokalizacija)
 const InfoTooltip = ({ infoKey }) => {
@@ -1031,6 +1072,25 @@ if (f.type === "text") {
           {t("form.no")}
         </label>
       </div>
+    </div>
+  );
+}
+
+
+
+if (f.type === "date" && f.name === "dateOfBirth") {
+  return (
+    <div key={f.name} className="mb-4">
+      <label className="block mb-1 font-medium text-blue-900">
+        {t(f.label)}
+        <InfoTooltip infoKey={f.infoKey} />
+      </label>
+      <DateInput
+        name={f.name}
+        value={val}
+        onChange={v => handleChange(f.name, v)}
+        placeholder="YYYY-MM-DD"
+      />
     </div>
   );
 }
