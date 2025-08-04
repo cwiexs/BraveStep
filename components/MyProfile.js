@@ -396,9 +396,9 @@ const sections = [
       {
         name: "fitnessLevel",
         label: "form.fitnessLevel",
+        infoKey: "info.fitnessLevel",
         type: "enum",
         options: ["beginner", "intermediate", "advanced"],
-        infoKey: "info.fitnessLevel",
         noOther: true,
       },
     ],
@@ -982,7 +982,7 @@ const handleSave = async () => {
     const isSimple = f.name === "gender" || f.noOther;
     return (
       <div key={f.name} className="mb-4">
-        <label className="mb-1 font-medium text-blue-900">
+        <label className="block mb-1 font-medium text-blue-900">
           {t(f.label)}
         </label>
         {isSimple ? (
