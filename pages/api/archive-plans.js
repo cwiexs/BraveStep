@@ -15,15 +15,15 @@ export default async function handler(req, res) {
       return res.status(401).json({ message: "Nesate prisijungęs" });
     }
 
-    const plans = await prisma.plan.findMany({
+    const plans = await prisma.generatedPlan.findMany({
       where: { userId: session.user.id },
-      orderBy: { date: "desc" }
+      orderBy: { createdAt: "desc" }
     });
 
     return res.status(200).json({ plans });
   }
 
-  // POST logika
+  // POST logika archyvavimui
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
