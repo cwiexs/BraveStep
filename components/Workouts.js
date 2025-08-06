@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { parseWorkoutText } from "./utils/parseWorkoutText";
 import { Info, CalendarDays } from "lucide-react";
 import WorkoutPlayer from "./WorkoutPlayer";
+import WorkoutViewer from "./WorkoutViewer";
 
 export default function Workouts() {
   const { data: session, status } = useSession();
@@ -13,6 +14,7 @@ export default function Workouts() {
   const [parsedPlan, setParsedPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
+  const [showViewer, setShowViewer] = useState(false);
   const [stats, setStats] = useState({ totalWorkouts: 0, totalTime: 0, calories: 0 });
 
   useEffect(() => {
@@ -51,7 +53,7 @@ export default function Workouts() {
 
   const handleViewPlan = () => {
     if (!selectedPlan?.planData) return;
-    setParsedPlan(parseWorkoutText(selectedPlan.planData.text || ""));
+    setShowViewer(true);
   };
 
   const handleStartWorkout = () => {
@@ -146,6 +148,13 @@ export default function Workouts() {
             {t("startWorkout")}
           </button>
         </div>
+      )}
+
+      {showViewer && selectedPlan && (
+        <WorkoutViewer
+          planText={selectedPlan.planData.text || ""}
+          onClose={() => setShowViewer(false)}
+        />
       )}
 
       {showPlayer && parsedPlan && (
