@@ -26,9 +26,6 @@ export default function Workouts() {
         .then(res => res.json())
         .then(data => {
           setStats(data.stats || { totalWorkouts: 0, totalTime: 0, calories: 0 });
-          if (data.plan) {
-            setSelectedPlan(data.plan);
-          }
         })
         .catch(() => {
           setStats({ totalWorkouts: 0, totalTime: 0, calories: 0 });
@@ -55,6 +52,19 @@ export default function Workouts() {
   const handleViewPlan = () => {
     if (!selectedPlan?.planData) return;
     setParsedPlan(parseWorkoutText(selectedPlan.planData.text || ""));
+  };
+
+  const handleStartWorkout = () => {
+    if (!selectedPlan?.planData) return;
+    if (!parsedPlan) {
+      setParsedPlan(parseWorkoutText(selectedPlan.planData.text || ""));
+    }
+    setShowPlayer(true);
+  };
+
+  const handleCloseWorkout = () => {
+    setShowPlayer(false);
+    setParsedPlan(null);
   };
 
   if (status === "loading") return <div>{t("loading")}</div>;
@@ -114,6 +124,7 @@ export default function Workouts() {
         <button
           className="bg-blue-700 hover:bg-blue-800 text-white px-4 rounded shadow transition"
           onClick={handleViewPlan}
+          disabled={!selectedPlan}
         >
           {t("viewPlan")}
         </button>
@@ -126,20 +137,23 @@ export default function Workouts() {
         </button>
       </div>
 
-      {parsedPlan && (
-        <>
+      {selectedPlan && (
+        <div className="flex justify-center mb-6">
           <button
             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow"
-            onClick={() => setShowPlayer(true)}
+            onClick={handleStartWorkout}
           >
             {t("startWorkout")}
           </button>
-          <WorkoutPlayer
-            workoutData={parsedPlan}
-            onClose={() => setShowPlayer(false)}
-            visible={showPlayer}
-          />
-        </>
+        </div>
+      )}
+
+      {showPlayer && parsedPlan && (
+        <WorkoutPlayer
+          workoutData={parsedPlan}
+          onClose={handleCloseWorkout}
+          visible={showPlayer}
+        />
       )}
     </div>
   );
