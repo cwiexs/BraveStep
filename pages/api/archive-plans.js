@@ -1,12 +1,29 @@
-// pages/api/archive-plans.js
 import { PrismaClient } from '@prisma/client';
+import { getServerSession } from "next-auth";
+import { authOptions } from "./auth/[...nextauth]";
+
 const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Tik POST metodas leidžiamas' });
+  if (req.method !== "GET" && req.method !== "POST") {
+    return res.status(405).json({ message: "Metodas neleidžiamas" });
   }
 
+  if (req.method === "GET") {
+    const session = await getServerSession(req, res, authOptions);
+    if (!session) {
+      return res.status(401).json({ message: "Nesate prisijungęs" });
+    }
+
+    const plans = await prisma.plan.findMany({
+      where: { userId: session.user.id },
+      orderBy: { date: "desc" }
+    });
+
+    return res.status(200).json({ plans });
+  }
+
+  // POST logika
   const sixMonthsAgo = new Date();
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
