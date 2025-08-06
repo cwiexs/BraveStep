@@ -463,10 +463,26 @@
   "form.dateInputHelper": "Enter your date of birth: YYYYMMDD or YYYY-MM-DD",
   "form.datePlaceholder": "YYYY-MM-DD",
   "form.invalidCalendarDate": "Such date does not exist in the calendar",
-  "form.dateCannotBeFuture": "Date cannot be in the future"
+  "form.dateCannotBeFuture": "Date cannot be in the future",
 
 
-
+  "welcomeUser": "Welcome back, {{name}}!",
+  "user": "User",
+  "lastGenerated": "Last generated",
+  "noPlans": "No plans yet",
+  "workouts": "Workouts",
+  "workoutsInfo": "Total number of completed workouts.",
+  "totalTime": "Total Time",
+  "totalTimeInfo": "Total time spent on workouts.",
+  "caloriesBurned": "Calories Burned",
+  "caloriesInfo": "Estimated calories burned.",
+  "selectPlan": "Select plan",
+  "viewPlan": "View Plan",
+  "generatePlan": "Generate New Plan",
+  "generating": "Generating...",
+  "generateFailed": "Failed to generate plan",
+  "startWorkout": "Start Workout",
+  "pleaseLogin": "Please log in to view your workouts."
 
 
 }

@@ -1,139 +1,131 @@
+
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
 import { useState, useEffect } from "react";
 import { parseWorkoutText } from "./utils/parseWorkoutText";
-import { Info } from "lucide-react";
+import { Info, CalendarDays, ChevronDown } from "lucide-react";
 import WorkoutPlayer from "./WorkoutPlayer";
 
 export default function Workouts() {
   const { data: session, status } = useSession();
-  const { t } = useTranslation("workouts");
-  const [plan, setPlan] = useState(null);
+  const { t } = useTranslation("common");
+  const [plans, setPlans] = useState([]);
+  const [selectedPlan, setSelectedPlan] = useState(null);
   const [parsedPlan, setParsedPlan] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
+  const [stats, setStats] = useState({ totalWorkouts: 0, totalTime: 0, calories: 0 });
 
   useEffect(() => {
     if (session) {
+      fetch("/api/archive-plans")
+        .then(res => res.json())
+        .then(data => setPlans(data.plans))
+        .catch(() => setPlans([]));
+
       fetch("/api/last-workout")
         .then(res => res.json())
         .then(data => {
-          setPlan(data.plan);
-          setParsedPlan(parseWorkoutText(data.plan.text));
-        })
-        .catch(() => {
-          setPlan(null);
-          setParsedPlan(null);
+          setStats(data.stats);
         });
     }
   }, [session]);
 
-  async function handleGeneratePlan() {
+  const handleGeneratePlan = async () => {
     setLoading(true);
-    setPlan(null);
-    setParsedPlan(null);
     try {
-      const response = await fetch("/api/generate-workout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
+      const response = await fetch("/api/generate-workout", { method: "POST" });
       const data = await response.json();
-      setPlan(data.plan);
-      setParsedPlan(parseWorkoutText(data.plan.text));
+      setPlans(prev => [data.plan, ...prev]);
     } catch (error) {
-      alert("Nepavyko sugeneruoti plano");
+      alert(t("generateFailed"));
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  if (status === "loading") {
-    return <div>{t("loading") || "Kraunasi..."}</div>;
-  }
+  const handleViewPlan = () => {
+    if (!selectedPlan) return;
+    setParsedPlan(parseWorkoutText(selectedPlan.text));
+  };
 
-  if (!session) {
-    return (
-      <div className="max-w-xl mx-auto mt-12 bg-white p-8 rounded-2xl shadow-lg text-center">
-        <h1 className="text-3xl font-bold mb-6 text-blue-900">{t("title") || "Workouts"}</h1>
-        <p className="mb-4 text-lg">{t("welcomeGuest") || "Norėdami gauti personalizuotus workout'us, prisijunkite arba užsiregistruokite!"}</p>
-        <button className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-lg font-semibold shadow transition">
-          {t("signInToGenerate") || "Prisijunkite, kad generuotumėte workout'ą"}
-        </button>
-      </div>
-    );
-  }
+  if (status === "loading") return <div>{t("loading")}</div>;
+  if (!session) return <div>{t("pleaseLogin")}</div>;
 
   return (
-    <div className="max-w-3xl mx-auto mt-12 bg-white p-8 rounded-2xl shadow-xl">
-      <h1 className="text-3xl font-bold mb-6 text-blue-900 text-center">{t("title") || "Workouts"}</h1>
-      <p className="mb-4 text-lg text-center">{t("welcomeLoggedIn") || "Galite generuoti naujus workout'us ar peržiūrėti ankstesnius."}</p>
-      <div className="text-center">
+    <div className="max-w-4xl mx-auto p-8 bg-white shadow-xl rounded-2xl">
+      <h1 className="text-3xl font-bold text-blue-900 text-center mb-2">{t("welcomeUser", { name: session.user.name || t("user") })}</h1>
+      <p className="text-center text-gray-500 mb-4 flex items-center justify-center gap-1">
+        <CalendarDays className="w-5 h-5" />{t("lastGenerated")}: {plans[0]?.date?.slice(0,10) || t("noPlans")}
+      </p>
+
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-blue-50 p-4 rounded-xl shadow relative group">
+          <p className="text-lg font-semibold">{stats.totalWorkouts}</p>
+          <p className="text-sm text-gray-600">{t("workouts")}</p>
+          <InfoTooltip text={t("workoutsInfo")} />
+        </div>
+        <div className="bg-green-50 p-4 rounded-xl shadow relative group">
+          <p className="text-lg font-semibold">{stats.totalTime} min</p>
+          <p className="text-sm text-gray-600">{t("totalTime")}</p>
+          <InfoTooltip text={t("totalTimeInfo")} />
+        </div>
+        <div className="bg-yellow-50 p-4 rounded-xl shadow relative group">
+          <p className="text-lg font-semibold">{stats.calories} kcal</p>
+          <p className="text-sm text-gray-600">{t("caloriesBurned")}</p>
+          <InfoTooltip text={t("caloriesInfo")} />
+        </div>
+      </div>
+
+      <div className="flex gap-2 justify-center mb-6">
+        <select
+          className="border p-2 rounded shadow cursor-pointer"
+          onChange={(e) => setSelectedPlan(plans.find(p => p.id === e.target.value))}
+        >
+          <option>{t("selectPlan")}</option>
+          {plans.map(plan => (
+            <option key={plan.id} value={plan.id}>
+              {new Date(plan.date).toLocaleDateString()}
+            </option>
+          ))}
+        </select>
+        <button
+          className="bg-blue-700 hover:bg-blue-800 text-white px-4 rounded shadow transition"
+          onClick={handleViewPlan}
+        >
+          {t("viewPlan")}
+        </button>
         <button
           onClick={handleGeneratePlan}
-          className="bg-blue-700 hover:bg-blue-800 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
+          className="bg-green-500 hover:bg-green-600 text-white px-4 rounded shadow transition"
           disabled={loading}
         >
-          {loading ? "Generuojama..." : t("generateWorkout") || "Generuoti naują treniruotę"}
+          {loading ? t("generating") : t("generatePlan")}
         </button>
       </div>
 
       {parsedPlan && (
         <>
-          <div className="mt-4 text-center">
-            <button
-              onClick={() => setShowPlayer(true)}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold shadow transition"
-            >
-              Pradėti treniruotę
-            </button>
-          </div>
-
-          <div className="mt-10 space-y-10">
-            <p className="text-md text-gray-800 whitespace-pre-wrap mb-6 bg-blue-50 p-4 rounded-xl">{parsedPlan.introduction}</p>
-
-            {parsedPlan.days.map(day => (
-              <div key={day.day} className="bg-gray-50 border border-gray-300 rounded-xl p-6 shadow-sm">
-                <h2 className="text-2xl font-semibold text-blue-900 mb-2">Diena {day.day}</h2>
-                <p className="text-green-700 italic mb-3">💬 {day.motivationStart}</p>
-                <div className="space-y-4">
-                  {day.exercises.map((ex, i) => (
-                    <div key={i} className="bg-white border border-gray-200 p-4 rounded-lg relative">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="font-semibold text-gray-800">{ex.name || `Pratimas ${i + 1}`}</p>
-                          {ex.steps.map((step, idx) => (
-                            <p key={idx} className="text-sm text-gray-700">
-                              {step.type === "exercise" ? `Serija ${step.set}: ${step.duration}` : step.type === "rest" ? `Poilsis: ${step.duration}` : `Poilsis prieš kitą pratimą: ${step.duration}`}
-                            </p>
-                          ))}
-                        </div>
-                        <div className="relative group cursor-pointer">
-                          <Info className="w-5 h-5 text-blue-500 mt-1" />
-                          <div className="absolute hidden group-hover:block bg-white border border-gray-300 p-3 text-sm text-gray-700 rounded-lg shadow-md w-64 right-0 z-10">
-                            {ex.description}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <p className="text-blue-700 italic mt-4">🏁 {day.motivationEnd}</p>
-                {day.waterRecommendation?.trim() && <p className="text-blue-600 mt-2">💧 {day.waterRecommendation}</p>}
-                {day.outdoorSuggestion?.trim() && <p className="text-green-600 mt-1">🌿 {day.outdoorSuggestion}</p>}
-              </div>
-            ))}
-          </div>
-
-{showPlayer && (
-  <WorkoutPlayer
-    workoutData={parsedPlan}
-    planId={plan?.id} // <- ŠITAS YRA GYVYBIŠKAI SVARBUS!
-    onClose={() => setShowPlayer(false)}
-  />
-)}
+          <button
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow"
+            onClick={() => setShowPlayer(true)}
+          >
+            {t("startWorkout")}
+          </button>
+          <WorkoutPlayer workoutData={parsedPlan} onClose={() => setShowPlayer(false)} visible={showPlayer} />
         </>
       )}
+    </div>
+  );
+}
+
+function InfoTooltip({ text }) {
+  return (
+    <div className="absolute top-2 right-2">
+      <Info className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer peer" />
+      <div className="absolute hidden peer-hover:block bg-white border shadow-md rounded p-2 text-xs w-48 right-0 top-5 z-20">
+        {text}
+      </div>
     </div>
   );
 }
