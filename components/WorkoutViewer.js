@@ -18,7 +18,7 @@ export default function WorkoutViewer({ planText, onClose }) {
       onClick={handleBackgroundClick}
     >
       <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative p-6">
-        {/* Close button */}
+        {/* Uždarymo mygtukas */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -30,15 +30,24 @@ export default function WorkoutViewer({ planText, onClose }) {
           Treniruotės planas
         </h2>
 
+        {/* Įvadas */}
         {parsedPlan?.introduction && (
           <p className="mb-6 text-gray-700">{parsedPlan.introduction}</p>
         )}
 
+        {/* Dienos planai */}
         {parsedPlan?.days?.map((day, dayIndex) => (
           <div key={dayIndex} className="mb-8">
             <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-1">
               {day.dayTitle}
             </h3>
+
+            {/* Motyvacija pradžiai */}
+            {day.motivation && (
+              <p className="mb-4 italic text-green-700">{day.motivation}</p>
+            )}
+
+            {/* Pratimai */}
             {day.exercises.map((exercise, exerciseIndex) => (
               <div
                 key={exerciseIndex}
@@ -47,17 +56,29 @@ export default function WorkoutViewer({ planText, onClose }) {
                 <p className="text-lg font-medium text-gray-900">
                   {exercise.name}
                 </p>
+
+                {/* Žingsniai */}
                 {exercise.steps && (
-  <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
-    {exercise.steps.map((step, stepIndex) => (
-      <li key={stepIndex}>
-        {typeof step === "string"
-          ? step
-          : `${step.type || ""} - ${step.set ? step.set + " set" : ""} ${step.duration || ""}`}
-      </li>
-    ))}
-  </ul>
-)}
+                  <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
+                    {exercise.steps.map((step, stepIndex) => {
+                      if (typeof step === "string") {
+                        return <li key={stepIndex}>{step}</li>;
+                      }
+                      if (typeof step === "object") {
+                        return (
+                          <li key={stepIndex}>
+                            {step.type ? step.type : ""}{" "}
+                            {step.set ? `- ${step.set} set` : ""}{" "}
+                            {step.duration ? `(${step.duration})` : ""}
+                          </li>
+                        );
+                      }
+                      return null;
+                    })}
+                  </ul>
+                )}
+
+                {/* Aprašymas */}
                 {exercise.description && (
                   <p className="text-sm text-gray-600 mt-2">
                     {exercise.description}
@@ -65,11 +86,19 @@ export default function WorkoutViewer({ planText, onClose }) {
                 )}
               </div>
             ))}
-            {day.motivation && (
-              <p className="text-sm italic text-gray-500 mt-2">{day.motivation}</p>
-            )}
+
+            {/* Vandens rekomendacija */}
             {day.waterIntake && (
-              <p className="text-sm text-gray-500">{day.waterIntake}</p>
+              <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-900 mt-4">
+                💧 {day.waterIntake}
+              </div>
+            )}
+
+            {/* Lauko veikla */}
+            {day.outdoorActivity && (
+              <div className="p-4 bg-green-50 rounded-lg text-sm text-green-900 mt-4">
+                🌿 {day.outdoorActivity}
+              </div>
             )}
           </div>
         ))}
