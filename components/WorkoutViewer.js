@@ -48,12 +48,16 @@ export default function WorkoutViewer({ planText, onClose }) {
                   {exercise.name}
                 </p>
                 {exercise.steps && (
-                  <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
-                    {exercise.steps.map((step, stepIndex) => (
-                      <li key={stepIndex}>{step}</li>
-                    ))}
-                  </ul>
-                )}
+  <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
+    {exercise.steps.map((step, stepIndex) => (
+      <li key={stepIndex}>
+        {typeof step === "string"
+          ? step
+          : `${step.type || ""} - ${step.set ? step.set + " set" : ""} ${step.duration || ""}`}
+      </li>
+    ))}
+  </ul>
+)}
                 {exercise.description && (
                   <p className="text-sm text-gray-600 mt-2">
                     {exercise.description}
