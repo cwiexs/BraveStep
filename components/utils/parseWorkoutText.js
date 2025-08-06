@@ -1,5 +1,3 @@
-// Patobulintas parseWorkoutText.js su teisingu žingsnių priskyrimu
-
 export function parseWorkoutText(planText) {
   const lines = planText.split("\n");
   const result = {
@@ -28,6 +26,7 @@ export function parseWorkoutText(planText) {
           day: parseInt(dayNumber[1]),
           motivationStart: "",
           motivationEnd: "",
+          motivation: "",
           exercises: [],
           waterRecommendation: "",
           outdoorSuggestion: ""
@@ -116,6 +115,11 @@ export function parseWorkoutText(planText) {
   if (currentExercise && currentSteps.length > 0) {
     currentExercise.steps = currentSteps;
   }
+
+  // Sukuriam jungtinę motyvaciją
+  result.days.forEach(day => {
+    day.motivation = `${day.motivationStart} ${day.motivationEnd}`.trim();
+  });
 
   return result;
 }

@@ -50,7 +50,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return match ? parseInt(match[1]) : 0;
   }
 
-  // --- Kiekvieno žingsnio laikmatis, įsijungia priklausomai nuo tipo ir trukmės ---
+  // --- Kiekvieno žingsnio laikmatis ---
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -70,7 +70,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }, [currentExerciseIndex, currentStepIndex, phase, step]);
 
-  // --- Tiksintis laikrodis (kai rodomas laikmatis) ---
+  // --- Tiksintis laikrodis ---
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -87,11 +87,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return () => { if (timerRef.current) clearInterval(timerRef.current); }
   }, [secondsLeft, waitingForUser, phase, paused, step]);
 
-  // --- Rankinis mygtukas (Pradėti treniruotę, Atlikta, Baigti treniruotę) ---
+  // --- Rankinis mygtukas ---
   function handleManualContinue() {
     if (timerRef.current) clearInterval(timerRef.current);
 
-    // Pradinis motyvacinis langas → treniruotės eiga
     if (phase === "intro") {
       setPhase("exercise");
       if (step && step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
@@ -101,40 +100,35 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         setWaitingForUser(true);
       }
     }
-    // Treniruotės žingsnis atliktas → pereinam į kitą arba į summary
     else if (phase === "exercise") {
       setWaitingForUser(false);
       handlePhaseComplete();
     }
-    // Pabaigos langas uždaromas
     else if (phase === "summary") {
       onClose();
     }
   }
 
-  // --- Kai užbaigiamas žingsnis/pratimas arba visa treniruotė ---
+  // --- Baigiamas žingsnis/pratimas ---
   function handlePhaseComplete() {
     if (timerRef.current) clearInterval(timerRef.current);
     try { new Audio("/beep.mp3").play().catch(()=>{}); } catch {}
 
-    // Kitas žingsnis
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
       setPlayedWarnings([]);
     }
-    // Kitas pratimas
     else if (day && currentExerciseIndex + 1 < day.exercises.length) {
       setCurrentExerciseIndex(prev => prev + 1);
       setCurrentStepIndex(0);
       setPlayedWarnings([]);
     }
-    // Viskas baigta – pereinam į pabaigos langą
     else {
       setPhase("summary");
     }
   }
 
-  // --- Navigacijos mygtukai atgal/pirmyn/restart ---
+  // --- Navigacija ---
   function goToPrevious() {
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -164,34 +158,29 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  // --- Išvalome laikmatį kai komponentas pašalinamas ---
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); }
   }, []);
 
-  // --- Pabaigos lango (summary) feedback funkcionalumas ---
   async function submitFeedback() {
-  try {
-    // Siunčiame difficultyRating  
-  await fetch('/api/complete-plan', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({
-  planId,
-    difficultyRating: rating, // 1-5
-    userComment: comment
-  })
-});
+    try {
+      await fetch('/api/complete-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          planId,
+          difficultyRating: rating,
+          userComment: comment
+        })
+      });
+    } catch (e) {}
+    setSubmitted(true);
+    setTimeout(() => {
+      onClose();
+    }, 1500);
+  }
 
-  } catch (e) {}
-  setSubmitted(true);
-  setTimeout(() => {
-    onClose();
-  }, 1500);
-}
-
-
-  // --- Motyvacinis pradžios langas ---
+  // --- Intro ---
   if (phase === "intro") {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -211,7 +200,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     )
   }
 
-  // --- Treniruotės žingsnių (pratimų) eiga ---
+  // --- Exercise ---
   if (phase === "exercise") {
     return (
       <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
@@ -244,32 +233,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               </button>
             </div>
           )}
-          {(step?.type === "rest" || step?.type === "rest_after") && (
-            <p className="text-sm text-gray-500 italic mt-2">
-              🔜 Sekantis pratimas: {
-                (exercise && step) ? (
-                  (() => {
-                    const allExerciseSteps = exercise.steps.filter(s => s.type === "exercise");
-                    const currentExerciseStepIdx = exercise.steps
-                      .filter((s, idx) => idx <= currentStepIndex)
-                      .filter(s => s.type === "exercise").length - 1;
-                    if (
-                      step.type === "rest" &&
-                      currentExerciseStepIdx + 1 < allExerciseSteps.length
-                    ) {
-                      const nextSet = allExerciseSteps[currentExerciseStepIdx + 1].set;
-                      return `${exercise.name} serija ${nextSet}/${allExerciseSteps.length}`;
-                    }
-                    if (currentExerciseIndex + 1 < day.exercises.length) {
-                      const nextExercise = day.exercises[currentExerciseIndex + 1];
-                      return nextExercise ? nextExercise.name : "Pabaiga";
-                    }
-                    return "Pabaiga";
-                  })()
-                ) : "Pabaiga"
-              }
-            </p>
-          )}
           <div className="flex justify-center items-center gap-4 mt-6">
             <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
               <SkipBack className="w-6 h-6 text-gray-800" />
@@ -294,66 +257,75 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     );
   }
 
-  // --- Pabaigos (summary) langas su įvertinimu ir komentaru ---
-  // --- Pabaigos (summary) langas su aiškiais įvertinimo mygtukais ---
-if (phase === "summary") {
-  // Reitingavimo variantai: -2, -1, 0, +1, +2
-  const options = [
-  { value: 1, label: '😣', text: 'Per sunku' },
-  { value: 2, label: '😟', text: 'Šiek tiek sunku' },
-  { value: 3, label: '😌', text: 'Tobulas balansas' },
-  { value: 4, label: '🙂', text: 'Šiek tiek lengva' },
-  { value: 5, label: '😄', text: 'Per lengva' },
-];
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg max-w-lg text-center">
-        <h2 className="text-2xl font-bold mb-2">🎉 Sveikiname, treniruotė baigta!</h2>
-        <p className="mb-4 text-gray-800 whitespace-pre-wrap">
-          {workoutData?.days?.[0]?.motivationEnd || "Ačiū, kad sportavai!"}
-        </p>
-        <p className="text-sm text-gray-600 mb-2 font-semibold">Kaip įvertintum treniruotės sunkumą?</p>
-        <div className="flex justify-center gap-2 mb-2">
-          {options.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setRating(opt.value)}
-              className={`text-3xl p-1 rounded-full border-2 
-                ${rating === opt.value ? 'border-green-500 bg-green-50' : 'border-transparent'}
-                hover:border-green-400`}
-              type="button"
-              title={opt.text}
-            >{opt.label}</button>
-          ))}
+  // --- Summary ---
+  if (phase === "summary") {
+    const options = [
+      { value: 1, label: '😣', text: 'Per sunku' },
+      { value: 2, label: '😟', text: 'Šiek tiek sunku' },
+      { value: 3, label: '😌', text: 'Tobulas balansas' },
+      { value: 4, label: '🙂', text: 'Šiek tiek lengva' },
+      { value: 5, label: '😄', text: 'Per lengva' },
+    ];
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg max-w-lg text-center">
+          <h2 className="text-2xl font-bold mb-2">🎉 Sveikiname, treniruotė baigta!</h2>
+          <p className="mb-4 text-gray-800 whitespace-pre-wrap">
+            {workoutData?.days?.[0]?.motivationEnd || "Ačiū, kad sportavai!"}
+          </p>
+
+          {/* Papildyta rekomendacijomis */}
+          {workoutData?.days?.[0]?.waterRecommendation && (
+            <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900 mb-3">
+              💧 {workoutData.days[0].waterRecommendation}
+            </div>
+          )}
+          {workoutData?.days?.[0]?.outdoorSuggestion && (
+            <div className="p-3 bg-green-50 rounded-lg text-sm text-green-900 mb-3">
+              🌿 {workoutData.days[0].outdoorSuggestion}
+            </div>
+          )}
+
+          <p className="text-sm text-gray-600 mb-2 font-semibold">Kaip įvertintum treniruotės sunkumą?</p>
+          <div className="flex justify-center gap-2 mb-2">
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                onClick={() => setRating(opt.value)}
+                className={`text-3xl p-1 rounded-full border-2 
+                  ${rating === opt.value ? 'border-green-500 bg-green-50' : 'border-transparent'}
+                  hover:border-green-400`}
+                type="button"
+                title={opt.text}
+              >{opt.label}</button>
+            ))}
+          </div>
+          <div className="flex justify-center gap-2 mb-4">
+            {options.map((opt) => (
+              <span key={opt.value} className={`text-xs ${rating === opt.value ? 'font-bold text-green-700' : 'text-gray-400'}`}>
+                {opt.text}
+              </span>
+            ))}
+          </div>
+          <textarea
+            placeholder="Tavo komentaras apie treniruotę..."
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            className="w-full p-2 border rounded mb-4"
+            rows={3}
+          />
+          <button
+            className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+            onClick={submitFeedback}
+            disabled={submitted}
+          >
+            Baigti treniruotę
+          </button>
+          {submitted && <p className="text-green-600 mt-2">Ačiū už įvertinimą!</p>}
         </div>
-        <div className="flex justify-center gap-2 mb-4">
-          {options.map((opt) => (
-            <span key={opt.value} className={`text-xs ${rating === opt.value ? 'font-bold text-green-700' : 'text-gray-400'}`}>
-              {opt.text}
-            </span>
-          ))}
-        </div>
-        <textarea
-          placeholder="Tavo komentaras apie treniruotę..."
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          className="w-full p-2 border rounded mb-4"
-          rows={3}
-        />
-        <button
-          className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
-          onClick={submitFeedback}
-          disabled={submitted}
-        >
-          Baigti treniruotę
-        </button>
-        {submitted && <p className="text-green-600 mt-2">Ačiū už įvertinimą!</p>}
       </div>
-    </div>
-  )
-}
+    )
+  }
 
-
-  // --- Klaidų atvejis: jei nėra fazės (neturėtų nutikti) ---
   return null;
 }

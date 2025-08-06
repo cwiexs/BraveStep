@@ -18,7 +18,7 @@ export default function WorkoutViewer({ planText, onClose }) {
       onClick={handleBackgroundClick}
     >
       <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative p-6">
-        {/* Uždarymo mygtukas */}
+        {/* Close button */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -30,24 +30,20 @@ export default function WorkoutViewer({ planText, onClose }) {
           Treniruotės planas
         </h2>
 
-        {/* Įvadas */}
         {parsedPlan?.introduction && (
           <p className="mb-6 text-gray-700">{parsedPlan.introduction}</p>
         )}
 
-        {/* Dienos planai */}
         {parsedPlan?.days?.map((day, dayIndex) => (
           <div key={dayIndex} className="mb-8">
             <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-1">
-              {day.dayTitle}
+              {day.dayTitle || `Diena ${day.day}`}
             </h3>
 
-            {/* Motyvacija pradžiai */}
             {day.motivation && (
               <p className="mb-4 italic text-green-700">{day.motivation}</p>
             )}
 
-            {/* Pratimai */}
             {day.exercises.map((exercise, exerciseIndex) => (
               <div
                 key={exerciseIndex}
@@ -56,8 +52,6 @@ export default function WorkoutViewer({ planText, onClose }) {
                 <p className="text-lg font-medium text-gray-900">
                   {exercise.name}
                 </p>
-
-                {/* Žingsniai */}
                 {exercise.steps && (
                   <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
                     {exercise.steps.map((step, stepIndex) => {
@@ -77,8 +71,6 @@ export default function WorkoutViewer({ planText, onClose }) {
                     })}
                   </ul>
                 )}
-
-                {/* Aprašymas */}
                 {exercise.description && (
                   <p className="text-sm text-gray-600 mt-2">
                     {exercise.description}
@@ -87,17 +79,15 @@ export default function WorkoutViewer({ planText, onClose }) {
               </div>
             ))}
 
-            {/* Vandens rekomendacija */}
-            {day.waterIntake && (
+            {day.waterRecommendation && (
               <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-900 mt-4">
-                💧 {day.waterIntake}
+                💧 {day.waterRecommendation}
               </div>
             )}
 
-            {/* Lauko veikla */}
-            {day.outdoorActivity && (
+            {day.outdoorSuggestion && (
               <div className="p-4 bg-green-50 rounded-lg text-sm text-green-900 mt-4">
-                🌿 {day.outdoorActivity}
+                🌿 {day.outdoorSuggestion}
               </div>
             )}
           </div>
