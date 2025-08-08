@@ -24,6 +24,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   // Kiti pagalbiniai kintamieji ir nuorodos
   const wakeLockRef = useRef(null);
   const timerRef = useRef(null);
+  const stepIdRef = useRef(); // NAUJAS ref žingsniui identifikuoti
   const router = useRouter();
 
   // --- Saugi treniruotės eigos informacijos gavimo logika ---
@@ -70,6 +71,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }, [currentExerciseIndex, currentStepIndex, phase, step]);
 
+  // --- Sekam žingsnio ID (ref atnaujinimas) ---
+  useEffect(() => {
+    stepIdRef.current = `${currentExerciseIndex}-${currentStepIndex}`;
+  }, [currentExerciseIndex, currentStepIndex]);
+
   // --- Tiksintis laikrodis ---
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -82,13 +88,18 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }, 1000);
       return () => { if (timerRef.current) clearInterval(timerRef.current); }
     } else if (secondsLeft === 0 && !waitingForUser && step) {
+      // Užfiksuojam dabartinio žingsnio ID šio momento metu
+      const thisStepId = `${currentExerciseIndex}-${currentStepIndex}`;
       setTimeout(() => {
-        handlePhaseComplete();
-      }, 1000); // 1 sekundės uždelsimas
+        // Tik jeigu per tą delay žingsnis dar tas pats, vykdom automatinį perėjimą
+        if (stepIdRef.current === thisStepId) {
+          handlePhaseComplete();
+        }
+      }, 600); // 600ms uždelsimas – gali keisti jei reikia
     }
 
     return () => { if (timerRef.current) clearInterval(timerRef.current); }
-  }, [secondsLeft, waitingForUser, phase, paused, step]);
+  }, [secondsLeft, waitingForUser, phase, paused, step, currentExerciseIndex, currentStepIndex]);
 
   // --- Rankinis mygtukas ---
   function handleManualContinue() {
