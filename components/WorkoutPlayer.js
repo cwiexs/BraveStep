@@ -128,26 +128,30 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   function handlePhaseComplete() {
   if (timerRef.current) clearInterval(timerRef.current);
 
-  // 1. Yra dar žingsnių šiame pratime (įskaitant poilsį) – einam į sekantį step
-  if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
+  try { new Audio("/beep.mp3").play().catch(()=>{}); } catch {}
+
+  // Patikrinam ar turime kitą žingsnį tame pačiame pratime
+  if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
+    // Yra dar žingsnių (pvz., rest, rest_after ar pan.) – tiesiog einam į kitą step
     setCurrentStepIndex(prev => prev + 1);
     setPlayedWarnings([]);
-    return; // <-- PRIDĖK ŠITĄ
+    return;
   }
 
-  // 2. Jeigu pasiekėm paskutinį žingsnį (dažniausiai rest_after), ir laikas baigėsi – tik tada peršokam prie naujo pratimo
-  else if (day && currentExerciseIndex + 1 < day.exercises.length) {
+  // Jei visus žingsnius jau perėjom (pvz., ir rest_after buvo parodytas)
+  // Patikrinam ar yra sekantis pratimas tame pačiame dienos plane
+  if (day && currentExerciseIndex + 1 < day.exercises.length) {
+    // Pereinam prie sekančio pratimo, bet visada pradedam nuo pirmo jo žingsnio
     setCurrentExerciseIndex(prev => prev + 1);
     setCurrentStepIndex(0);
     setPlayedWarnings([]);
     return;
   }
 
-  // 3. Jei tai paskutinė diena/paskutinis pratimas – eik į summary
-  else {
-    setPhase("summary");
-  }
+  // Jei nėra daugiau pratimų – pereinam į summary
+  setPhase("summary");
 }
+
 
 
   // --- Navigacija ---
