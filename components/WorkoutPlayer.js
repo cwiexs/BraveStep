@@ -21,6 +21,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  // LOCK mechanizmas – garantuoja, kad žingsnis bus užbaigtas TIK VIENĄ KARTĄ
+  const [stepFinished, setStepFinished] = useState(false);
+
   // Kiti pagalbiniai kintamieji ir nuorodos
   const wakeLockRef = useRef(null);
   const timerRef = useRef(null);
@@ -69,25 +72,32 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }, [currentExerciseIndex, currentStepIndex, phase, step]);
 
+  // --- LOCK RESETOJIMAS --- 
+  // Kaskart keičiant žingsnį ar pratimą, leidžiame užbaigti sekantį žingsnį (t.y. stepFinished = false)
+  useEffect(() => {
+    setStepFinished(false);
+  }, [currentStepIndex, currentExerciseIndex]);
+
   // --- Tiksintis laikrodis ---
-useEffect(() => {
-  if (timerRef.current) clearInterval(timerRef.current);
+  useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
 
-  if (phase !== "exercise") return;
+    if (phase !== "exercise") return;
 
-  if (secondsLeft > 0 && !paused) {
-    timerRef.current = setInterval(() => {
-      setSecondsLeft(prev => prev - 1);
-    }, 1000);
+    if (secondsLeft > 0 && !paused) {
+      timerRef.current = setInterval(() => {
+        setSecondsLeft(prev => prev - 1);
+      }, 1000);
+      return () => { if (timerRef.current) clearInterval(timerRef.current); }
+    }
+    // Jei pasibaigė laikas ir laukiamas žingsnis – kviečiam fazės pabaigą TIK VIENĄ KARTĄ
+    else if (secondsLeft === 0 && !waitingForUser && step && !stepFinished) {
+      setStepFinished(true);
+      handlePhaseComplete();
+    }
+
     return () => { if (timerRef.current) clearInterval(timerRef.current); }
-  }
-  // Jei pasibaigė laikas ir laukiamas žingsnis – kviečiam fazės pabaigą TIK VIENĄ KARTĄ
-  else if (secondsLeft === 0 && !waitingForUser && step) {
-    handlePhaseComplete();
-  }
-
-  return () => { if (timerRef.current) clearInterval(timerRef.current); }
-}, [secondsLeft, waitingForUser, phase, paused, step]);
+  }, [secondsLeft, waitingForUser, phase, paused, step, stepFinished]);
 
   // --- Rankinis mygtukas ---
   function handleManualContinue() {
@@ -113,33 +123,29 @@ useEffect(() => {
 
   // --- Baigiamas žingsnis/pratimas ---
   function handlePhaseComplete() {
-  if (timerRef.current) clearInterval(timerRef.current);
+    if (timerRef.current) clearInterval(timerRef.current);
 
-  try { new Audio("/beep.mp3").play().catch(()=>{}); } catch {}
+    try { new Audio("/beep.mp3").play().catch(()=>{}); } catch {}
 
-  // Patikrinam ar turime kitą žingsnį tame pačiame pratime
-  if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
-    // Yra dar žingsnių (pvz., rest, rest_after ar pan.) – tiesiog einam į kitą step
-    setCurrentStepIndex(prev => prev + 1);
-    setPlayedWarnings([]);
-    return;
+    // Patikrinam ar turime kitą žingsnį tame pačiame pratime
+    if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
+      setCurrentStepIndex(prev => prev + 1);
+      setPlayedWarnings([]);
+      return;
+    }
+
+    // Jei visus žingsnius jau perėjom (pvz., ir rest_after buvo parodytas)
+    // Patikrinam ar yra sekantis pratimas tame pačiame dienos plane
+    if (day && currentExerciseIndex + 1 < day.exercises.length) {
+      setCurrentExerciseIndex(prev => prev + 1);
+      setCurrentStepIndex(0);
+      setPlayedWarnings([]);
+      return;
+    }
+
+    // Jei nėra daugiau pratimų – pereinam į summary
+    setPhase("summary");
   }
-
-  // Jei visus žingsnius jau perėjom (pvz., ir rest_after buvo parodytas)
-  // Patikrinam ar yra sekantis pratimas tame pačiame dienos plane
-  if (day && currentExerciseIndex + 1 < day.exercises.length) {
-    // Pereinam prie sekančio pratimo, bet visada pradedam nuo pirmo jo žingsnio
-    setCurrentExerciseIndex(prev => prev + 1);
-    setCurrentStepIndex(0);
-    setPlayedWarnings([]);
-    return;
-  }
-
-  // Jei nėra daugiau pratimų – pereinam į summary
-  setPhase("summary");
-}
-
-
 
   // --- Navigacija ---
   function goToPrevious() {
