@@ -211,7 +211,9 @@ NEVER use a name that would be confusing, artificial, or unrecognizable to a loc
 - number of sets,
 - rest time between sets,
 - rest time between exercises,
-- short, beginner-friendly description.`,
+- short, beginner-friendly description.
+
+ALWAYS ensure a realistic rest period is provided between EVERY exercise – not only between sets. This allows the user to safely prepare for the next movement, change position or equipment, and recover. For every transition between different exercises (in warm-up, main, and cool-down), insert a "type: rest_after" step with a realistic duration. Never combine two exercises without a rest period in between.`,
 
   // 7.1 Treniruotes struktura
  ` When generating personalized workout plans, you MUST strictly follow this scientifically validated, optimal structure, adapting it intelligently based on each user's age, body composition, fitness level, available time, stress level, and other personal factors:
