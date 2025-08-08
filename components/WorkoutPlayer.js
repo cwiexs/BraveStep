@@ -82,8 +82,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }, 1000);
       return () => { if (timerRef.current) clearInterval(timerRef.current); }
     } else if (secondsLeft === 0 && !waitingForUser && step) {
-      handlePhaseComplete();
+      setTimeout(() => {
+        handlePhaseComplete();
+      }, 1000); // 1 sekundės uždelsimas
     }
+
     return () => { if (timerRef.current) clearInterval(timerRef.current); }
   }, [secondsLeft, waitingForUser, phase, paused, step]);
 
