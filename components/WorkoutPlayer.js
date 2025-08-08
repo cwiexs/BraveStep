@@ -16,9 +16,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [playedWarnings, setPlayedWarnings] = useState([]);
   const [paused, setPaused] = useState(false);
 
-  // Papildomas flagas, kuris neleidžia automatiškai persijungti vos tik keičiasi step
-  const [justStartedStep, setJustStartedStep] = useState(false);
-
   // Atsiliepimo (feedback) dalis summary lange
   const [rating, setRating] = useState(3);
   const [comment, setComment] = useState("");
@@ -72,35 +69,25 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }, [currentExerciseIndex, currentStepIndex, phase, step]);
 
-  // --- Just started step flag ---
-  useEffect(() => {
-    setJustStartedStep(true);
-  }, [currentExerciseIndex, currentStepIndex, phase]);
-
-  // --- Kai laikmatis tik pradeda tiksėti, išjungiam blokavimą ---
-  useEffect(() => {
-    if (secondsLeft > 0) {
-      setJustStartedStep(false);
-    }
-  }, [secondsLeft]);
-
   // --- Tiksintis laikrodis ---
-  useEffect(() => {
-    if (timerRef.current) clearInterval(timerRef.current);
+useEffect(() => {
+  if (timerRef.current) clearInterval(timerRef.current);
 
-    if (phase !== "exercise") return;
+  if (phase !== "exercise") return;
 
-    if (secondsLeft > 0 && !paused) {
-      timerRef.current = setInterval(() => {
-        setSecondsLeft(prev => prev - 1);
-      }, 1000);
-      return () => { if (timerRef.current) clearInterval(timerRef.current); }
-    } else if (secondsLeft === 0 && !waitingForUser && step && !justStartedStep) {
-      handlePhaseComplete();
-    }
-
+  if (secondsLeft > 0 && !paused) {
+    timerRef.current = setInterval(() => {
+      setSecondsLeft(prev => prev - 1);
+    }, 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); }
-  }, [secondsLeft, waitingForUser, phase, paused, step, justStartedStep]);
+  }
+  // Jei pasibaigė laikas ir laukiamas žingsnis – kviečiam fazės pabaigą TIK VIENĄ KARTĄ
+  else if (secondsLeft === 0 && !waitingForUser && step) {
+    handlePhaseComplete();
+  }
+
+  return () => { if (timerRef.current) clearInterval(timerRef.current); }
+}, [secondsLeft, waitingForUser, phase, paused, step]);
 
   // --- Rankinis mygtukas ---
   function handleManualContinue() {
