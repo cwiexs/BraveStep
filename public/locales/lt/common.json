@@ -485,8 +485,16 @@
   "generating": "Generuojama...",
   "generateFailed": "Nepavyko sugeneruoti plano",
   "startWorkout": "Pradėti treniruotę",
-  "pleaseLogin": "Prisijunkite, norėdami peržiūrėti savo treniruotes."
+  "pleaseLogin": "Prisijunkite, norėdami peržiūrėti savo treniruotes.",
 
+
+ 
+  "workoutPlan": "Treniruotės planas",
+  "day": "Diena",
+  "set": "Serija",
+  "rest": "Poilsis",
+  "rest_after": "Poilsis po pratimo",
+  "close": "Uždaryti"
 
 
 
