@@ -90,9 +90,6 @@ export default function WorkoutViewer({ planText, planLocale, onClose }) {
 
         {parsedPlan?.days?.map((day, dayIndex) => (
           <div key={dayIndex} className="mb-8">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800 border-b pb-1">
-              {day.dayTitle || `${t("day")} ${day.day}`}
-            </h3>
 
             {day.motivation && (
               <p className="mb-4 italic text-green-700">{day.motivation}</p>

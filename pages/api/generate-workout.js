@@ -329,7 +329,6 @@ NEVER use abstract or general terms (e.g., "Stretching exercises", "Warm-up", "S
 All workout plans must follow the structure below using ONLY these exact symbols:
 
 %%intro  
-##DAY 1##  
 !!motivation_start!!  
 !!motivation_end!!  
 @@exercise@@  
@@ -487,7 +486,7 @@ promptParts.push(
   `FINAL VALIDATION AND SELF-CHECK BEFORE RESPONDING:
 
 Before returning your final output, you MUST perform an internal validation checklist. ONLY return your answer if ALL the following are true:
-- Every workout day (##DAY X##) starts with one (!!motivation_start!!) and ends with one (!!motivation_end!!).
+- Every workout starts with one (!!motivation_start!!) and ends with one (!!motivation_end!!).
 - Each day is strictly structured as: warm-up (named exercises), main workout (named exercises), and cool-down/stretching (named exercises), in this exact order.
 - There are NO missing or duplicated motivational messages, and no sections are skipped.
 - Each exercise is fully structured (@@exercise@@, @name, @steps, @description) and each set/rest step is included and clear.
