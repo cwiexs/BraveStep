@@ -15,74 +15,62 @@ export function parseWorkoutText(planText) {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    if (trimmed.startsWith("%%intro")) {
-      section = "intro";
-      continue;
-    }
-    if (trimmed.startsWith("##DAY ")) {
-      const dayNumber = trimmed.match(/##DAY (\d+)##/);
-      if (dayNumber) {
-        currentDay = {
-          day: parseInt(dayNumber[1]),
-          motivationStart: "",
-          motivationEnd: "",
-          motivation: "",
-          exercises: [],
-          waterRecommendation: "",
-          outdoorSuggestion: ""
+    // Praleidžiam tuščias eilutes
+    if (!trimmed) continue;
+
+    // 🔹 Naujas filtras – praleidžiam visus specialius atskirtukus
+    if (
+      trimmed.startsWith("%%") ||
+      trimmed.startsWith("##") ||
+      trimmed.startsWith("@@") ||
+      trimmed.startsWith("!!")
+    ) {
+      // Bet prieš tai apdorojam tuos atskirtukus, kurie keičia sekciją
+      if (trimmed.startsWith("%%intro")) {
+        section = "intro";
+      } else if (trimmed.startsWith("##DAY ")) {
+        const dayNumber = trimmed.match(/##DAY (\d+)##/);
+        if (dayNumber) {
+          currentDay = {
+            day: parseInt(dayNumber[1]),
+            motivationStart: "",
+            motivationEnd: "",
+            motivation: "",
+            exercises: [],
+            waterRecommendation: "",
+            outdoorSuggestion: ""
+          };
+          result.days.push(currentDay);
+          section = "day";
+        }
+      } else if (trimmed.startsWith("!!motivation_start!!")) {
+        section = "motivationStart";
+      } else if (trimmed.startsWith("!!motivation_end!!")) {
+        section = "motivationEnd";
+      } else if (trimmed.startsWith("@@exercise@@")) {
+        if (currentExercise && currentSteps.length > 0) {
+          currentExercise.steps = currentSteps;
+        }
+        currentExercise = {
+          name: "",
+          steps: [],
+          description: ""
         };
-        result.days.push(currentDay);
-        section = "day";
+        currentDay.exercises.push(currentExercise);
+        section = "exercise";
+        isStepsSection = false;
+        currentSteps = [];
+      } else if (trimmed.startsWith("@@water@@")) {
+        section = "water";
+      } else if (trimmed.startsWith("@@outdoor@@")) {
+        section = "outdoor";
+      } else if (trimmed.startsWith("##MISSING_FIELDS##")) {
+        section = "missingFields";
       }
-      continue;
-    }
-    if (trimmed.startsWith("!!motivation_start!!")) {
-      section = "motivationStart";
-      continue;
-    }
-    if (trimmed.startsWith("!!motivation_end!!")) {
-      section = "motivationEnd";
-      continue;
-    }
-    if (trimmed.startsWith("@@exercise@@")) {
-      if (currentExercise && currentSteps.length > 0) {
-        currentExercise.steps = currentSteps;
-      }
-      currentExercise = {
-        name: "",
-        steps: [],
-        description: ""
-      };
-      currentDay.exercises.push(currentExercise);
-      section = "exercise";
-      isStepsSection = false;
-      currentSteps = [];
-      continue;
-    }
-    if (trimmed.startsWith("@@water@@")) {
-      section = "water";
-      continue;
-    }
-    if (trimmed.startsWith("@@outdoor@@")) {
-      section = "outdoor";
-      continue;
-    }
-    if (trimmed.startsWith("##MISSING_FIELDS##")) {
-      section = "missingFields";
-      continue;
+      continue; // jokio rodymo
     }
 
-
-if (
-  trimmed.startsWith("%%") ||
-  trimmed.startsWith("##") ||
-  trimmed.startsWith("@@") ||
-  trimmed.startsWith("!!")
-) {
-  continue; // visi specialūs atskirtukai praleidžiami
-}
-
-
+    // Įprastas apdorojimas
     if (section === "intro") {
       result.introduction += trimmed + "\n";
     } else if (section === "motivationStart") {
