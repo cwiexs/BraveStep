@@ -72,6 +72,17 @@ export function parseWorkoutText(planText) {
       continue;
     }
 
+
+if (
+  trimmed.startsWith("%%") ||
+  trimmed.startsWith("##") ||
+  trimmed.startsWith("@@") ||
+  trimmed.startsWith("!!")
+) {
+  continue; // visi specialūs atskirtukai praleidžiami
+}
+
+
     if (section === "intro") {
       result.introduction += trimmed + "\n";
     } else if (section === "motivationStart") {
