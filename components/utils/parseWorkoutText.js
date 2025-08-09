@@ -15,17 +15,16 @@ export function parseWorkoutText(planText) {
   for (const line of lines) {
     const trimmed = line.trim();
 
-    // Praleidžiam tuščias eilutes
+    // praleidžiam tuščias eilutes
     if (!trimmed) continue;
 
-    // 🔹 Naujas filtras – praleidžiam visus specialius atskirtukus
+    // žymekliai – keičia sekciją, bet jų netalpinam į rezultatą
     if (
       trimmed.startsWith("%%") ||
       trimmed.startsWith("##") ||
       trimmed.startsWith("@@") ||
       trimmed.startsWith("!!")
     ) {
-      // Bet prieš tai apdorojam tuos atskirtukus, kurie keičia sekciją
       if (trimmed.startsWith("%%intro")) {
         section = "intro";
       } else if (trimmed.startsWith("##DAY ")) {
@@ -51,11 +50,7 @@ export function parseWorkoutText(planText) {
         if (currentExercise && currentSteps.length > 0) {
           currentExercise.steps = currentSteps;
         }
-        currentExercise = {
-          name: "",
-          steps: [],
-          description: ""
-        };
+        currentExercise = { name: "", steps: [], description: "" };
         currentDay.exercises.push(currentExercise);
         section = "exercise";
         isStepsSection = false;
@@ -67,10 +62,10 @@ export function parseWorkoutText(planText) {
       } else if (trimmed.startsWith("##MISSING_FIELDS##")) {
         section = "missingFields";
       }
-      continue; // jokio rodymo
+      continue;
     }
 
-    // Įprastas apdorojimas
+    // turinio parsinimas
     if (section === "intro") {
       result.introduction += trimmed + "\n";
     } else if (section === "motivationStart") {
@@ -88,18 +83,39 @@ export function parseWorkoutText(planText) {
         const step = {
           type: trimmed.replace("- type:", "").trim(),
           set: null,
-          duration: null
+          duration: null,
+          label: null,      // NEW: human-friendly label for rest/rest_after
+          setLabel: null    // NEW: human-friendly label for exercise set
         };
         currentSteps.push(step);
       } else if (isStepsSection && trimmed.startsWith("set:")) {
         const lastStep = currentSteps[currentSteps.length - 1];
-        if (lastStep) {
-          lastStep.set = parseInt(trimmed.replace("set:", "").trim());
-        }
+        if (lastStep) lastStep.set = parseInt(trimmed.replace("set:", "").trim());
       } else if (isStepsSection && trimmed.startsWith("duration:")) {
         const lastStep = currentSteps[currentSteps.length - 1];
         if (lastStep) {
-          lastStep.duration = trimmed.replace("duration:", "").trim().replace(/^\"|\"$/g, "");
+          lastStep.duration = trimmed
+            .replace("duration:", "")
+            .trim()
+            .replace(/^\"|\"$/g, "");
+        }
+      } else if (isStepsSection && trimmed.startsWith("label:")) {
+        // NEW: localized label for rest/rest_after
+        const lastStep = currentSteps[currentSteps.length - 1];
+        if (lastStep) {
+          lastStep.label = trimmed
+            .replace("label:", "")
+            .trim()
+            .replace(/^\"|\"$/g, "");
+        }
+      } else if (isStepsSection && trimmed.startsWith("set_label:")) {
+        // NEW: localized label for exercise set (e.g., "Serija", "Set")
+        const lastStep = currentSteps[currentSteps.length - 1];
+        if (lastStep) {
+          lastStep.setLabel = trimmed
+            .replace("set_label:", "")
+            .trim()
+            .replace(/^\"|\"$/g, "");
         }
       }
     } else if (section === "water") {
@@ -115,8 +131,8 @@ export function parseWorkoutText(planText) {
     currentExercise.steps = currentSteps;
   }
 
-  // Sukuriam jungtinę motyvaciją
-  result.days.forEach(day => {
+  // jungtinė motyvacija
+  result.days.forEach((day) => {
     day.motivation = `${day.motivationStart} ${day.motivationEnd}`.trim();
   });
 

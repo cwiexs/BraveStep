@@ -2,10 +2,30 @@ import { X } from "lucide-react";
 import { parseWorkoutText } from "./utils/parseWorkoutText";
 import { useTranslation } from "next-i18next";
 
-export default function WorkoutViewer({ planText, onClose }) {
-  const { t } = useTranslation("common"); // naudok bendrą žodyną
+// Fallback žodynas žingsnių labeliams, jei AI neįdėjo label/set_label
+const FALLBACK = {
+  lt: { set: "Serija", rest: "Poilsis", rest_after: "Poilsis po pratimo" },
+  en: { set: "Set", rest: "Rest", rest_after: "Rest after exercise" },
+  pl: { set: "Seria", rest: "Odpoczynek", rest_after: "Odpoczynek po ćwiczeniu" }
+};
 
+// Naudojame heuristiką iš teksto, jei negaunam plano kalbos (pasirinktinai)
+function detectLocaleFromText(text) {
+  const t = (text || "").toLowerCase();
+  if (t.includes(" sek")) return "lt";
+  if (t.includes(" kart")) return "lt";
+  if (t.includes(" sec")) return "en";
+  if (t.includes(" repetitions")) return "en";
+  if (t.includes(" odpocz") || t.includes(" powtórz")) return "pl";
+  return "en";
+}
+
+export default function WorkoutViewer({ planText, planLocale, onClose }) {
+  const { t } = useTranslation("common"); // UI tekstams
   if (!planText) return null;
+
+  const locale = planLocale || detectLocaleFromText(planText);
+  const F = FALLBACK[locale] || FALLBACK.en;
 
   const parsedPlan = parseWorkoutText(planText);
 
@@ -13,34 +33,32 @@ export default function WorkoutViewer({ planText, onClose }) {
     if (e.target === e.currentTarget) onClose();
   };
 
-  // Paversk step objektą į gražų, išverstą tekstą
+  // Formatuojame žingsnį: prioritetas AI labeliams, po to fallback
   function renderStep(step) {
-    // String tipo žingsniai – rodom kaip yra (tai paprastai laisvas tekstas)
     if (typeof step === "string") return step;
 
-    if (typeof step === "object" && step) {
+    if (step && typeof step === "object") {
       const type = step.type;
 
       if (type === "exercise") {
-        // pvz.: "Serija 1 — 30 sek." arba "Serija — 12 kartų"
-        const series = step.set ? `${t("set")} ${step.set}` : t("set");
+        const word = step.setLabel || F.set; // AI "set_label" > fallback
+        const series = step.set ? `${word} ${step.set}` : word;
         const duration = step.duration ? ` — ${step.duration}` : "";
         return `${series}${duration}`;
       }
 
       if (type === "rest") {
-        // pvz.: "Poilsis — 30 sek."
+        const word = step.label || F.rest; // AI "label" > fallback
         const duration = step.duration ? ` — ${step.duration}` : "";
-        return `${t("rest")}${duration}`;
+        return `${word}${duration}`;
       }
 
       if (type === "rest_after") {
-        // pvz.: "Poilsis po pratimo — 60 sek."
+        const word = step.label || F.rest_after; // AI "label" > fallback
         const duration = step.duration ? ` — ${step.duration}` : "";
-        return `${t("rest_after")}${duration}`;
+        return `${word}${duration}`;
       }
 
-      // Neatpažintas tipas – bandome parodyti trukmę ar fallback
       return step.duration || "";
     }
 

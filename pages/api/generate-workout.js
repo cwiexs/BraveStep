@@ -369,7 +369,36 @@ RULES:
 - Final rest after all sets must use type: rest_after.
 - Duration values must be strings and use clear, natural expressions in the user's preferred language (e.g., "30 sek." for Lithuanian).
 - Do not include any formatting, summaries, or notes outside the structured output.
-- The above structure must be used exactly to ensure reliable parsing and playback.`,
+- The above structure must be used exactly to ensure reliable parsing and playback.
+
+
+ADDITIONAL LABEL FIELDS (HUMAN-READABLE, IN USER'S LANGUAGE):
+- For every step you MUST include localized, human-friendly labels:
+  * For type: "rest" and "rest_after", add:  label: "<localized label for the step>"
+  * For type: "exercise", add:               set_label: "<localized word for 'Set' or 'Serija'>"
+- These labels MUST be written entirely in the user's preferred language.
+- Keep the technical keys exactly in English for parsing: "- type:", "set:", "duration:", "label:", "set_label:".
+
+EXAMPLE WITH LABELS:
+@@exercise@@
+@name: Jumping Jacks
+@steps:
+- type: exercise
+  set: 1
+  set_label: "Serija"
+  duration: "15 kartų"
+- type: rest
+  label: "Poilsis"
+  duration: "30 sek."
+- type: exercise
+  set: 2
+  set_label: "Serija"
+  duration: "15 kartų"
+- type: rest_after
+  label: "Poilsis po pratimo"
+  duration: "60 sek."
+@description: ...`,
+
 
 
   // 13. Baigiamoji instrukcija
