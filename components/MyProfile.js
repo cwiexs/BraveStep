@@ -141,28 +141,44 @@ const DateInput = ({ name, value, onChange, placeholder }) => {
 };
 
 
-// Info tooltip komponentas (suderintas su lokalizacija)
+// Info tooltip komponentas (suderintas su lokalizacija) — FIX: mobile-safe pozicionavimas
 const InfoTooltip = ({ infoKey }) => {
   const { t } = useTranslation();
   const [show, setShow] = useState(false);
   if (!infoKey) return null;
+
   return (
-    <span className="relative ml-2">
+    <span className="relative inline-flex ml-2">
       <button
         type="button"
-        tabIndex={-1}
         className="inline-flex items-center justify-center w-5 h-5 rounded-full border border-gray-300 bg-gray-50 text-xs text-blue-700 hover:bg-blue-100"
         onMouseEnter={() => setShow(true)}
         onMouseLeave={() => setShow(false)}
         onFocus={() => setShow(true)}
         onBlur={() => setShow(false)}
+        onClick={() => setShow(v => !v)} // mobiluose – tap toggle
         aria-label="Informacija"
       >
         <Info size={14} />
       </button>
+
       {show && (
         <span
-          className={`absolute z-50 left-1/2 top-full mt-2 -translate-x-1/2 w-64 max-w-[calc(100vw-2rem)] bg-white border border-blue-300 rounded shadow-lg text-xs text-gray-700 p-3 md:left-6 md:top-1 md:mt-0 md:-translate-x-0 transition-all`}
+          role="tooltip"
+          className="
+            absolute z-50
+            top-full mt-2
+            right-0            /* MOBILE: prisirišam prie dešinio krašto */
+            translate-x-0      /* be centro perstūmimo */
+            max-w-[min(280px,calc(100vw-24px))] /* niekada neišlenda iš viewport */
+            bg-white border border-blue-300 rounded shadow-lg
+            text-xs text-gray-700 p-3
+            whitespace-normal break-words
+            pointer-events-none
+            md:left-1/2 md:right-auto md:-translate-x-1/2 /* DESKTOP/TABLET: centruojam */
+            md:top-full md:mt-2
+            transition-opacity
+          "
           style={{ wordBreak: "break-word" }}
         >
           {t(infoKey)}
@@ -171,6 +187,7 @@ const InfoTooltip = ({ infoKey }) => {
     </span>
   );
 };
+
 
 // Multiinput komponentas masyvams (alergijos, mėgstami maistai ir pan.)
 const MultiInput = ({ value, onChange, placeholder }) => {
@@ -832,7 +849,7 @@ const handleSave = async () => {
   if (status === "loading") return <div>{t("loading")}...</div>;
 
   return (
-    <div className="max-w-3xl mx-auto mt-8 mb-16 bg-white rounded-2xl shadow-lg p-6">
+    <div className="max-w-3xl mx-auto mt-8 mb-16 bg-white rounded-2xl shadow-lg p-6 overflow-visible">
       <h1 className="text-blue-900 font-medium flex justify-center hover:text-blue-700 rounded px-4 py-2 text-3xl transition mb-10">{t("form.myProfile")}</h1>
       <div className="flex gap-2 mb-6 flex-wrap">
         {sections.map(sec => (
