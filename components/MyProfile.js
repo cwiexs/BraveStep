@@ -15,11 +15,11 @@ const TextInputWithCounter = ({ name, value, onChange, placeholder, maxLength })
         name={name}
         value={value}
         onChange={e => onChange(e.target.value)}
-        className="w-full border rounded px-3 py-2 pr-20"
+        className="w-full border rounded px-3 py-2 pr-24"
         placeholder={placeholder}
         maxLength={maxLength}
       />
-      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 truncate">
         {remainingChars} / {maxLength}
       </span>
     </div>
@@ -162,15 +162,7 @@ const InfoTooltip = ({ infoKey }) => {
       </button>
       {show && (
         <span
-          className={`
-            absolute z-50
-            left-1/2 top-full mt-2 -translate-x-1/2
-            w-64
-            bg-white border border-blue-300 rounded shadow-lg
-            text-xs text-gray-700 p-3
-            md:left-6 md:top-1 md:mt-0 md:-translate-x-0
-            transition-all
-          `}
+          className={`absolute z-50 left-1/2 top-full mt-2 -translate-x-1/2 w-64 max-w-[calc(100vw-2rem)] bg-white border border-blue-300 rounded shadow-lg text-xs text-gray-700 p-3 md:left-6 md:top-1 md:mt-0 md:-translate-x-0 transition-all`}
           style={{ wordBreak: "break-word" }}
         >
           {t(infoKey)}
@@ -846,7 +838,7 @@ const handleSave = async () => {
         {sections.map(sec => (
           <button
             key={sec.key}
-            className={`rounded-full px-4 py-2 font-medium border transition ${
+            className={`rounded-full px-4 py-2 font-medium border transition min-w-[9rem] text-center ${
               activeTab === sec.key
                 ? "bg-blue-700 text-white border-blue-700"
                 : "bg-blue-50 text-blue-900 border-blue-300 hover:bg-blue-100"

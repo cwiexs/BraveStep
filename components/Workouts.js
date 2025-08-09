@@ -73,7 +73,7 @@ export default function Workouts() {
   if (!session) return <div>{t("pleaseLogin")}</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-8 bg-white shadow-xl rounded-2xl">
+    <div className="max-w-4xl mx-auto p-4 sm:p-8 bg-white shadow-xl rounded-2xl">
       <h1 className="text-3xl font-bold text-blue-900 text-center mb-2">
         {t("welcomeUser", { name: session.user.name || t("user") })}
       </h1>
@@ -85,7 +85,7 @@ export default function Workouts() {
           : t("noPlans")}
       </p>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <StatCard
           value={stats?.totalWorkouts || 0}
           label={t("workouts")}
@@ -106,9 +106,9 @@ export default function Workouts() {
         />
       </div>
 
-      <div className="flex gap-2 justify-center mb-6">
+      <div className="flex flex-wrap gap-2 justify-center mb-6">
         <select
-          className="border p-2 rounded shadow cursor-pointer"
+          className="border p-2 rounded shadow cursor-pointer w-full sm:w-auto"
           onChange={(e) =>
             setSelectedPlan(plans.find((p) => p.id === e.target.value))
           }
@@ -124,7 +124,7 @@ export default function Workouts() {
           ))}
         </select>
         <button
-          className="bg-blue-700 hover:bg-blue-800 text-white px-4 rounded shadow transition"
+          className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded shadow transition w-full sm:w-auto"
           onClick={handleViewPlan}
           disabled={!selectedPlan}
         >
@@ -132,7 +132,7 @@ export default function Workouts() {
         </button>
         <button
           onClick={handleGeneratePlan}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 rounded shadow transition"
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow transition w-full sm:w-auto"
           disabled={loading}
         >
           {loading ? t("generating") : t("generatePlan")}
@@ -182,7 +182,7 @@ function InfoTooltip({ text }) {
   return (
     <div className="absolute top-2 right-2">
       <Info className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer peer" />
-      <div className="absolute hidden peer-hover:block bg-white border shadow-md rounded p-2 text-xs w-48 right-0 top-5 z-20">
+      <div className="absolute hidden peer-hover:block bg-white border shadow-md rounded p-2 text-xs w-48 max-w-[calc(100vw-2rem)] left-1/2 -translate-x-1/2 top-6 z-20">
         {text}
       </div>
     </div>
