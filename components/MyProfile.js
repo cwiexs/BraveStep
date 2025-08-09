@@ -166,23 +166,19 @@ const InfoTooltip = ({ infoKey }) => {
         <span
           role="tooltip"
           className="
-            absolute z-50
-            top-full mt-2
-            right-0            /* MOBILE: prisirišam prie dešinio krašto */
-            translate-x-0      /* be centro perstūmimo */
-            max-w-[min(280px,calc(100vw-24px))] /* niekada neišlenda iš viewport */
+            absolute z-50 top-full mt-2
             bg-white border border-blue-300 rounded shadow-lg
             text-xs text-gray-700 p-3
-            whitespace-normal break-words
+            whitespace-normal
+            break-word
+            min-w-[120px]
+            max-w-[min(280px,90vw)]
             pointer-events-none
-            md:left-1/2 md:right-auto md:-translate-x-1/2 /* DESKTOP/TABLET: centruojam */
-            md:top-full md:mt-2
-            transition-opacity
           "
-          style={{ wordBreak: "break-word" }}
         >
           {t(infoKey)}
         </span>
+
       )}
     </span>
   );
