@@ -34,6 +34,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const exercise = day?.exercises?.[currentExerciseIndex];
   const step = exercise?.steps?.[currentStepIndex];
 
+  // Patogūs „helperiai“
+  const isLastExerciseInDay = !!day && currentExerciseIndex === (day?.exercises?.length || 1) - 1;
+  const isLastStepInExercise = !!exercise && currentStepIndex === (exercise?.steps?.length || 1) - 1;
+
+  // ❗ „Terminal rest_after“: kai rest_after yra visiškai paskutinė visos treniruotės dalis
+  const isTerminalRestAfter = step?.type === 'rest_after' && isLastExerciseInDay && isLastStepInExercise;
+
   // --- Užrakinam ekraną nuo užmigimo treniruotės metu (jei palaiko naršyklė) ---
   useEffect(() => {
     if ('wakeLock' in navigator) {
@@ -52,7 +59,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return match ? parseInt(match[1]) : 0;
   }
 
-  // --- Kiekvieno žingsnio laikmatis ---
+  // --- Kiekvieno žingsnio pradinė būsenos paruošimo logika ---
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
 
@@ -61,6 +68,22 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       setWaitingForUser(false);
       return;
     }
+
+    // ❗ Jeigu tai terminalinis rest_after – praleidžiam jį visai
+    if (isTerminalRestAfter) {
+      setWaitingForUser(false);
+      setSecondsLeft(0);
+      // Užbaigiam TIK VIENĄ KARTĄ
+      if (!stepFinished) {
+        setStepFinished(true);
+        // Leiskim React užbaigti šį efektą prieš pereinant į kitą fazę
+        setTimeout(() => {
+          handlePhaseComplete();
+        }, 0);
+      }
+      return;
+    }
+
     if (step.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) {
       setSecondsLeft(parseSeconds(step.duration));
       setWaitingForUser(false);
@@ -70,10 +93,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       setWaitingForUser(true);
       setPlayedWarnings([]);
     }
-  }, [currentExerciseIndex, currentStepIndex, phase, step]);
+  }, [currentExerciseIndex, currentStepIndex, phase, step, isTerminalRestAfter, stepFinished]);
 
-  // --- LOCK RESETOJIMAS --- 
-  // Kaskart keičiant žingsnį ar pratimą, leidžiame užbaigti sekantį žingsnį (t.y. stepFinished = false)
+  // --- LOCK RESETOJIMAS ---
   useEffect(() => {
     setStepFinished(false);
   }, [currentStepIndex, currentExerciseIndex]);
@@ -83,6 +105,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (timerRef.current) clearInterval(timerRef.current);
 
     if (phase !== "exercise") return;
+
+    // Terminal rest_after atvejis nieko netiksiam – iškart keliaujam tolyn (apdorota aukščiau)
+    if (isTerminalRestAfter) return;
 
     if (secondsLeft > 0 && !paused) {
       timerRef.current = setInterval(() => {
@@ -97,7 +122,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
 
     return () => { if (timerRef.current) clearInterval(timerRef.current); }
-  }, [secondsLeft, waitingForUser, phase, paused, step, stepFinished]);
+  }, [secondsLeft, waitingForUser, phase, paused, step, stepFinished, isTerminalRestAfter]);
 
   // --- Rankinis mygtukas ---
   function handleManualContinue() {
@@ -113,8 +138,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
     }
     else if (phase === "exercise") {
-      setStepFinished(true);
-      handlePhaseComplete();
+      // Jei vartotojas spaudžia „Atlikta“ ant terminalinio rest_after – tiesiog praleidžiam jį
+      if (isTerminalRestAfter) {
+        setStepFinished(true);
+        handlePhaseComplete();
+      } else {
+        setStepFinished(true);
+        handlePhaseComplete();
+      }
     }
     else if (phase === "summary") {
       onClose();
@@ -230,11 +261,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               {step.duration} - serija {step.set}/{exercise?.steps?.filter(s => s.type === "exercise").length}
             </p>
           )}
-          {(step?.type === "rest" || step?.type === "rest_after") && (
+
+          {/* Poilsį rodome tik jei tai NE „terminal rest_after“ */}
+          {(step?.type === "rest" || (step?.type === "rest_after" && !isTerminalRestAfter)) && (
             <p className="text-lg font-medium text-blue-900 mb-2">
               Poilsis: {step.duration}
             </p>
           )}
+
           {(step?.duration && (step.duration.includes("sek") || step.duration.includes("sec"))) && (
             <p className="text-4xl text-gray-900 font-bold mb-4">
               {secondsLeft > 0 ? `${secondsLeft} sek.` : null}
@@ -293,7 +327,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             {workoutData?.days?.[0]?.motivationEnd || "Ačiū, kad sportavai!"}
           </p>
 
-          {/* Papildyta rekomendacijomis */}
+        {/* Papildyta rekomendacijomis */}
           {workoutData?.days?.[0]?.waterRecommendation && (
             <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900 mb-3">
               💧 {workoutData.days[0].waterRecommendation}
