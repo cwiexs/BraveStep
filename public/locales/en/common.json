@@ -482,7 +482,15 @@
   "generating": "Generating...",
   "generateFailed": "Failed to generate plan",
   "startWorkout": "Start Workout",
-  "pleaseLogin": "Please log in to view your workouts."
+  "pleaseLogin": "Please log in to view your workouts.",
+
+
+  "workoutPlan": "Workout Plan",
+  "day": "Day",
+  "set": "Set",
+  "rest": "Rest",
+  "rest_after": "Rest after exercise",
+  "close": "Close"
 
 
 }
