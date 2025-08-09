@@ -113,7 +113,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
     }
     else if (phase === "exercise") {
-      setWaitingForUser(false);
+      setStepFinished(true);
       handlePhaseComplete();
     }
     else if (phase === "summary") {
