@@ -480,7 +480,7 @@
   "selectPlan": "Select plan",
   "viewPlan": "View Plan",
   "generatePlan": "Generate New Plan",
-  "generating": "Generating...",
+  "generating": "Generating",
   "generateFailed": "Failed to generate plan",
   "startWorkout": "Start Workout",
   "pleaseLogin": "Please log in to view your workouts.",

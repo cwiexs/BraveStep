@@ -9,7 +9,7 @@ const FALLBACK = {
   pl: { set: "Seria", rest: "Odpoczynek", rest_after: "Odpoczynek po ćwiczeniu" }
 };
 
-// Naudojame heuristiką iš teksto, jei negaunam plano kalbos (pasirinktinai)
+// Heuristika kalbai
 function detectLocaleFromText(text) {
   const t = (text || "").toLowerCase();
   if (t.includes(" sek")) return "lt";
@@ -21,48 +21,45 @@ function detectLocaleFromText(text) {
 }
 
 export default function WorkoutViewer({ planText, planLocale, onClose }) {
-  const { t } = useTranslation("common"); // UI tekstams
+  const { t } = useTranslation("common");
   if (!planText) return null;
 
   const locale = planLocale || detectLocaleFromText(planText);
   const F = FALLBACK[locale] || FALLBACK.en;
 
-  const parsedPlan = parseWorkoutText(planText);
+  const parsedPlan = parseWorkoutText(planText) || {};
+  const days = Array.isArray(parsedPlan.days) ? parsedPlan.days : [];
 
   const handleBackgroundClick = (e) => {
-    if (e.target === e.currentTarget) onClose();
+    if (e.target === e.currentTarget) onClose?.();
   };
 
-  // Formatuojame žingsnį: prioritetas AI labeliams, po to fallback
   function renderStep(step) {
+    if (!step) return "";
     if (typeof step === "string") return step;
 
-    if (step && typeof step === "object") {
-      const type = step.type;
+    const type = step.type;
 
-      if (type === "exercise") {
-        const word = step.setLabel || F.set; // AI "set_label" > fallback
-        const series = step.set ? `${word} ${step.set}` : word;
-        const duration = step.duration ? ` — ${step.duration}` : "";
-        return `${series}${duration}`;
-      }
-
-      if (type === "rest") {
-        const word = step.label || F.rest; // AI "label" > fallback
-        const duration = step.duration ? ` — ${step.duration}` : "";
-        return `${word}${duration}`;
-      }
-
-      if (type === "rest_after") {
-        const word = step.label || F.rest_after; // AI "label" > fallback
-        const duration = step.duration ? ` — ${step.duration}` : "";
-        return `${word}${duration}`;
-      }
-
-      return step.duration || "";
+    if (type === "exercise") {
+      const word = step.setLabel || F.set;
+      const series = step.set ? `${word} ${step.set}` : word;
+      const duration = step.duration ? ` — ${step.duration}` : "";
+      return `${series}${duration}`;
     }
 
-    return "";
+    if (type === "rest") {
+      const word = step.label || F.rest;
+      const duration = step.duration ? ` — ${step.duration}` : "";
+      return `${word}${duration}`;
+    }
+
+    if (type === "rest_after") {
+      const word = step.label || F.rest_after;
+      const duration = step.duration ? ` — ${step.duration}` : "";
+      return `${word}${duration}`;
+    }
+
+    return step.duration || "";
   }
 
   return (
@@ -71,7 +68,6 @@ export default function WorkoutViewer({ planText, planLocale, onClose }) {
       onClick={handleBackgroundClick}
     >
       <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto relative p-6">
-        {/* Close */}
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
@@ -84,55 +80,58 @@ export default function WorkoutViewer({ planText, planLocale, onClose }) {
           {t("workoutPlan")}
         </h2>
 
-        {parsedPlan?.introduction && (
+        {parsedPlan?.introduction ? (
           <p className="mb-6 text-gray-700">{parsedPlan.introduction}</p>
-        )}
+        ) : null}
 
-        {parsedPlan?.days?.map((day, dayIndex) => (
-          <div key={dayIndex} className="mb-8">
+        {days.length ? (
+          days.map((day, dayIndex) => (
+            <div key={dayIndex} className="mb-8">
+              {day.motivation ? (
+                <p className="mb-4 italic text-green-700">{day.motivation}</p>
+              ) : null}
 
-            {day.motivation && (
-              <p className="mb-4 italic text-green-700">{day.motivation}</p>
-            )}
-
-            {day.exercises.map((exercise, exerciseIndex) => (
-              <div
-                key={exerciseIndex}
-                className="p-4 rounded-lg border border-gray-200 shadow-sm mb-4"
-              >
-                <p className="text-lg font-medium text-gray-900">
-                  {exercise.name}
-                </p>
-
-                {exercise.steps?.length > 0 && (
-                  <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
-                    {exercise.steps.map((step, stepIndex) => (
-                      <li key={stepIndex}>{renderStep(step)}</li>
-                    ))}
-                  </ul>
-                )}
-
-                {exercise.description && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    {exercise.description}
+              {(day.exercises || []).map((exercise, exerciseIndex) => (
+                <div
+                  key={exerciseIndex}
+                  className="p-4 rounded-lg border border-gray-200 shadow-sm mb-4"
+                >
+                  <p className="text-lg font-medium text-gray-900">
+                    {exercise.name || t("exercise")}
                   </p>
-                )}
-              </div>
-            ))}
 
-            {day.waterRecommendation && (
-              <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-900 mt-4">
-                💧 {day.waterRecommendation}
-              </div>
-            )}
+                  {(exercise.steps || []).length ? (
+                    <ul className="list-disc list-inside text-sm text-gray-700 mt-1">
+                      {exercise.steps.map((step, stepIndex) => (
+                        <li key={stepIndex}>{renderStep(step)}</li>
+                      ))}
+                    </ul>
+                  ) : null}
 
-            {day.outdoorSuggestion && (
-              <div className="p-4 bg-green-50 rounded-lg text-sm text-green-900 mt-4">
-                🌿 {day.outdoorSuggestion}
-              </div>
-            )}
-          </div>
-        ))}
+                  {exercise.description ? (
+                    <p className="text-sm text-gray-600 mt-2">
+                      {exercise.description}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+
+              {day.waterRecommendation ? (
+                <div className="p-4 bg-blue-50 rounded-lg text-sm text-blue-900 mt-4">
+                  💧 {day.waterRecommendation}
+                </div>
+              ) : null}
+
+              {day.outdoorSuggestion ? (
+                <div className="p-4 bg-green-50 rounded-lg text-sm text-green-900 mt-4">
+                  🌿 {day.outdoorSuggestion}
+                </div>
+              ) : null}
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500">{t("noSectionsDetected") || "No sections detected."}</p>
+        )}
       </div>
     </div>
   );
