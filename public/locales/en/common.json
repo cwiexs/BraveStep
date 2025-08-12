@@ -470,6 +470,7 @@
   "user": "User",
   "lastGenerated": "Last generated",
   "noPlans": "No plans yet",
+  "noDate": "No date",
   "workouts": "Workouts",
   "workoutsInfo": "Total number of completed workouts.",
   "totalTime": "Total Time",
