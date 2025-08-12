@@ -5,14 +5,13 @@ import { parseWorkoutText } from "./utils/parseWorkoutText";
 import { Info, CalendarDays } from "lucide-react";
 import WorkoutPlayer from "./WorkoutPlayer";
 import WorkoutViewer from "./WorkoutViewer";
-import { useRouter } from "next/router";
 
 /** Paprasta trijų taškų animacija: ., .., ... */
 function DotsAnimation() {
   const [dots, setDots] = useState("");
   useEffect(() => {
     const interval = setInterval(() => {
-      setDots(prev => (prev.length < 3 ? prev + "." : ""));
+      setDots((prev) => (prev.length < 3 ? prev + "." : ""));
     }, 500);
     return () => clearInterval(interval);
   }, []);
@@ -30,43 +29,45 @@ function formatYMD(dateLike) {
 }
 
 export default function Workouts() {
-  const router = useRouter();
   const { data: session, status } = useSession();
   const { t } = useTranslation("common");
 
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [parsedPlan, setParsedPlan] = useState(null);
-  const [loading, setLoading] = useState(false); // rodom tik taškelius mygtuke
+  const [loading, setLoading] = useState(false);
 
   const [showPlayer, setShowPlayer] = useState(false);
   const [showViewer, setShowViewer] = useState(false);
   const [stats, setStats] = useState({ totalWorkouts: 0, totalTime: 0, calories: 0 });
 
+  // 👇 Naudosime, kad perduotume teisingą planId į WorkoutPlayer (feedback išsaugojimui)
+  const [activePlanId, setActivePlanId] = useState(null);
+
   // Parsinešam planų archyvą + statistiką
   useEffect(() => {
     if (!session) return;
 
+    // Planai
     fetch("/api/archive-plans")
-      .then(res => res.json())
-      .then(data => {
+      .then((res) => res.json())
+      .then((data) => {
         const list = Array.isArray(data.plans) ? data.plans : [];
-        // Rikiuojam pagal createdAt (naujausias viršuje)
         const sorted = list
           .slice()
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setPlans(sorted);
-        // Numatytoji – naujausias planas (jei yra)
-        setSelectedPlan(sorted[0] || null);
+        setSelectedPlan(sorted[0] || null); // naujausias – numatytasis
       })
       .catch(() => {
         setPlans([]);
         setSelectedPlan(null);
       });
 
+    // Statistika
     fetch("/api/last-workout")
-      .then(res => res.json())
-      .then(data => setStats(data.stats || { totalWorkouts: 0, totalTime: 0, calories: 0 }))
+      .then((res) => res.json())
+      .then((data) => setStats(data.stats || { totalWorkouts: 0, totalTime: 0, calories: 0 }))
       .catch(() => setStats({ totalWorkouts: 0, totalTime: 0, calories: 0 }));
   }, [session]);
 
@@ -78,16 +79,12 @@ export default function Workouts() {
       if (!response.ok) throw new Error(data?.error || "generateFailed");
 
       if (data?.plan?.id) {
-        // Įdedam naują planą į viršų ir pasirenkam jį kaip aktyvų
+        // įdedam naują planą į viršų ir pažymim kaip aktyvų
         const nextPlans = [data.plan, ...plans];
-        // (saugumo sumetimais – vėl išrikiuojam pagal datą)
         const sorted = nextPlans.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setPlans(sorted);
         setSelectedPlan(sorted[0] || data.plan);
       }
-
-      // Jei vistiek norėtum „pilno“ atsinaujinimo:
-      // await router.replace(router.asPath);
     } catch (error) {
       alert(t("generateFailed"));
     } finally {
@@ -105,18 +102,19 @@ export default function Workouts() {
     if (!parsedPlan) {
       setParsedPlan(parseWorkoutText(selectedPlan.planData.text || ""));
     }
+    setActivePlanId(selectedPlan?.id || null); // 👈 perduosim į grotuvą
     setShowPlayer(true);
   };
 
   const handleCloseWorkout = () => {
     setShowPlayer(false);
     setParsedPlan(null);
+    setActivePlanId(null);
   };
 
   if (status === "loading") return <div>{t("loading")}</div>;
   if (!session) return <div>{t("pleaseLogin")}</div>;
 
-  // Paskutinės generacijos data viršuje – ima patį naujausią planą
   const newestPlan = plans[0];
 
   return (
@@ -157,11 +155,12 @@ export default function Workouts() {
       <div className="flex flex-wrap gap-2 justify-center mb-3">
         <select
           className="border p-2 rounded shadow cursor-pointer w-full sm:w-auto"
-          onChange={(e) => setSelectedPlan(plans.find((p) => p.id === e.target.value))}
+          onChange={(e) =>
+            setSelectedPlan(plans.find((p) => p.id === e.target.value))
+          }
           value={selectedPlan?.id || ""}
           disabled={loading}
         >
-          {/* Nebereikia „SelectPlan“, nes automatiškai parenkam naujausią */}
           {plans.map((plan) => (
             <option key={plan.id} value={plan.id}>
               {plan.createdAt ? formatYMD(plan.createdAt) : t("noDate")}
@@ -213,12 +212,12 @@ export default function Workouts() {
         />
       )}
 
-      {/* Grotuvas */}
+      {/* Grotuvas (su planId perdavimu, kad /api/complete-plan(s) turėtų ID) */}
       {showPlayer && parsedPlan && (
         <WorkoutPlayer
           workoutData={parsedPlan}
+          planId={activePlanId}
           onClose={handleCloseWorkout}
-          visible={showPlayer}
         />
       )}
     </div>
