@@ -1,11 +1,33 @@
 import { useSession } from "next-auth/react";
 import { useTranslation } from "next-i18next";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { parseWorkoutText } from "./utils/parseWorkoutText";
 import { Info, CalendarDays } from "lucide-react";
 import WorkoutPlayer from "./WorkoutPlayer";
 import WorkoutViewer from "./WorkoutViewer";
 import { useRouter } from "next/router";
+
+/** Paprasta trijų taškų animacija: ., .., ... */
+function DotsAnimation() {
+  const [dots, setDots] = useState("");
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots(prev => (prev.length < 3 ? prev + "." : ""));
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+  return <span>{dots}</span>;
+}
+
+/** YYYY/MM/DD formatas */
+function formatYMD(dateLike) {
+  if (!dateLike) return "";
+  const d = new Date(dateLike);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}/${m}/${day}`;
+}
 
 export default function Workouts() {
   const router = useRouter();
@@ -15,11 +37,7 @@ export default function Workouts() {
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [parsedPlan, setParsedPlan] = useState(null);
-
-  // --- Generavimo būsena + progresas ---
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const progressTimerRef = useRef(null);
+  const [loading, setLoading] = useState(false); // rodom tik taškelius mygtuke
 
   const [showPlayer, setShowPlayer] = useState(false);
   const [showViewer, setShowViewer] = useState(false);
@@ -27,44 +45,30 @@ export default function Workouts() {
 
   // Parsinešam planų archyvą + statistiką
   useEffect(() => {
-    if (session) {
-      fetch("/api/archive-plans")
-        .then(res => res.json())
-        .then(data => setPlans(data.plans || []))
-        .catch(() => setPlans([]));
+    if (!session) return;
 
-      fetch("/api/last-workout")
-        .then(res => res.json())
-        .then(data => setStats(data.stats || { totalWorkouts: 0, totalTime: 0, calories: 0 }))
-        .catch(() => setStats({ totalWorkouts: 0, totalTime: 0, calories: 0 }));
-    }
+    fetch("/api/archive-plans")
+      .then(res => res.json())
+      .then(data => {
+        const list = Array.isArray(data.plans) ? data.plans : [];
+        // Rikiuojam pagal createdAt (naujausias viršuje)
+        const sorted = list
+          .slice()
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setPlans(sorted);
+        // Numatytoji – naujausias planas (jei yra)
+        setSelectedPlan(sorted[0] || null);
+      })
+      .catch(() => {
+        setPlans([]);
+        setSelectedPlan(null);
+      });
+
+    fetch("/api/last-workout")
+      .then(res => res.json())
+      .then(data => setStats(data.stats || { totalWorkouts: 0, totalTime: 0, calories: 0 }))
+      .catch(() => setStats({ totalWorkouts: 0, totalTime: 0, calories: 0 }));
   }, [session]);
-
-  // Valdo dirbtinį progresą: kai loading=true – judinam juostą iki ~90%, tada paliekam kol API baigs
-  useEffect(() => {
-    if (loading) {
-      setProgress(0);
-      if (progressTimerRef.current) clearInterval(progressTimerRef.current);
-      progressTimerRef.current = setInterval(() => {
-        setProgress(prev => {
-          // Greičiau iki 60%, tada lėčiau iki 90%
-          const increment = prev < 60 ? 3 : prev < 85 ? 1.5 : prev < 90 ? 0.5 : 0;
-          const next = Math.min(prev + increment, 90);
-          return next;
-        });
-      }, 120);
-    } else {
-      // užbaigiam iki 100 ir išvalom
-      if (progressTimerRef.current) {
-        clearInterval(progressTimerRef.current);
-        progressTimerRef.current = null;
-      }
-      setProgress(prev => (prev > 0 && prev < 100 ? 100 : prev));
-      // po trumpučio mirktelėjimo paslepiam progresą
-      const to = setTimeout(() => setProgress(0), 500);
-      return () => clearTimeout(to);
-    }
-  }, [loading]);
 
   const handleGeneratePlan = async () => {
     setLoading(true);
@@ -73,10 +77,13 @@ export default function Workouts() {
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || "generateFailed");
 
-      // Gaunam pilną planą su id/createdAt/planData – iškart įdedam į sąrašą
       if (data?.plan?.id) {
-        setPlans(prev => [data.plan, ...prev]);
-        setSelectedPlan(data.plan);
+        // Įdedam naują planą į viršų ir pasirenkam jį kaip aktyvų
+        const nextPlans = [data.plan, ...plans];
+        // (saugumo sumetimais – vėl išrikiuojam pagal datą)
+        const sorted = nextPlans.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setPlans(sorted);
+        setSelectedPlan(sorted[0] || data.plan);
       }
 
       // Jei vistiek norėtum „pilno“ atsinaujinimo:
@@ -109,6 +116,9 @@ export default function Workouts() {
   if (status === "loading") return <div>{t("loading")}</div>;
   if (!session) return <div>{t("pleaseLogin")}</div>;
 
+  // Paskutinės generacijos data viršuje – ima patį naujausią planą
+  const newestPlan = plans[0];
+
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-8 bg-white shadow-xl rounded-2xl">
       <h1 className="text-3xl font-bold text-blue-900 text-center mb-2">
@@ -118,9 +128,7 @@ export default function Workouts() {
       <p className="text-center text-gray-500 mb-4 flex items-center justify-center gap-1">
         <CalendarDays className="w-5 h-5" />
         {t("lastGenerated")}:{" "}
-        {plans[0]?.createdAt
-          ? new Date(plans[0].createdAt).toLocaleDateString()
-          : t("noPlans")}
+        {newestPlan?.createdAt ? formatYMD(newestPlan.createdAt) : t("noPlans")}
       </p>
 
       {/* Stat kortelės */}
@@ -149,18 +157,14 @@ export default function Workouts() {
       <div className="flex flex-wrap gap-2 justify-center mb-3">
         <select
           className="border p-2 rounded shadow cursor-pointer w-full sm:w-auto"
-          onChange={(e) =>
-            setSelectedPlan(plans.find((p) => p.id === e.target.value))
-          }
+          onChange={(e) => setSelectedPlan(plans.find((p) => p.id === e.target.value))}
           value={selectedPlan?.id || ""}
           disabled={loading}
         >
-          <option value="">{t("selectPlan")}</option>
+          {/* Nebereikia „SelectPlan“, nes automatiškai parenkam naujausią */}
           {plans.map((plan) => (
             <option key={plan.id} value={plan.id}>
-              {plan.createdAt
-                ? new Date(plan.createdAt).toLocaleDateString()
-                : t("noDate")}
+              {plan.createdAt ? formatYMD(plan.createdAt) : t("noDate")}
             </option>
           ))}
         </select>
@@ -175,26 +179,18 @@ export default function Workouts() {
 
         <button
           onClick={handleGeneratePlan}
-          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow transition w-full sm:w-auto disabled:opacity-60"
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow transition w-full sm:w-auto disabled:opacity-60 flex items-center justify-center gap-1"
           disabled={loading}
         >
-          {loading ? t("generating") : t("generatePlan")}
+          {loading ? (
+            <>
+              {t("generating")} <DotsAnimation />
+            </>
+          ) : (
+            t("generatePlan")
+          )}
         </button>
       </div>
-
-      {/* Progreso juosta (mini) */}
-      {loading && (
-        <div className="mb-4">
-          <ProgressBar value={Math.round(progress)} label={t("generating")} />
-        </div>
-      )}
-
-      {/* Skeletinis placeholder’is planui (rodom, kai generuojam) */}
-      {loading && (
-        <div className="mb-6">
-          <PlanSkeleton />
-        </div>
-      )}
 
       {/* Start mygtukas */}
       {selectedPlan?.planData?.text && (
@@ -229,8 +225,6 @@ export default function Workouts() {
   );
 }
 
-/* --- Mažos pagalbinės dalys --- */
-
 function StatCard({ value, label, tooltip, color }) {
   return (
     <div className={`${color} p-4 rounded-xl shadow relative group`}>
@@ -247,46 +241,6 @@ function InfoTooltip({ text }) {
       <Info className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer peer" />
       <div className="absolute hidden peer-hover:block bg-white border shadow-md rounded p-2 text-xs w-48 max-w-[calc(100vw-2rem)] left-1/2 -translate-x-1/2 top-6 z-20">
         {text}
-      </div>
-    </div>
-  );
-}
-
-/** Progreso juosta su etikete */
-function ProgressBar({ value, label }) {
-  return (
-    <div className="w-full">
-      <div className="flex items-center justify-between mb-1">
-        <span className="text-sm text-gray-600">{label}</span>
-        <span className="text-xs text-gray-500">{value}%</span>
-      </div>
-      <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-        <div
-          className="h-2 rounded-full transition-[width] duration-150 ease-linear bg-green-500"
-          style={{ width: `${value}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-/** „Skeletas“: neutralus plokštelės placeholder’is su shimmer efektu */
-function PlanSkeleton() {
-  return (
-    <div className="border rounded-2xl p-4 shadow-sm">
-      <div className="animate-pulse">
-        <div className="h-4 w-40 bg-gray-200 rounded mb-3" />
-        <div className="space-y-2">
-          <div className="h-3 w-full bg-gray-200 rounded" />
-          <div className="h-3 w-11/12 bg-gray-200 rounded" />
-          <div className="h-3 w-10/12 bg-gray-200 rounded" />
-          <div className="h-3 w-9/12 bg-gray-200 rounded" />
-          <div className="h-3 w-8/12 bg-gray-200 rounded" />
-        </div>
-        <div className="mt-4 flex gap-2">
-          <div className="h-8 w-28 bg-gray-200 rounded" />
-          <div className="h-8 w-24 bg-gray-200 rounded" />
-        </div>
       </div>
     </div>
   );
