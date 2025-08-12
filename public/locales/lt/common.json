@@ -495,8 +495,37 @@
   "set": "Serija",
   "rest": "Poilsis",
   "rest_after": "Poilsis po pratimo",
-  "close": "Uždaryti"
+  "close": "Uždaryti",
 
+
+
+   "player": {
+    "motivationTitle": "Motyvacija",
+    "startWorkout": "Pradėti treniruotę",
+    "exercise": "Pratimas",
+    "setWord": "Serija",
+    "rest": "Poilsis",
+    "paused": "Pauzė",
+    "done": "Atlikta",
+    "prev": "Atgal",
+    "next": "Pirmyn",
+    "pausePlay": "Pauzė / Tęsti",
+    "restartStep": "Perkrauti žingsnį",
+    "endSession": "Baigti sesiją",
+    "workoutCompleted": "Sveikiname, treniruotė baigta!",
+    "thanksForWorkingOut": "Ačiū, kad sportavai!",
+    "howWasDifficulty": "Kaip įvertintum treniruotės sunkumą?",
+    "rateTooHard": "Per sunku",
+    "rateAHard": "Šiek tiek sunku",
+    "ratePerfect": "Tobulas balansas",
+    "rateAEasy": "Šiek tiek lengva",
+    "rateTooEasy": "Per lengva",
+    "commentPlaceholder": "Tavo komentaras apie treniruotę...",
+    "finishWorkout": "Baigti treniruotę",
+    "thanksForFeedback": "Ačiū už įvertinimą!",
+    "secShortLt": "sek.",
+    "secShortEn": "sec."
+}
 
 
 

@@ -491,7 +491,36 @@
   "set": "Set",
   "rest": "Rest",
   "rest_after": "Rest after exercise",
-  "close": "Close"
+  "close": "Close",
+
+
+  "player": {
+    "motivationTitle": "Motivation",
+    "startWorkout": "Start workout",
+    "exercise": "Exercise",
+    "setWord": "Set",
+    "rest": "Rest",
+    "paused": "Paused",
+    "done": "Done",
+    "prev": "Back",
+    "next": "Next",
+    "pausePlay": "Pause / Play",
+    "restartStep": "Restart step",
+    "endSession": "End session",
+    "workoutCompleted": "Workout completed!",
+    "thanksForWorkingOut": "Thanks for working out!",
+    "howWasDifficulty": "How would you rate the difficulty?",
+    "rateTooHard": "Too hard",
+    "rateAHard": "A bit hard",
+    "ratePerfect": "Perfect balance",
+    "rateAEasy": "A bit easy",
+    "rateTooEasy": "Too easy",
+    "commentPlaceholder": "Your comment about the workout...",
+    "finishWorkout": "Finish workout",
+    "thanksForFeedback": "Thanks for your feedback!",
+    "secShortLt": "sek.",
+    "secShortEn": "sec."
+  }
 
 
 }
