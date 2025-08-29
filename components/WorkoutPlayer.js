@@ -35,6 +35,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     [i18n.language, t]
   );
 
+  const restHeading = useMemo(
+    () => (i18n.language?.startsWith("lt") ? "Šiuo metu poilsis" : "Resting"),
+    [i18n.language]
+  );
+  const upNextLabel = useMemo(
+    () => (i18n.language?.startsWith("lt") ? "Kitas:" : "Up next:"),
+    [i18n.language]
+  );
+
   useEffect(() => {
     if ("wakeLock" in navigator) {
       navigator.wakeLock.request("screen").then(lock => (wakeLockRef.current = lock)).catch(() => {});
@@ -50,6 +59,30 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (!text) return false;
     return /(\d+)\s*(sek|sec)\.?/i.test(text);
   }
+
+  // Find the next "exercise" step to preview during REST
+  const nextExerciseInfo = useMemo(() => {
+    if (!day) return null;
+    let exIdx = currentExerciseIndex;
+    let stIdx = currentStepIndex + 1;
+
+    while (exIdx < (day.exercises?.length || 0)) {
+      const ex = day.exercises?.[exIdx];
+      if (!ex) break;
+      while (stIdx < (ex.steps?.length || 0)) {
+        const st = ex.steps?.[stIdx];
+        if (st?.type === "exercise") {
+          const totalSets = ex.steps?.filter(s => s.type === "exercise").length || 0;
+          const setNo = st?.set ?? null;
+          return { ex, st, totalSets, setNo };
+        }
+        stIdx++;
+      }
+      exIdx++;
+      stIdx = 0;
+    }
+    return null;
+  }, [day, currentExerciseIndex, currentStepIndex]);
 
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -190,39 +223,65 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   if (phase === "exercise") {
+    const isRestPhase = (step?.type === "rest" || (step?.type === "rest_after" && !isTerminalRestAfter));
     const seriesTotal = exercise?.steps?.filter(s => s.type === "exercise").length || 0;
     const seriesIdx = step?.type === "exercise" ? step?.set : null;
 
     return (
       <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
         <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-xl text-center">
+          {/* Title */}
           <h2 className="text-2xl font-bold text-gray-900 mb-2">
-            {exercise?.name || t("player.exercise")}
+            {isRestPhase ? restHeading : (exercise?.name || t("player.exercise"))}
           </h2>
 
-          {step?.type === "exercise" && (
-            <p className="text-lg font-medium text-gray-900 mb-2">
-              {step.duration} — {t("player.setWord")} {seriesIdx}/{seriesTotal}
+          {/* EXERCISE description (moved up, right after title) */}
+          {!isRestPhase && (
+            <p className="text-sm text-gray-600 italic mb-3">
+              {exercise?.description}
             </p>
           )}
 
-          {(step?.type === "rest" || (step?.type === "rest_after" && !isTerminalRestAfter)) && (
-            <p className="text-lg font-medium text-blue-900 mb-2">
-              {t("player.rest")}: {step.duration}
+          {/* EXERCISE series info (if applicable), now after description */}
+          {!isRestPhase && step?.type === "exercise" && (
+            <p className="text-lg font-medium text-gray-900 mb-3">
+              {t("player.setWord")} {seriesIdx}/{seriesTotal}
             </p>
           )}
 
+          {/* REST preview: show what's coming next (exercise or next set) */}
+          {isRestPhase && (
+            <div className="mb-4 text-left bg-gray-50 rounded-lg p-4 border border-gray-200">
+              <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
+              {nextExerciseInfo ? (
+                <>
+                  <p className="text-base font-bold text-gray-900">{nextExerciseInfo.ex?.name}</p>
+                  {nextExerciseInfo.setNo != null && (
+                    <p className="text-sm text-gray-800 mt-1">
+                      {t("player.setWord")} {nextExerciseInfo.setNo}/{nextExerciseInfo.totalSets}
+                    </p>
+                  )}
+                  {nextExerciseInfo.ex?.description && (
+                    <p className="text-sm text-gray-600 italic mt-2">{nextExerciseInfo.ex.description}</p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-gray-600 italic">{i18n.language?.startsWith("lt") ? "Netoli pabaigos..." : "Almost finished..."}</p>
+              )}
+            </div>
+          )}
+
+          {/* TIMER — always at the bottom section */}
           {isTimed(step?.duration) && (
-            <p className="text-4xl text-gray-900 font-bold mb-4">
+            <p className="text-4xl text-gray-900 font-bold mt-2 mb-4">
               {secondsLeft > 0 ? `${secondsLeft} ${secSuffix}` : null}
               {paused && <span className="block text-xl text-red-600 mt-2">{t("player.paused")}</span>}
             </p>
           )}
 
-          <p className="text-sm text-gray-500 italic mb-6">{exercise?.description}</p>
-
+          {/* Manual continue only for untimed EXERCISE steps */}
           {waitingForUser && step?.type === "exercise" && (
-            <div className="flex flex-col items-center gap-2 mt-4">
+            <div className="flex flex-col items-center gap-2 mt-2">
               <button
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
                 onClick={handleManualContinue}
@@ -232,6 +291,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             </div>
           )}
 
+          {/* Controls */}
           <div className="flex justify-center items-center gap-4 mt-6">
             <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={t("player.prev")}>
               <SkipBack className="w-6 h-6 text-gray-800" />
