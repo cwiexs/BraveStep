@@ -250,92 +250,139 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     setPhase("summary");
   }
 
-  // ---- Render helpers ----
-  function Shell({ footer, children }) {
-    return (
-      <div className="min-h-[60vh] w-full">
-        {/* Header */}
-        <div className="flex items-center justify-between px-2 py-2">
-          <button type="button" onClick={() => setShowSettings(s => !s)} className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900">
-            <Settings className="w-4 h-4" /> {settingsLabel}
-          </button>
-          <button type="button" onClick={onClose} className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700">
-            <Power className="w-4 h-4" /> {endSessionLabel}
-          </button>
-        </div>
+  // ---- Header (with Settings) ----
+  const HeaderBar = () => (
+    <div className="flex items-center justify-between px-3 py-2 border-b bg-white sticky top-0 z-30">
+      <button type="button" onClick={() => setShowSettings(true)} className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900">
+        <Settings className="w-4 h-4" /> {settingsLabel}
+      </button>
+      <button type="button" onClick={onClose} className="flex items-center gap-1 text-sm text-red-600 hover:text-red-700">
+        <Power className="w-4 h-4" /> {endSessionLabel}
+      </button>
+    </div>
+  );
 
-        {/* Settings Panel */}
-        {showSettings && (
-          <div className="px-3 py-2 border-y bg-gray-50 grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={vibrationEnabled} onChange={(e) => setVibrationEnabled(e.target.checked)} />
-              <span>Vibration</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={fxEnabled} onChange={(e) => setFxEnabled(e.target.checked)} />
-              <span>FX (sounds & highlight)</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={autoplayNext} onChange={(e) => setAutoplayNext(e.target.checked)} />
-              <span>Autoplay next step</span>
-            </label>
-            <label className="flex items-center gap-2">
-              <input type="checkbox" checked={soundEnabled} onChange={(e) => setSoundEnabled(e.target.checked)} />
-              <span>Sound</span>
-            </label>
+  const Shell = ({ children, footer }) => (
+    <div onSubmitCapture={(e) => e.preventDefault()} className="fixed inset-0 bg-white text-gray-900 flex flex-col z-40">
+      <HeaderBar />
+      <div className="flex-1 overflow-auto p-6 pt-8">{children}</div>
+      {footer ? <div className="border-t p-4 sticky bottom-0 bg-white">{footer}</div> : null}
+
+      {/* Settings modal */}
+      {showSettings && (
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5">
+            <h3 className="text-xl font-bold mb-4">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
+
+            {/* Vibracija */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="font-medium">Vibration</p>
+                <p className="text-sm text-gray-500">Trumpas signalas žingsnio pabaigoje</p>
+              </div>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={vibrationEnabled} onChange={(e) => setVibrationEnabled(e.target.checked)} />
+                <span>On</span>
+              </label>
+            </div>
+
+            {/* FX */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="font-medium">FX (sounds & highlight)</p>
+                <p className="text-sm text-gray-500">Pyptelėjimai paskutinėms sekundėms</p>
+              </div>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={fxEnabled} onChange={(e) => setFxEnabled(e.target.checked)} />
+                <span>On</span>
+              </label>
+            </div>
+
+            {/* Autoplay */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="font-medium">Autoplay next step</p>
+                <p className="text-sm text-gray-500">Automatiškai pereiti į kitą žingsnį</p>
+              </div>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={autoplayNext} onChange={(e) => setAutoplayNext(e.target.checked)} />
+                <span>On</span>
+              </label>
+            </div>
+
+            {/* Sound */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <p className="font-medium">Sound</p>
+                <p className="text-sm text-gray-500">Įjungti / išjungti garsus</p>
+              </div>
+              <label className="inline-flex items-center gap-2">
+                <input type="checkbox" checked={soundEnabled} onChange={(e) => setSoundEnabled(e.target.checked)} />
+                <span>On</span>
+              </label>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowSettings(false)}
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+              >
+                {t("common.close", { defaultValue: "Uždaryti" })}
+              </button>
+            </div>
           </div>
-        )}
-
-        {/* Body */}
-        <div className="px-3 py-3">{children}</div>
-
-        {/* Footer */}
-        <div className="px-3 py-3 border-t bg-white sticky bottom-0">
-          {footer}
         </div>
-      </div>
-    );
-  }
+      )}
+    </div>
+  );
 
-  // ---- Intro ----
+  // ---- Intro (Motyvacija) ----
   if (phase === "intro") {
     const today = workoutData?.days?.[currentDay];
+    const startWorkoutLabel = startWorkout;
+
+    const handleManualContinue = () => {
+      setPhase("exercise");
+      const s0 = today?.exercises?.[0]?.steps?.[0];
+      setCurrentExerciseIndex(0);
+      setCurrentStepIndex(0);
+      setStepFinished(false);
+      setWaitingForUser(false);
+      if (s0?.duration) startStepCountdown(s0.duration);
+    };
 
     return (
       <Shell
         footer={
-          <div className="flex items-center justify-center">
-            <button type="button" onClick={() => {
-              setPhase("exercise");
-              const s0 = today?.exercises?.[0]?.steps?.[0];
-              setCurrentExerciseIndex(0);
-              setCurrentStepIndex(0);
-              setStepFinished(false);
-              setWaitingForUser(false);
-              if (s0?.duration) startStepCountdown(s0.duration);
-            }} className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold">
-              {startWorkout}
+          <div className="flex flex-col items-center gap-3">
+            <button
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold"
+              onClick={handleManualContinue}
+            >
+              {startWorkoutLabel}
             </button>
           </div>
         }
       >
-        <div className="max-w-2xl mx-auto">
-          <h2 className="text-2xl font-extrabold mb-2">{introTitle}</h2>
-          <p className="text-gray-800 whitespace-pre-wrap">
-            {today?.motivationStart || workoutData?.motivationStart}
-          </p>
+        <div className="w-full min-h-[60vh] grid place-items-center">
+          <div className="max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold mb-4">💡 {t("player.introTitle", { defaultValue: "Apžvalga" })}</h2>
+            <p className="text-base whitespace-pre-wrap leading-relaxed">
+              {today?.motivationStart || workoutData?.motivationStart || ""}
+            </p>
 
-          {today?.waterRecommendation && (
-            <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900 mt-3">
-              💧 {today.waterRecommendation}
-            </div>
-          )}
-
-          {today?.outdoorSuggestion && (
-            <div className="p-3 bg-green-50 rounded-lg text-sm text-green-900 mt-3">
-              🌳 {today.outdoorSuggestion}
-            </div>
-          )}
+            {today?.waterRecommendation && (
+              <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900 mt-4">
+                💧 {today.waterRecommendation}
+              </div>
+            )}
+            {today?.outdoorSuggestion && (
+              <div className="p-3 bg-green-50 rounded-lg text-sm text-green-900 mt-3">
+                🌿 {today.outdoorSuggestion}
+              </div>
+            )}
+          </div>
         </div>
       </Shell>
     );
@@ -425,6 +472,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     );
   }
 
+  // ---- Summary ----
   if (phase === "summary") {
     const options = [
       { value: 1, label: "😣", text: t("player.rateTooHard", { defaultValue: "Per sunku" }) },
@@ -435,7 +483,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     ];
 
     return (
-      <div onSubmitCapture={(e) => e.preventDefault()}>
       <Shell
         footer={
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
@@ -471,7 +518,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           )}
           {workoutData?.days?.[0]?.outdoorSuggestion && (
             <div className="p-3 bg-green-50 rounded-lg text-sm text-green-900 mb-3">
-              🌳 {workoutData.days[0].outdoorSuggestion}
+              🌿 {workoutData.days[0].outdoorSuggestion}
             </div>
           )}
 
@@ -509,13 +556,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             onChange={e => setComment(e.target.value)}
             onFocus={() => setInputActive(true)}
             onBlur={() => setInputActive(false)}
-            onKeyDown={(e) => { e.stopPropagation(); /* if any parent tries to submit on Enter, uncomment next line */ /* if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); } */ }}
+            onKeyDown={(e) => { e.stopPropagation(); /* if parent tries to submit on Enter, uncomment next line */ /* if (e.key === "Enter" && !e.shiftKey) e.preventDefault(); */ }}
             className="w-full p-3 border rounded mb-24 outline-none focus:ring-2 focus:ring-black/10"
             rows={4}
           />
         </div>
       </Shell>
-      </div>
     );
   }
 
