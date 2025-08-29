@@ -1,31 +1,54 @@
+import { PrismaClient } from '@prisma/client';
 import { getServerSession } from "next-auth";
 import { authOptions } from "./auth/[...nextauth]";
-import { prisma } from "../../lib/prisma";
+
+const prisma = new PrismaClient();
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({ error: "Method Not Allowed" });
+  if (req.method !== "GET" && req.method !== "POST") {
+    return res.status(405).json({ message: "Metodas neleidžiamas" });
   }
-  try {
+
+  if (req.method === "GET") {
     const session = await getServerSession(req, res, authOptions);
-    if (!session || !session.user?.email) {
-      return res.status(401).json({ error: "Unauthorized" });
+    if (!session) {
+      return res.status(401).json({ message: "Nesate prisijungęs" });
     }
-    const user = await prisma.user.findUnique({
-      where: { email: session.user.email },
-      select: { id: true },
-    });
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+
     const plans = await prisma.generatedPlan.findMany({
-      where: { userId: user.id },
-      orderBy: { createdAt: "desc" },
-      select: { id: true, createdAt: true, planData: true, type: true },
+      where: { userId: session.user.id },
+      orderBy: { createdAt: "desc" }
     });
+
     return res.status(200).json({ plans });
-  } catch (e) {
-    console.error("[archive-plans][GET] error:", e);
-    return res.status(500).json({ error: "Server error", details: String(e) });
   }
+
+  // POST logika archyvavimui
+  const sixMonthsAgo = new Date();
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+  const oldPlans = await prisma.generatedPlan.findMany({
+    where: {
+      createdAt: { lt: sixMonthsAgo },
+    },
+  });
+
+  for (const plan of oldPlans) {
+    await prisma.archivedPlan.create({
+      data: {
+        userId: plan.userId,
+        type: plan.type,
+        originalPlan: plan.planData,
+        modifiedPlan: plan.modifiedPlanData,
+        feedback: plan.feedbackNotes,
+        completionStatus: plan.completionStatus,
+        createdAt: plan.createdAt,
+        archivedAt: new Date(),
+      },
+    });
+
+    await prisma.generatedPlan.delete({ where: { id: plan.id } });
+  }
+
+  return res.status(200).json({ message: `Perkelta: ${oldPlans.length} planų.` });
 }
