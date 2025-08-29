@@ -1,76 +1,70 @@
 // components/utils/generateExerciseHistorySummary.ts
-import { prisma } from "../../lib/prisma";
 
-type SummaryRow = {
-  name: string;
-  lastPerformed: Date;
-  timesPerformedLastWeek: number;
-  ratings: number[];
-  notes: string[];
-};
+import { prisma } from '../../lib/prisma'
 
-/**
- * Sugeneruoja santrauką tik iš atliktų planų (plan.wasCompleted = true).
- * Jei reikia visų – išmesk `plan: { is: { wasCompleted: true } }` iš where.
- */
 export async function generateExerciseHistorySummary(userId: string, daysBack = 10) {
-  const fromDate = new Date();
-  fromDate.setDate(fromDate.getDate() - daysBack);
+  const fromDate = new Date()
+  fromDate.setDate(fromDate.getDate() - daysBack)
 
   const history = await prisma.exerciseHistory.findMany({
-    take: 50,
+    take: 50, // Max 50 įrašų
     where: {
       userId,
-      workoutDate: { gte: fromDate },
-      // svarbu: teisinga relacijos filtro forma
-      plan: { is: { wasCompleted: true } },
+      workoutDate: {
+        gte: fromDate,
+      },
+      plan: {
+        wasCompleted: true, // Tik iš atliktų planų
+      }
     },
-    orderBy: { workoutDate: "desc" },
-    select: {
-      workoutDate: true,
-      exerciseName: true,
-      userRating: true,
-      comment: true,
-      plan: { select: { difficultyRating: true } },
+    orderBy: {
+      workoutDate: 'desc',
     },
-  });
+    include: {
+      plan: {
+        select: {
+          difficultyRating: true,
+        }
+      }
+    }
+  })
 
-  const weekAgo = new Date();
-  weekAgo.setDate(weekAgo.getDate() - 7);
-
-  const summary: Record<string, SummaryRow> = {};
+  const summary: Record<string, {
+    name: string
+    lastPerformed: Date
+    timesPerformedLastWeek: number
+    ratings: number[]
+    notes: string[]
+  }> = {}
 
   for (const item of history) {
-    const key = item.exerciseName?.trim() || "Nežinomas pratimas";
-    if (!summary[key]) {
-      summary[key] = {
-        name: key,
+    if (!summary[item.exerciseName]) {
+      summary[item.exerciseName] = {
+        name: item.exerciseName,
         lastPerformed: item.workoutDate,
         timesPerformedLastWeek: 0,
         ratings: [],
         notes: [],
-      };
+      }
     }
 
-    const row = summary[key];
-    if (item.workoutDate >= weekAgo) row.timesPerformedLastWeek += 1;
+    const ex = summary[item.exerciseName]
+    ex.timesPerformedLastWeek++
+    if (item.userRating) ex.ratings.push(item.userRating)
+    if (item.comment) ex.notes.push(item.comment)
 
-    const ratingFromPlan = (item.plan as any)?.difficultyRating as number | null | undefined;
-    const rating = typeof ratingFromPlan === "number" ? ratingFromPlan : item.userRating;
-    if (typeof rating === "number") row.ratings.push(rating);
-
-    if (item.comment && item.comment.trim()) row.notes.push(item.comment.trim());
-
-    if (item.workoutDate > row.lastPerformed) row.lastPerformed = item.workoutDate;
+    if (item.workoutDate > ex.lastPerformed) {
+      ex.lastPerformed = item.workoutDate
+    }
   }
 
   return Object.values(summary).map((ex) => ({
     name: ex.name,
-    lastPerformed: ex.lastPerformed.toISOString().split("T")[0],
+    lastPerformed: ex.lastPerformed.toISOString().split('T')[0],
     timesPerformedLastWeek: ex.timesPerformedLastWeek,
     averageRating: ex.ratings.length
       ? Math.round((ex.ratings.reduce((a, b) => a + b, 0) / ex.ratings.length) * 10) / 10
       : null,
-    notes: ex.notes.slice(0, 3),
-  }));
+    notes: ex.notes,
+  }))
 }
