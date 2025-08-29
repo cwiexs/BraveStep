@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useMemo } from "react";
-import { SkipBack, SkipForward, Pause, Play, RotateCcw } from "lucide-react";
+import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings } from "lucide-react";
 import { useTranslation } from "next-i18next";
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
@@ -20,6 +20,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  // Settings
+  const [showSettings, setShowSettings] = useState(false);
+  const [vibrationEnabled, setVibrationEnabled] = useState(true);
+
   // ---- Refs ----
   const wakeLockRef = useRef(null);
   const timerRef = useRef(null);
@@ -36,7 +40,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const isTerminalRestAfter =
     step?.type === "rest_after" && isLastExerciseInDay && isLastStepInExercise;
 
-  // ---- i18n fallbacks (naudojam tavo common vertimus, jei jų nėra – fallback) ----
+  // ---- i18n labels (naudojam tavo common vertimus, jei jų nėra – fallback) ----
   const restLabel = t("player.rest", { defaultValue: "Poilsis" });
   const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
   const setWord = t("player.setWord", { defaultValue: "Serija" });
@@ -56,15 +60,25 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const finishWorkout = t("player.finishWorkout", { defaultValue: "Užbaigti ir išsiųsti įvertinimą" });
   const thanksForFeedback = t("player.thanksForFeedback", { defaultValue: "Ačiū už grįžtamąjį ryšį!" });
   const exerciseLabel = t("player.exercise", { defaultValue: "Pratimas" });
+  const motivationTitle = t("player.motivationTitle", { defaultValue: "Motyvacija" });
 
   // ---- Utils ----
   function parseSeconds(text) {
     const match = text?.match(/(\d+)/);
     return match ? parseInt(match[1], 10) : 0;
-    }
+  }
   function isTimed(text) {
     if (!text) return false;
     return /(\d+)\s*(sek|sec)\.?/i.test(text);
+  }
+
+  function vibe(ms = 60) {
+    if (!vibrationEnabled) return;
+    try {
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+        navigator.vibrate(ms);
+      }
+    } catch {}
   }
 
   // Sekantis pratimas/serija – rodysime po laikmačiu (be atskiro lango)
@@ -104,6 +118,19 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     };
   }, []);
 
+  // ---- Load settings (vibration) ----
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("bs_vibration_enabled");
+      if (raw != null) setVibrationEnabled(raw === "true");
+    } catch {}
+  }, []);
+  useEffect(() => {
+    try {
+      localStorage.setItem("bs_vibration_enabled", String(vibrationEnabled));
+    } catch {}
+  }, [vibrationEnabled]);
+
   // ---- Timer setup per step ----
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current);
@@ -131,6 +158,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       setPlayedWarnings([]);
     }
   }, [currentExerciseIndex, currentStepIndex, phase, step, isTerminalRestAfter, stepFinished]);
+
+  // Vibracija perjungus pratimą/poilsį
+  useEffect(() => {
+    if (phase !== "exercise" || !step) return;
+    // vibruojam trumpai kaskart pasikeitus step/poilsis
+    vibe(50);
+  }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
   useEffect(() => {
     setStepFinished(false);
@@ -170,6 +204,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   function handlePhaseComplete() {
     if (timerRef.current) clearInterval(timerRef.current);
     try { new Audio("/beep.mp3").play().catch(() => {}); } catch {}
+    vibe(70);
 
     if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
@@ -222,26 +257,76 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       });
     } catch {}
     setSubmitted(true);
-    // Paliekam ekrane, bet gali uždaryti ir pats
   }
 
   // ===================== UI =====================
   // BENDRAS KONTEINERIS: VISĄ TRENIRUOTĘ – VISAS EKRANAS BALTAI (be mirgėjimo)
   const Shell = ({ children, footer }) => (
     <div className="fixed inset-0 bg-white text-gray-900 flex flex-col z-50">
+      {/* Settings button */}
+      <div className="absolute top-3 right-3 z-10">
+        <button
+          onClick={() => setShowSettings(true)}
+          className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow"
+          aria-label="Settings"
+          title={t("common.settings", { defaultValue: "Nustatymai" })}
+        >
+          <Settings className="w-5 h-5" />
+        </button>
+      </div>
+
       <div className="flex-1 overflow-auto p-6">{children}</div>
       {footer ? (
         <div className="border-t p-4 sticky bottom-0 bg-white">{footer}</div>
       ) : null}
+
+      {/* Settings modal */}
+      {showSettings && (
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5">
+            <h3 className="text-xl font-bold mb-4">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
+
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
+                <p className="text-sm text-gray-500">
+                  {t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}
+                </p>
+              </div>
+              <button
+                onClick={() => setVibrationEnabled(v => !v)}
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
+              >
+                {vibrationEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+              </button>
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => { vibe(80); }}
+                className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"
+              >
+                {t("player.testVibration", { defaultValue: "Išbandyti" })}
+              </button>
+              <button
+                onClick={() => setShowSettings(false)}
+                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+              >
+                {t("common.close", { defaultValue: "Uždaryti" })}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
-  // ---- Intro ----
+  // ---- Intro (motyvacija) – CENTRUOTA ----
   if (phase === "intro") {
     return (
       <Shell
         footer={
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-3">
             <button
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold"
               onClick={handleManualContinue}
@@ -251,10 +336,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           </div>
         }
       >
-        <h2 className="text-2xl font-bold mb-3">💡 {t("player.motivationTitle", { defaultValue: "Motyvacija" })}</h2>
-        <p className="text-base whitespace-pre-wrap">
-          {workoutData?.days?.[0]?.motivationStart || ""}
-        </p>
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
+            <p className="text-base whitespace-pre-wrap leading-relaxed">
+              {workoutData?.days?.[0]?.motivationStart || ""}
+            </p>
+          </div>
+        </div>
       </Shell>
     );
   }
@@ -267,91 +356,100 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
     // Spalvos: pratimo laikmatis – žalias; poilsio – geltonas
     const timerColorClass = isRestPhase ? "text-yellow-500" : "text-green-600";
+    const restLabelClass = "text-yellow-500"; // "Poilsis" geltonas
 
     return (
       <Shell
         footer={
-          <div className="flex items-center justify-center gap-4">
-            <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
-              <SkipBack className="w-6 h-6 text-gray-800" />
-            </button>
-            <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
-              {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-            </button>
-            <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
-              <RotateCcw className="w-6 h-6 text-gray-800" />
-            </button>
-            <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
-              <SkipForward className="w-6 h-6 text-gray-800" />
-            </button>
-            <button onClick={onClose} className="ml-2 text-sm text-red-500 hover:underline">
-              {endSessionLabel}
-            </button>
-          </div>
+          <>
+            {/* Valdiklių eilutė */}
+            <div className="flex items-center justify-center gap-4">
+              <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
+                <SkipBack className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={() => setPaused(prev => !prev)} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
+                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+              </button>
+              <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
+                <RotateCcw className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+                <SkipForward className="w-6 h-6 text-gray-800" />
+              </button>
+            </div>
+            {/* Baigti sesiją – atskirai žemiau */}
+            <div className="mt-3 flex justify-center">
+              <button onClick={onClose} className="text-sm text-red-600 hover:underline">
+                {endSessionLabel}
+              </button>
+            </div>
+          </>
         }
       >
-        {/* Viršus: pavadinimas (rest – žalias užrašas) */}
-        <h2 className={`text-2xl font-bold mb-2 ${isRestPhase ? "text-green-600" : "text-gray-900"}`}>
-          {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
-        </h2>
+        <div className="max-w-2xl mx-auto text-center">
+          {/* Viršus: pavadinimas (rest – geltonas užrašas) */}
+          <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
+            {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
+          </h2>
 
-        {/* SERIJA – iškart po pavadinimo */}
-        {!isRestPhase && step?.type === "exercise" && (
-          <p className="text-lg font-semibold text-gray-900 mb-2">
-            {setWord} {seriesIdx}/{seriesTotal}
-          </p>
-        )}
+          {/* SERIJA – iškart po pavadinimo */}
+          {!isRestPhase && step?.type === "exercise" && (
+            <p className="text-lg font-semibold text-gray-900 mb-2">
+              {setWord} {seriesIdx}/{seriesTotal}
+            </p>
+          )}
 
-        {/* APRAŠYMAS – po serijos */}
-        {!isRestPhase && (
-          <p className="text-sm text-gray-700 italic mb-4">{exercise?.description}</p>
-        )}
+          {/* APRAŠYMAS – po serijos */}
+          {!isRestPhase && (
+            <p className="text-sm text-gray-700 italic mb-4">{exercise?.description}</p>
+          )}
 
-        {/* LAIKMATIS – didelis, apačios zonoje (vizualiai akcentuojamas spalva) */}
-        {isTimed(step?.duration) && (
-          <p className={`text-5xl font-extrabold ${timerColorClass} mt-6`}>
-            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : null}
-          </p>
-        )}
-        {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
+          {/* LAIKMATIS – didelis, CENTRUOTAS */}
+          {isTimed(step?.duration) && (
+            <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
+              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : null}
+            </p>
+          )}
+          {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
 
-        {/* NETIMUOJAMI žingsniai – „Atlikta“ mygtukas */}
-        {waitingForUser && step?.type === "exercise" && (
-          <div className="mt-6">
-            <button
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
-              onClick={handleManualContinue}
-            >
-              {doneLabel}
-            </button>
-          </div>
-        )}
+          {/* NETIMUOJAMI žingsniai – „Atlikta“ mygtukas */}
+          {waitingForUser && step?.type === "exercise" && (
+            <div className="mt-6">
+              <button
+                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
+                onClick={handleManualContinue}
+              >
+                {doneLabel}
+              </button>
+            </div>
+          )}
 
-        {/* POILSIO REŽIMAS – „Kitas:“ info PO LAIKMAČIO, be jokio dėžutės/box'o */}
-        {isRestPhase && (
-          <div className="mt-6 text-left">
-            <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
-            {nextExerciseInfo ? (
-              <>
-                <p className="text-base font-bold text-gray-900">{nextExerciseInfo.ex?.name}</p>
-                {nextExerciseInfo.setNo != null && (
-                  <p className="text-sm text-gray-800 mt-1">
-                    {setWord} {nextExerciseInfo.setNo}/{nextExerciseInfo.totalSets}
-                  </p>
-                )}
-                {nextExerciseInfo.ex?.description && (
-                  <p className="text-sm text-gray-700 italic mt-2">
-                    {nextExerciseInfo.ex.description}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-gray-600 italic">
-                {t("player.almostFinished", { defaultValue: i18n.language?.startsWith("lt") ? "Netoli pabaigos..." : "Almost finished..." })}
-              </p>
-            )}
-          </div>
-        )}
+          {/* POILSIO REŽIMAS – „Kitas:“ info PO LAIKMAČIO, be jokio dėžutės/box'o */}
+          {isRestPhase && (
+            <div className="mt-6 text-left inline-block text-start">
+              <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
+              {nextExerciseInfo ? (
+                <>
+                  <p className="text-base font-bold text-gray-900">{nextExerciseInfo.ex?.name}</p>
+                  {nextExerciseInfo.setNo != null && (
+                    <p className="text-sm text-gray-800 mt-1">
+                      {setWord} {nextExerciseInfo.setNo}/{nextExerciseInfo.totalSets}
+                    </p>
+                  )}
+                  {nextExerciseInfo.ex?.description && (
+                    <p className="text-sm text-gray-700 italic mt-2">
+                      {nextExerciseInfo.ex.description}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-gray-600 italic">
+                  {t("player.almostFinished", { defaultValue: i18n.language?.startsWith("lt") ? "Netoli pabaigos..." : "Almost finished..." })}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
       </Shell>
     );
   }
@@ -387,56 +485,58 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           </div>
         }
       >
-        <h2 className="text-2xl font-bold mb-2">🎉 {workoutCompletedLabel}</h2>
-        <p className="mb-4 text-gray-800 whitespace-pre-wrap">
-          {workoutData?.days?.[0]?.motivationEnd || thanksForWorkingOut}
-        </p>
+        <div className="max-w-2xl mx-auto">
+          <h2 className="text-2xl font-bold mb-2 text-center">🎉 {workoutCompletedLabel}</h2>
+          <p className="mb-4 text-gray-800 whitespace-pre-wrap text-center">
+            {workoutData?.days?.[0]?.motivationEnd || thanksForWorkingOut}
+          </p>
 
-        {workoutData?.days?.[0]?.waterRecommendation && (
-          <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900 mb-3">
-            💧 {workoutData.days[0].waterRecommendation}
+          {workoutData?.days?.[0]?.waterRecommendation && (
+            <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900 mb-3">
+              💧 {workoutData.days[0].waterRecommendation}
+            </div>
+          )}
+          {workoutData?.days?.[0]?.outdoorSuggestion && (
+            <div className="p-3 bg-green-50 rounded-lg text-sm text-green-900 mb-3">
+              🌿 {workoutData.days[0].outdoorSuggestion}
+            </div>
+          )}
+
+          <p className="text-sm text-gray-700 mb-2 font-semibold">{howWasDifficulty}</p>
+
+          <div className="flex justify-start gap-2 mb-2">
+            {options.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setRating(opt.value)}
+                className={`text-3xl p-1 rounded-full border-2 
+                  ${rating === opt.value ? "border-green-600 bg-green-50" : "border-transparent"}
+                  hover:border-green-400`}
+                type="button"
+                title={opt.text}
+                aria-label={opt.text}
+              >
+                {opt.label}
+              </button>
+            ))}
           </div>
-        )}
-        {workoutData?.days?.[0]?.outdoorSuggestion && (
-          <div className="p-3 bg-green-50 rounded-lg text-sm text-green-900 mb-3">
-            🌿 {workoutData.days[0].outdoorSuggestion}
+
+          <div className="flex flex-wrap gap-2 mb-4">
+            {options.map(opt => (
+              <span key={opt.value} className={`text-xs ${rating === opt.value ? "font-bold text-green-700" : "text-gray-400"}`}>
+                {opt.text}
+              </span>
+            ))}
           </div>
-        )}
 
-        <p className="text-sm text-gray-700 mb-2 font-semibold">{howWasDifficulty}</p>
-
-        <div className="flex justify-start gap-2 mb-2">
-          {options.map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setRating(opt.value)}
-              className={`text-3xl p-1 rounded-full border-2 
-                ${rating === opt.value ? "border-green-600 bg-green-50" : "border-transparent"}
-                hover:border-green-400`}
-              type="button"
-              title={opt.text}
-              aria-label={opt.text}
-            >
-              {opt.label}
-            </button>
-          ))}
+          <textarea
+            placeholder={commentPlaceholder}
+            value={comment}
+            onChange={e => setComment(e.target.value)}
+            className="w-full p-3 border rounded mb-24"
+            rows={4}
+          />
         </div>
-
-        <div className="flex flex-wrap gap-2 mb-4">
-          {options.map(opt => (
-            <span key={opt.value} className={`text-xs ${rating === opt.value ? "font-bold text-green-700" : "text-gray-400"}`}>
-              {opt.text}
-            </span>
-          ))}
-        </div>
-
-        <textarea
-          placeholder={commentPlaceholder}
-          value={comment}
-          onChange={e => setComment(e.target.value)}
-          className="w-full p-3 border rounded mb-24" // paliekam vietos sticky mygtukui apačioje
-          rows={4}
-        />
       </Shell>
     );
   }
