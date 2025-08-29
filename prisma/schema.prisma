@@ -8,10 +8,6 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-/**
- * ---- ENUM’ai (palikau kaip turėjai) ----
- */
-
 enum Gender {
   male
   female
@@ -122,10 +118,6 @@ enum MealFrequency {
   six
 }
 
-/**
- * ---- MODELIAI ----
- */
-
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -133,7 +125,6 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Profilio laukai (kaip buvo)
   age               Int?
   height            Int?
   weight            Float?
@@ -149,21 +140,17 @@ model User {
   foodAllergies     FoodAllergy[]
   country           String?                @db.VarChar(128)
 
-  // Ryšiai
   generatedPlans  GeneratedPlan[]
   sportsHabits    SportsHabitsReport[]
   eatingHabits    EatingHabitsReport[]
   exerciseHistory ExerciseHistory[]
-
-  // ⚠️ Pritaikyk tikslų lentelės vardą, jei tavo DB jis kitoks
-  @@map("users")
 }
 
 model GeneratedPlan {
   id     String @id @default(uuid())
   userId String
 
-  // — Tikroji tavo DB struktūra —
+  // Tikra tavo DB struktūra
   type             String
   planData         Json
   userComment      String?
@@ -176,9 +163,6 @@ model GeneratedPlan {
 
   user              User              @relation(fields: [userId], references: [id])
   exerciseHistories ExerciseHistory[]
-
-  // ⚠️ Pritaikyk tikslų lentelės vardą, jei tavo DB jis kitoks
-  @@map("generated_plans")
 }
 
 model SportsHabitsReport {
@@ -190,9 +174,6 @@ model SportsHabitsReport {
   reportJson Json
 
   user User @relation(fields: [userId], references: [id])
-
-  // ⚠️ Pritaikyk tikslų lentelės vardą, jei tavo DB jis kitoks
-  @@map("sports_habits_reports")
 }
 
 model EatingHabitsReport {
@@ -204,9 +185,6 @@ model EatingHabitsReport {
   reportJson Json
 
   user User @relation(fields: [userId], references: [id])
-
-  // ⚠️ Pritaikyk tikslų lentelės vardą, jei tavo DB jis kitoks
-  @@map("eating_habits_reports")
 }
 
 model ExerciseHistory {
@@ -223,7 +201,4 @@ model ExerciseHistory {
 
   user User          @relation(fields: [userId], references: [id])
   plan GeneratedPlan @relation(fields: [planId], references: [id])
-
-  // ⚠️ Pritaikyk tikslų lentelės vardą, jei tavo DB jis kitoks
-  @@map("exercise_histories")
 }
