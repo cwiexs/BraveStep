@@ -119,86 +119,82 @@ enum MealFrequency {
 }
 
 model User {
-  id                 String                 @id @default(uuid())
-  email              String                 @unique
-  name               String?
-  createdAt          DateTime               @default(now())
-  updatedAt          DateTime               @updatedAt
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Profile fields
-  age                Int?
-  height             Int?
-  weight             Float?
-  gender             Gender?
-  bodyType           BodyType?
-  trainingGoal       TrainingGoal?
-  fitnessLevel       FitnessLevel?
-  physicalActivity   PhysicalActivityLevel?
-  sleepQuality       SleepQuality?
-  stressLevel        StressLevel?
-  medicalConditions  MedicalCondition[]
-  foodPreferences    FoodPreference[]
-  foodAllergies      FoodAllergy[]
-  country            String?                @db.VarChar(128)
+  age               Int?
+  height            Int?
+  weight            Float?
+  gender            Gender?
+  bodyType          BodyType?
+  trainingGoal      TrainingGoal?
+  fitnessLevel      FitnessLevel?
+  physicalActivity  PhysicalActivityLevel?
+  sleepQuality      SleepQuality?
+  stressLevel       StressLevel?
+  medicalConditions MedicalCondition[]
+  foodPreferences   FoodPreference[]
+  foodAllergies     FoodAllergy[]
+  country           String?                @db.VarChar(128)
 
   // Relations
-  generatedPlans     GeneratedPlan[]
-  sportsHabits       SportsHabitsReport[]
-  eatingHabits       EatingHabitsReport[]
-  exerciseHistory    ExerciseHistory[]
+  generatedPlans  GeneratedPlan[]
+  sportsHabits    SportsHabitsReport[]
+  eatingHabits    EatingHabitsReport[]
+  exerciseHistory ExerciseHistory[]
 }
 
 model GeneratedPlan {
-  id                 String           @id @default(uuid())
-  userId             String
-  planJson           Json
-  createdAt          DateTime         @default(now())
-  updatedAt          DateTime         @updatedAt
+  id        String   @id @default(uuid())
+  userId    String
+  type      String
+  planData  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user               User             @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 
-  // Optional completion feedback
-  difficultyRating   Int?
-  userComment        String?
-
-  // 👇 Pridėtas atgalinis ryšys į ExerciseHistory (tai išsprendžia P1012)
-  exerciseHistories  ExerciseHistory[]
+  exerciseHistories ExerciseHistory[]
 }
 
 model SportsHabitsReport {
-  id                 String    @id @default(uuid())
-  userId             String
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  id        String   @id @default(uuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  reportJson         Json
+  reportJson Json
 
-  user               User      @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model EatingHabitsReport {
-  id                 String    @id @default(uuid())
-  userId             String
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
+  id        String   @id @default(uuid())
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  reportJson         Json
+  reportJson Json
 
-  user               User      @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id])
 }
 
 model ExerciseHistory {
-  id              String    @id @default(uuid())
-  userId          String
-  planId          String
-  workoutDate     DateTime  @default(now())
-  exerciseName    String
-  muscleGroups    String[]
-  difficulty      String
-  userRating      Int?
-  comment         String?
-  createdAt       DateTime  @default(now())
+  id           String   @id @default(uuid())
+  userId       String
+  planId       String
+  workoutDate  DateTime @default(now())
+  exerciseName String
+  muscleGroups String[]
+  difficulty   String
+  userRating   Int?
+  comment      String?
+  createdAt    DateTime @default(now())
 
-  user            User            @relation(fields: [userId], references: [id])
-  plan            GeneratedPlan   @relation(fields: [planId], references: [id])
+  user User          @relation(fields: [userId], references: [id])
+  plan GeneratedPlan @relation(fields: [planId], references: [id])
 }
