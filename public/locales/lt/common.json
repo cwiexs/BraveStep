@@ -524,9 +524,20 @@
     "finishWorkout": "Baigti treniruotę",
     "thanksForFeedback": "Ačiū už įvertinimą!",
     "secShortLt": "sek.",
-    "secShortEn": "sec."
+    "secShortEn": "sec.",
+    "upNext": "Kitas:",
+
+    "settings": {
+      "title": "Nustatymai",
+      "vibration": "Vibracija",
+      "soundFx": "Perjungimo garsas",
+      "voiceCountdown": "Skaičiavimas balsu (5–1)"
+    }
+  }
 }
 
 
+  
 
-}
+
+

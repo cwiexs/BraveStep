@@ -519,8 +519,15 @@
     "finishWorkout": "Finish workout",
     "thanksForFeedback": "Thanks for your feedback!",
     "secShortLt": "sek.",
-    "secShortEn": "sec."
-  }
+    "secShortEn": "sec.",
+    "upNext": "Up next:",
 
+    "settings": {
+      "title": "Settings",
+      "vibration": "Vibration",
+      "soundFx": "Sound FX",
+      "voiceCountdown": "Voice countdown (5–1)"
+  }
+}
 
 }
