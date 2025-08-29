@@ -144,13 +144,16 @@ model User {
   sportsHabits    SportsHabitsReport[]
   eatingHabits    EatingHabitsReport[]
   exerciseHistory ExerciseHistory[]
+
+  // DB lentelė yra "users", todėl mapinam tik šį modelį
+  @@map("users")
 }
 
 model GeneratedPlan {
   id     String @id @default(uuid())
   userId String
 
-  // Tikra tavo DB struktūra
+  // Tikroji tavo DB struktūra
   type             String
   planData         Json
   userComment      String?
