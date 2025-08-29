@@ -526,7 +526,8 @@
       "title": "Settings",
       "vibration": "Vibration",
       "soundFx": "Sound FX",
-      "voiceCountdown": "Voice countdown (5–1)"
+      "voiceCountdown": "Voice countdown (5–1)",
+      "voiceDescShort": "Count down 5,4,3,2,1 in the final seconds."
   }
 }
 

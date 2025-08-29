@@ -531,7 +531,8 @@
       "title": "Nustatymai",
       "vibration": "Vibracija",
       "soundFx": "Perjungimo garsas",
-      "voiceCountdown": "Skaičiavimas balsu (5–1)"
+      "voiceCountdown": "Skaičiavimas balsu (5–1)",
+      "voiceDescShort": "Skaičiuoti 5,4,3,2,1 paskutinėmis sekundėmis."
     }
   }
 }
