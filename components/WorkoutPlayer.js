@@ -23,13 +23,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [showSettings, setShowSettings] = useState(false);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [fxEnabled, setFxEnabled] = useState(true);       // perjungimo garsas
-  // paliekame select'ą, bet realiai naudojame tik beep (silence – tik iOS unlock)
-  const [fxTrack, setFxTrack] = useState("beep");         // "beep" | "silence"
+  const [fxTrack, setFxTrack] = useState("beep");         // "beep" | "silence" (pavadinimas paliktas suderinamumui)
   const [voiceEnabled, setVoiceEnabled] = useState(true); // balso skaičiavimas
   const [vibrationSupported, setVibrationSupported] = useState(false);
-
-  // Voice countdown helpers
-  const [lastVoiceSecond, setLastVoiceSecond] = useState(null); // 5..1
 
   // Apsauga: kai aktyvus įvesties laukas – neleidžiam „Power“
   const [inputActive, setInputActive] = useState(false);
@@ -37,18 +33,31 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   // ---- Refs ----
   const wakeLockRef = useRef(null);
 
-  // Laikmačio ref’ai (tikslus deadline metodas)
-  const tickRef = useRef(null);           // setTimeout id
-  const deadlineRef = useRef(null);       // epoch ms, kada step turi baigtis
+  // Tikslus laikmatis
+  const tickRafRef = useRef(null);
+  const lastTickRef = useRef(0);
+  const deadlineRef = useRef(null);       // performance.now() ms, kada step baigiasi
   const remainMsRef = useRef(null);       // ms, likę pauzės akimirką
 
   const timeoutsRef = useRef([]);
+
+  // Garso sistema (WebAudio + fallback)
   const audioRef = useRef({
-    loaded: false,
-    beep: null,
-    silence: null, // iOS unlock
-    nums: {}       // {1: Audio, ... 5: Audio}
+    html: {
+      loaded: false,
+      beep: null,
+      silence: null, // iOS unlock
+      nums: {},      // {1: Audio, ..., 5: Audio}
+    },
+    wa: {
+      ctx: null,                 // AudioContext
+      ready: false,
+      buffers: new Map(),        // "beep" | "1".."5" -> AudioBuffer
+      scheduled: [],             // {source, when} – kad galėtume atšaukti pauzės metu
+    }
   });
+
+  const lastSpokenRef = useRef(null);     // 5..1 – kad nekartotų
 
   // ---- Derived ----
   const day = workoutData?.days?.[currentDay];
@@ -86,9 +95,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // ---- Utils ----
   function parseSeconds(text) {
-    const match = text?.match(/(\d+)/);
+    if (typeof text === "number") return text;
+    const match = text?.match?.(/(\d+)/);
     return match ? parseInt(match[1], 10) : 0;
-    // pastaba: jei turi `step.duration` kaip skaičių – žemiau tai irgi palaikoma
   }
   function isTimed(text) {
     if (typeof text === "number") return text > 0;
@@ -101,62 +110,149 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     timeoutsRef.current = [];
   }
 
-  // Audio init + iOS unlock (BE "Get ready")
-  function ensureAudioLoaded() {
-    if (audioRef.current.loaded) return;
-    audioRef.current.beep = new Audio("/beep.wav");
-    audioRef.current.silence = new Audio("/silance.mp3"); // palaikom tavo failo pavadinimą
-    audioRef.current.nums = {
+  // --------- AUDIO (WebAudio + fallback) ----------
+  async function ensureWAContext() {
+    if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    const ctx = new Ctx();
+    audioRef.current.wa.ctx = ctx;
+    return ctx;
+  }
+
+  async function loadWABuffer(name, url) {
+    try {
+      const ctx = await ensureWAContext();
+      if (!ctx) return false;
+      if (audioRef.current.wa.buffers.has(name)) return true;
+      const res = await fetch(url);
+      const arr = await res.arrayBuffer();
+      const buf = await ctx.decodeAudioData(arr);
+      audioRef.current.wa.buffers.set(name, buf);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function playWABuffer(name, when = 0) {
+    try {
+      const { ctx, buffers, scheduled } = audioRef.current.wa;
+      if (!ctx) return false;
+      const buf = buffers.get(name);
+      if (!buf) return false;
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      const startAt = ctx.currentTime + Math.max(0, when);
+      src.start(startAt);
+      scheduled.push({ source: src, when: startAt });
+      // auto prune
+      src.onended = () => {
+        const i = scheduled.findIndex(s => s.source === src);
+        if (i >= 0) scheduled.splice(i, 1);
+      };
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function stopAllScheduled() {
+    const { scheduled } = audioRef.current.wa;
+    scheduled.forEach(s => {
+      try { s.source.stop(0); } catch {}
+    });
+    audioRef.current.wa.scheduled = [];
+  }
+
+  // HTMLAudio fallback
+  function ensureHTMLAudioLoaded() {
+    if (audioRef.current.html.loaded) return;
+    const beep = new Audio("/beep.wav");
+    const silence = new Audio("/silance.mp3"); // iOS unlock
+    const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
       3: new Audio("/3.mp3"),
       4: new Audio("/4.mp3"),
-      5: new Audio("/5.mp3"),
+      5: new Audio("/5.mp3")
     };
     try {
-      audioRef.current.beep.load();
-      Object.values(audioRef.current.nums).forEach(a => { try { a.load(); } catch {} });
+      beep.load();
+      Object.values(nums).forEach(a => { try { a.load(); } catch {} });
     } catch {}
-    audioRef.current.loaded = true;
+    audioRef.current.html = { loaded: true, beep, silence, nums };
   }
 
-  // Paleidžiam „silence“ vos paspaudus Start – iOS audio unlock
-  function primeIOSAudio() {
-    ensureAudioLoaded();
+  function playHTML(name) {
+    ensureHTMLAudioLoaded();
+    const { beep, nums } = audioRef.current.html;
+    if (name === "beep") {
+      try { beep.currentTime = 0; beep.volume = 0.75; beep.play(); } catch {}
+      return true;
+    }
+    if (["1","2","3","4","5"].includes(name)) {
+      const a = nums[Number(name)];
+      try { a.currentTime = 0; a.play(); } catch {}
+      return true;
+    }
+    return false;
+  }
+
+  async function primeIOSAudio() {
+    // 1) WebAudio: sukurti ir resume
+    const ctx = await ensureWAContext();
+    try { await ctx?.resume(); } catch {}
+
+    // 2) Preload WA buffers (beep + numbers)
+    await Promise.all([
+      loadWABuffer("beep", "/beep.wav"),
+      loadWABuffer("1", "/1.mp3"),
+      loadWABuffer("2", "/2.mp3"),
+      loadWABuffer("3", "/3.mp3"),
+      loadWABuffer("4", "/4.mp3"),
+      loadWABuffer("5", "/5.mp3"),
+    ]);
+
+    // 3) HTMLAudio tylus unlock – kad iOS „pažadinti“
+    ensureHTMLAudioLoaded();
     try {
-      const s = audioRef.current.silence;
-      s.volume = 0.02;           // labai tyliai
+      const s = audioRef.current.html.silence;
+      s.volume = 0.01;
       s.currentTime = 0;
-      s.play()
-        .then(() => {
-          setTimeout(() => {
-            try { s.pause(); s.currentTime = 0; } catch {}
-          }, 200);
-        })
-        .catch(() => {});
+      await s.play().catch(() => {});
+      setTimeout(() => { try { s.pause(); s.currentTime = 0; } catch {} }, 120);
     } catch {}
   }
 
-  function playFx() {
+  function ping() {
     if (!fxEnabled) return;
-    ensureAudioLoaded();
-    try {
-      const track = audioRef.current.beep;
-      track.currentTime = 0;
-      track.volume = 0.6;
-      track.play().catch(() => {});
-    } catch {}
+    // WebAudio pirmas
+    const waOk = playWABuffer("beep", 0);
+    if (!waOk) playHTML("beep");
   }
 
-  function playVoiceNumber(n) {
-    if (!voiceEnabled) return;
-    ensureAudioLoaded();
-    const a = audioRef.current.nums?.[n];
-    if (!a) return;
-    try {
-      a.currentTime = 0;
-      a.play().catch(() => {});
-    } catch {}
+  function speakNumber(n) {
+    // Prioritetas: WA su buferiu -> HTMLAudio -> (jei labai reikia) SpeechSynthesis
+    const ok = playWABuffer(String(n), 0);
+    if (ok) return;
+
+    const ok2 = playHTML(String(n));
+    if (ok2) return;
+
+    if (voiceEnabled && "speechSynthesis" in window) {
+      try {
+        const u = new SpeechSynthesisUtterance(String(n));
+        u.lang = i18n.language?.startsWith("lt") ? "lt-LT" : "en-US";
+        u.rate = 1.05;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
+      } catch {}
+    } else {
+      // bent jau "beep"
+      ping();
+    }
   }
 
   function vibe(pattern = [40, 40]) {
@@ -215,79 +311,87 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => { try { localStorage.setItem("bs_fx_track", fxTrack); } catch {} }, [fxTrack]);
   useEffect(() => { try { localStorage.setItem("bs_voice_enabled", String(voiceEnabled)); } catch {} }, [voiceEnabled]);
 
-  // ---- Timer helpers (tikslus deadline) ----
-  const clearTick = () => {
-    if (tickRef.current) {
-      clearTimeout(tickRef.current);
-      tickRef.current = null;
+  // ---- TIMER (RAF + performance.now) ----
+  const cancelRaf = () => {
+    if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
+    tickRafRef.current = null;
+  };
+
+  const tick = (nowMs) => {
+    if (!deadlineRef.current) return;
+    // ribojam UI atnaujinimą iki ~60–100ms
+    if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
+      const msLeft = Math.max(0, deadlineRef.current - nowMs);
+      const secs = Math.ceil(msLeft / 1000);
+      setSecondsLeft(prev => (prev !== secs ? secs : prev));
+
+      // 5..1 – paleidžiam be lag'o
+      if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
+        if (lastSpokenRef.current !== secs) {
+          speakNumber(secs);
+          lastSpokenRef.current = secs;
+        }
+      }
+
+      // pabaiga
+      if (msLeft <= 0) {
+        cancelRaf();
+        lastSpokenRef.current = null;
+        setStepFinished(true);
+        handlePhaseComplete();
+        return;
+      }
+      lastTickRef.current = nowMs;
     }
+    tickRafRef.current = requestAnimationFrame(tick);
   };
 
   const startTimedStep = (durationSec) => {
-    clearTick();
+    cancelRaf();
+    stopAllScheduled(); // atšaukiam suplanuotus WA garsus
+    lastSpokenRef.current = null;
+
     if (!durationSec || durationSec <= 0) {
-      // jei žingsnis be laiko – iškart sekantis
       setSecondsLeft(0);
       setWaitingForUser(true);
       return;
     }
     setWaitingForUser(false);
     setPaused(false);
-    const now = Date.now();
-    deadlineRef.current = now + durationSec * 1000 + 30; // mažytė „pagalvė“
+
+    const nowMs = performance.now();
+    deadlineRef.current = nowMs + durationSec * 1000; // no extra padding
     setSecondsLeft(durationSec);
-    tickRef.current = setTimeout(tick, 180);
+
     // perjungimo momentu – vibracija + beep
     vibe([40, 40]);
-    playFx();
-    // atstatom skaičiavimo būseną
-    setLastVoiceSecond(null);
-  };
+    ping();
 
-  const tick = () => {
-    if (!deadlineRef.current) return;
-    const now = Date.now();
-    const msLeft = Math.max(0, deadlineRef.current - now);
-    const secs = Math.ceil(msLeft / 1000);
-    setSecondsLeft(prev => (prev !== secs ? secs : prev));
-
-    // 5..1 skaičiavimas (tik kai aktyvu)
-    if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
-      if (lastVoiceSecond !== secs) {
-        playVoiceNumber(secs);
-        setLastVoiceSecond(secs);
-      }
-    }
-
-    if (msLeft <= 0) {
-      clearTick();
-      setStepFinished(true);
-      handlePhaseComplete();
-      return;
-    }
-    tickRef.current = setTimeout(tick, 180);
+    tickRafRef.current = requestAnimationFrame(tick);
   };
 
   const pauseTimer = () => {
     if (paused) return;
     setPaused(true);
-    if (deadlineRef.current) remainMsRef.current = Math.max(0, deadlineRef.current - Date.now());
-    clearTick();
+    if (deadlineRef.current) remainMsRef.current = Math.max(0, deadlineRef.current - performance.now());
+    cancelRaf();
+    stopAllScheduled();
   };
 
   const resumeTimer = () => {
     if (!paused) return;
     setPaused(false);
     if (remainMsRef.current != null) {
-      deadlineRef.current = Date.now() + remainMsRef.current;
-      setLastVoiceSecond(null);
-      tickRef.current = setTimeout(tick, 180);
+      lastSpokenRef.current = null;
+      deadlineRef.current = performance.now() + remainMsRef.current;
+      tickRafRef.current = requestAnimationFrame(tick);
     }
   };
 
   // ---- Timer setup per step ----
   useEffect(() => {
-    clearTick();
+    cancelRaf();
+    stopAllScheduled();
     deadlineRef.current = null;
 
     if (phase !== "exercise" || !step) {
@@ -306,13 +410,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       return;
     }
 
-    // palaikome tiek tekstinį "30 sek", tiek skaitinį duration
-    const duration = typeof step?.duration === "number" ? step.duration : (isTimed(step?.duration) ? parseSeconds(step?.duration) : 0);
-
+    const duration = parseSeconds(step?.duration);
     if (duration > 0) {
       startTimedStep(duration);
     } else {
-      // untimed – laukiame vartotojo
       setSecondsLeft(0);
       setWaitingForUser(true);
     }
@@ -330,14 +431,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }, [currentStepIndex, currentExerciseIndex]);
 
   useEffect(() => {
-    return () => { clearAllTimeouts(); clearTick(); };
+    return () => { clearAllTimeouts(); cancelRaf(); stopAllScheduled(); };
   }, []);
 
   // ---- Navigation handlers ----
   function handleManualContinue() {
-    clearTick();
+    cancelRaf();
+    stopAllScheduled();
     if (phase === "intro") {
-      // iOS audio unlock
+      // iOS audio unlock + WA init
       primeIOSAudio();
       setPhase("exercise");
       // pirmo step’o inicijavimas – atliks useEffect (aukščiau)
@@ -350,7 +452,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function handlePhaseComplete() {
-    clearTick();
+    cancelRaf();
+    stopAllScheduled();
 
     if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
@@ -365,7 +468,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function goToPrevious() {
-    clearTick();
+    cancelRaf();
+    stopAllScheduled();
     if (step && currentStepIndex > 0) {
       setCurrentStepIndex(prev => prev - 1);
     } else if (exercise && currentExerciseIndex > 0) {
@@ -376,7 +480,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
   function goToNext() {
-    clearTick();
+    cancelRaf();
+    stopAllScheduled();
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
     } else if (day && currentExerciseIndex + 1 < day.exercises.length) {
@@ -385,8 +490,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
   function restartCurrentStep() {
-    clearTick();
-    const duration = typeof step?.duration === "number" ? step.duration : (isTimed(step?.duration) ? parseSeconds(step?.duration) : 0);
+    cancelRaf();
+    stopAllScheduled();
+    const duration = parseSeconds(step?.duration);
     if (duration > 0) startTimedStep(duration);
   }
 
@@ -468,7 +574,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                   <option value="silence">silance.mp3</option>
                 </select>
                 <button
-                  onClick={() => { ensureAudioLoaded(); playFx(); }}
+                  onClick={() => { ping(); }}
                   className="ml-3 px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200"
                 >
                   {t("player.testFx", { defaultValue: "Išbandyti" })}
@@ -476,7 +582,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               </div>
             </div>
 
-            {/* Balso skaičiavimas (tik 5..1, be „Get ready“) */}
+            {/* Balso skaičiavimas (5..1) */}
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="font-medium">{t("player.voice", { defaultValue: "Balso skaičiavimas" })}</p>
@@ -493,7 +599,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             </div>
             <div className="flex justify-end gap-2">
               <button
-                onClick={() => { ensureAudioLoaded(); primeIOSAudio(); }}
+                onClick={() => { primeIOSAudio(); }}
                 className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"
               >
                 {t("player.primeAudio", { defaultValue: "Paruošti garsą" })}
@@ -511,7 +617,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     </div>
   );
 
-  // ---- Intro (Motyvacija) – kaip buvo (centruota) ----
+  // ---- Intro (Motyvacija) ----
   if (phase === "intro") {
     return (
       <Shell
@@ -588,7 +694,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             <p className="text-sm text-gray-700 italic mb-4">{exercise?.description}</p>
           )}
 
-          { (typeof step?.duration === "number" ? step.duration > 0 : isTimed(step?.duration)) && (
+          {(parseSeconds(step?.duration) > 0) && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
               {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
             </p>
@@ -725,7 +831,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             onChange={e => setComment(e.target.value)}
             onFocus={() => setInputActive(true)}
             onBlur={() => setInputActive(false)}
-            onKeyDown={(e) => e.stopPropagation()} // ← apsauga: neperduoti „karštųjų“ klavišų
+            onKeyDown={(e) => e.stopPropagation()}
             className="w-full p-3 border rounded mb-24 outline-none focus:ring-2 focus:ring-black/10"
             rows={4}
           />
