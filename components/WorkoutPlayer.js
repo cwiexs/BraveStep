@@ -23,41 +23,32 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [showSettings, setShowSettings] = useState(false);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [fxEnabled, setFxEnabled] = useState(true);       // perjungimo garsas
-  const [fxTrack, setFxTrack] = useState("beep");         // "beep" | "silence" (pavadinimas paliktas suderinamumui)
-  const [voiceEnabled, setVoiceEnabled] = useState(true); // balso skaičiavimas
+  const [fxTrack, setFxTrack] = useState("beep");         // suderinamumo dėlei
+  const [voiceEnabled, setVoiceEnabled] = useState(true); // 5..1
   const [vibrationSupported, setVibrationSupported] = useState(false);
 
-  // Apsauga: kai aktyvus įvesties laukas – neleidžiam „Power“
+  // Apsaugos
   const [inputActive, setInputActive] = useState(false);
 
   // ---- Refs ----
+  const containerRef = useRef(null);        // form submit blokavimui
   const wakeLockRef = useRef(null);
 
   // Tikslus laikmatis
   const tickRafRef = useRef(null);
   const lastTickRef = useRef(0);
-  const deadlineRef = useRef(null);       // performance.now() ms, kada step baigiasi
-  const remainMsRef = useRef(null);       // ms, likę pauzės akimirką
+  const deadlineRef = useRef(null);       // performance.now()
+  const remainMsRef = useRef(null);
 
   const timeoutsRef = useRef([]);
 
   // Garso sistema (WebAudio + fallback)
   const audioRef = useRef({
-    html: {
-      loaded: false,
-      beep: null,
-      silence: null, // iOS unlock
-      nums: {},      // {1: Audio, ..., 5: Audio}
-    },
-    wa: {
-      ctx: null,                 // AudioContext
-      ready: false,
-      buffers: new Map(),        // "beep" | "1".."5" -> AudioBuffer
-      scheduled: [],             // {source, when} – kad galėtume atšaukti pauzės metu
-    }
+    html: { loaded: false, beep: null, silence: null, nums: {} },
+    wa: { ctx: null, ready: false, buffers: new Map(), scheduled: [] }
   });
 
-  const lastSpokenRef = useRef(null);     // 5..1 – kad nekartotų
+  const lastSpokenRef = useRef(null);     // 5..1
 
   // ---- Derived ----
   const day = workoutData?.days?.[currentDay];
@@ -112,14 +103,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // --------- AUDIO (WebAudio + fallback) ----------
   async function ensureWAContext() {
-    if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return null;
+    if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
     const ctx = new Ctx();
     audioRef.current.wa.ctx = ctx;
     return ctx;
   }
-
   async function loadWABuffer(name, url) {
     try {
       const ctx = await ensureWAContext();
@@ -134,7 +124,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       return false;
     }
   }
-
   function playWABuffer(name, when = 0) {
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
@@ -147,22 +136,16 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const startAt = ctx.currentTime + Math.max(0, when);
       src.start(startAt);
       scheduled.push({ source: src, when: startAt });
-      // auto prune
       src.onended = () => {
         const i = scheduled.findIndex(s => s.source === src);
         if (i >= 0) scheduled.splice(i, 1);
       };
       return true;
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   }
-
   function stopAllScheduled() {
     const { scheduled } = audioRef.current.wa;
-    scheduled.forEach(s => {
-      try { s.source.stop(0); } catch {}
-    });
+    scheduled.forEach(s => { try { s.source.stop(0); } catch {} });
     audioRef.current.wa.scheduled = [];
   }
 
@@ -170,7 +153,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
     const beep = new Audio("/beep.wav");
-    const silence = new Audio("/silance.mp3"); // iOS unlock
+    const silence = new Audio("/silance.mp3");
     const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
@@ -184,28 +167,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     } catch {}
     audioRef.current.html = { loaded: true, beep, silence, nums };
   }
-
-  function playHTML(name) {
-    ensureHTMLAudioLoaded();
-    const { beep, nums } = audioRef.current.html;
-    if (name === "beep") {
-      try { beep.currentTime = 0; beep.volume = 0.75; beep.play(); } catch {}
-      return true;
-    }
-    if (["1","2","3","4","5"].includes(name)) {
-      const a = nums[Number(name)];
-      try { a.currentTime = 0; a.play(); } catch {}
-      return true;
-    }
-    return false;
-  }
-
   async function primeIOSAudio() {
-    // 1) WebAudio: sukurti ir resume
     const ctx = await ensureWAContext();
     try { await ctx?.resume(); } catch {}
-
-    // 2) Preload WA buffers (beep + numbers)
     await Promise.all([
       loadWABuffer("beep", "/beep.wav"),
       loadWABuffer("1", "/1.mp3"),
@@ -214,8 +178,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       loadWABuffer("4", "/4.mp3"),
       loadWABuffer("5", "/5.mp3"),
     ]);
-
-    // 3) HTMLAudio tylus unlock – kad iOS „pažadinti“
     ensureHTMLAudioLoaded();
     try {
       const s = audioRef.current.html.silence;
@@ -225,22 +187,21 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       setTimeout(() => { try { s.pause(); s.currentTime = 0; } catch {} }, 120);
     } catch {}
   }
-
   function ping() {
     if (!fxEnabled) return;
-    // WebAudio pirmas
     const waOk = playWABuffer("beep", 0);
-    if (!waOk) playHTML("beep");
+    if (!waOk) {
+      ensureHTMLAudioLoaded();
+      const { beep } = audioRef.current.html;
+      try { beep.currentTime = 0; beep.volume = 0.75; beep.play(); } catch {}
+    }
   }
-
   function speakNumber(n) {
-    // Prioritetas: WA su buferiu -> HTMLAudio -> (jei labai reikia) SpeechSynthesis
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
-
-    const ok2 = playHTML(String(n));
-    if (ok2) return;
-
+    ensureHTMLAudioLoaded();
+    const a = audioRef.current.html.nums[n];
+    if (a) { try { a.currentTime = 0; a.play(); } catch {} ; return; }
     if (voiceEnabled && "speechSynthesis" in window) {
       try {
         const u = new SpeechSynthesisUtterance(String(n));
@@ -250,26 +211,19 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         window.speechSynthesis.speak(u);
       } catch {}
     } else {
-      // bent jau "beep"
       ping();
     }
   }
-
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
-    try {
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate(pattern);
-      }
-    } catch {}
+    try { if ("vibrate" in navigator) navigator.vibrate(pattern); } catch {}
   }
 
-  // Sekantis pratimas/serija – rodysime po laikmačiu (be box'o)
+  // Kitas pratimas (poilsio metu)
   const nextExerciseInfo = useMemo(() => {
     if (!day) return null;
     let exIdx = currentExerciseIndex;
     let stIdx = currentStepIndex + 1;
-
     while (exIdx < (day.exercises?.length || 0)) {
       const ex = day.exercises?.[exIdx];
       if (!ex) break;
@@ -311,29 +265,34 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => { try { localStorage.setItem("bs_fx_track", fxTrack); } catch {} }, [fxTrack]);
   useEffect(() => { try { localStorage.setItem("bs_voice_enabled", String(voiceEnabled)); } catch {} }, [voiceEnabled]);
 
+  // ---- BLOKUOJAM tėvinio <form> submit (jei toks yra) ----
+  useEffect(() => {
+    const onSubmitCapture = (e) => {
+      if (containerRef.current && containerRef.current.contains(e.target)) {
+        e.preventDefault();
+      }
+    };
+    document.addEventListener("submit", onSubmitCapture, true);
+    return () => document.removeEventListener("submit", onSubmitCapture, true);
+  }, []);
+
   // ---- TIMER (RAF + performance.now) ----
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
   };
-
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
-    // ribojam UI atnaujinimą iki ~60–100ms
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
       const msLeft = Math.max(0, deadlineRef.current - nowMs);
       const secs = Math.ceil(msLeft / 1000);
       setSecondsLeft(prev => (prev !== secs ? secs : prev));
-
-      // 5..1 – paleidžiam be lag'o
       if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
         if (lastSpokenRef.current !== secs) {
           speakNumber(secs);
           lastSpokenRef.current = secs;
         }
       }
-
-      // pabaiga
       if (msLeft <= 0) {
         cancelRaf();
         lastSpokenRef.current = null;
@@ -345,12 +304,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
     tickRafRef.current = requestAnimationFrame(tick);
   };
-
   const startTimedStep = (durationSec) => {
     cancelRaf();
-    stopAllScheduled(); // atšaukiam suplanuotus WA garsus
+    stopAllScheduled();
     lastSpokenRef.current = null;
-
     if (!durationSec || durationSec <= 0) {
       setSecondsLeft(0);
       setWaitingForUser(true);
@@ -358,18 +315,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
     setWaitingForUser(false);
     setPaused(false);
-
     const nowMs = performance.now();
-    deadlineRef.current = nowMs + durationSec * 1000; // no extra padding
+    deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
-
-    // perjungimo momentu – vibracija + beep
     vibe([40, 40]);
     ping();
-
     tickRafRef.current = requestAnimationFrame(tick);
   };
-
   const pauseTimer = () => {
     if (paused) return;
     setPaused(true);
@@ -377,7 +329,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     cancelRaf();
     stopAllScheduled();
   };
-
   const resumeTimer = () => {
     if (!paused) return;
     setPaused(false);
@@ -399,7 +350,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       setWaitingForUser(false);
       return;
     }
-
     if (isTerminalRestAfter) {
       setWaitingForUser(false);
       setSecondsLeft(0);
@@ -409,11 +359,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
       return;
     }
-
     const duration = parseSeconds(step?.duration);
-    if (duration > 0) {
-      startTimedStep(duration);
-    } else {
+    if (duration > 0) startTimedStep(duration);
+    else {
       setSecondsLeft(0);
       setWaitingForUser(true);
     }
@@ -439,10 +387,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
-      // iOS audio unlock + WA init
       primeIOSAudio();
       setPhase("exercise");
-      // pirmo step’o inicijavimas – atliks useEffect (aukščiau)
     } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
@@ -450,11 +396,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       onClose?.();
     }
   }
-
   function handlePhaseComplete() {
     cancelRaf();
     stopAllScheduled();
-
     if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex(prev => prev + 1);
       return;
@@ -466,13 +410,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
     setPhase("summary");
   }
-
   function goToPrevious() {
-    cancelRaf();
-    stopAllScheduled();
-    if (step && currentStepIndex > 0) {
-      setCurrentStepIndex(prev => prev - 1);
-    } else if (exercise && currentExerciseIndex > 0) {
+    cancelRaf(); stopAllScheduled();
+    if (step && currentStepIndex > 0) setCurrentStepIndex(prev => prev - 1);
+    else if (exercise && currentExerciseIndex > 0) {
       const prevIdx = currentExerciseIndex - 1;
       setCurrentExerciseIndex(prevIdx);
       const prevEx = day?.exercises?.[prevIdx];
@@ -480,18 +421,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
   function goToNext() {
-    cancelRaf();
-    stopAllScheduled();
-    if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
-      setCurrentStepIndex(prev => prev + 1);
-    } else if (day && currentExerciseIndex + 1 < day.exercises.length) {
+    cancelRaf(); stopAllScheduled();
+    if (step && exercise && currentStepIndex + 1 < exercise.steps.length) setCurrentStepIndex(prev => prev + 1);
+    else if (day && currentExerciseIndex + 1 < day.exercises.length) {
       setCurrentExerciseIndex(prev => prev + 1);
       setCurrentStepIndex(0);
     }
   }
   function restartCurrentStep() {
-    cancelRaf();
-    stopAllScheduled();
+    cancelRaf(); stopAllScheduled();
     const duration = parseSeconds(step?.duration);
     if (duration > 0) startTimedStep(duration);
   }
@@ -500,6 +438,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const HeaderBar = () => (
     <div className="h-12 px-3 flex items-center justify-end gap-2 border-b bg-white sticky top-0 z-50">
       <button
+        type="button"
         onClick={() => setShowSettings(true)}
         className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow"
         aria-label={t("common.settings", { defaultValue: "Nustatymai" })}
@@ -508,6 +447,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         <Settings className="w-5 h-5" />
       </button>
       <button
+        type="button"
         onClick={() => { if (!inputActive) onClose?.(); }}
         className={`p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow ${inputActive ? "pointer-events-none opacity-50" : ""}`}
         aria-label={t("common.close", { defaultValue: "Uždaryti" })}
@@ -519,7 +459,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   );
 
   const Shell = ({ children, footer }) => (
-    <div className="fixed inset-0 bg-white text-gray-900 flex flex-col z-40">
+    <div ref={containerRef} className="fixed inset-0 bg-white text-gray-900 flex flex-col z-40">
       <HeaderBar />
       <div className="flex-1 overflow-auto p-6 pt-8">{children}</div>
       {footer ? <div className="border-t p-4 sticky bottom-0 bg-white">{footer}</div> : null}
@@ -527,7 +467,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       {/* Settings modal */}
       {showSettings && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5" onKeyDown={(e)=>{ if(e.key==="Enter"&&!e.shiftKey){ e.preventDefault(); } }}>
             <h3 className="text-xl font-bold mb-4">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
 
             {/* Vibracija */}
@@ -537,6 +477,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
               </div>
               <button
+                type="button"
                 onClick={() => setVibrationEnabled(v => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
@@ -557,6 +498,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                   <p className="text-sm text-gray-500">{t("player.fxDesc", { defaultValue: "Skambėti keičiantis pratimą / poilsį." })}</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => setFxEnabled(v => !v)}
                   className={`px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
                 >
@@ -574,6 +516,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                   <option value="silence">silance.mp3</option>
                 </select>
                 <button
+                  type="button"
                   onClick={() => { ping(); }}
                   className="ml-3 px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200"
                 >
@@ -582,7 +525,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               </div>
             </div>
 
-            {/* Balso skaičiavimas (5..1) */}
+            {/* Balso skaičiavimas */}
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="font-medium">{t("player.voice", { defaultValue: "Balso skaičiavimas" })}</p>
@@ -591,6 +534,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 </p>
               </div>
               <button
+                type="button"
                 onClick={() => setVoiceEnabled(v => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${voiceEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
@@ -599,12 +543,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             </div>
             <div className="flex justify-end gap-2">
               <button
+                type="button"
                 onClick={() => { primeIOSAudio(); }}
                 className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"
               >
                 {t("player.primeAudio", { defaultValue: "Paruošti garsą" })}
               </button>
               <button
+                type="button"
                 onClick={() => setShowSettings(false)}
                 className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
               >
@@ -624,6 +570,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         footer={
           <div className="flex flex-col items-center gap-3">
             <button
+              type="button"
               className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold"
               onClick={handleManualContinue}
             >
@@ -658,21 +605,21 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         footer={
           <>
             <div className="flex items-center justify-center gap-4">
-              <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
+              <button type="button" onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
                 <SkipBack className="w-6 h-6 text-gray-800" />
               </button>
-              <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
+              <button type="button" onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
                 {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
               </button>
-              <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
+              <button type="button" onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
                 <RotateCcw className="w-6 h-6 text-gray-800" />
               </button>
-              <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+              <button type="button" onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
             <div className="mt-3 flex justify-center">
-              <button onClick={onClose} className="text-sm text-red-600 hover:underline">
+              <button type="button" onClick={onClose} className="text-sm text-red-600 hover:underline">
                 {endSessionLabel}
               </button>
             </div>
@@ -704,6 +651,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           {waitingForUser && step?.type === "exercise" && (
             <div className="mt-6">
               <button
+                type="button"
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
                 onClick={handleManualContinue}
               >
@@ -756,6 +704,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         footer={
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <button
+              type="button"
               className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold"
               onClick={async () => {
                 try {
@@ -772,6 +721,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               {finishWorkout}
             </button>
             <button
+              type="button"
               className="text-sm text-gray-600 underline"
               onClick={() => { if (!inputActive) onClose?.(); }}
             >
@@ -804,11 +754,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             {options.map(opt => (
               <button
                 key={opt.value}
-                onClick={() => setRating(opt.value)}
+                type="button"
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setRating(opt.value); }}
                 className={`text-3xl p-1 rounded-full border-2 
                   ${rating === opt.value ? "border-green-600 bg-green-50" : "border-transparent"}
                   hover:border-green-400`}
-                type="button"
                 title={opt.text}
                 aria-label={opt.text}
               >
@@ -831,7 +781,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             onChange={e => setComment(e.target.value)}
             onFocus={() => setInputActive(true)}
             onBlur={() => setInputActive(false)}
-            onKeyDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              e.stopPropagation();
+              // Enter be Shift – neleidžiam submit/perkrovimo
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+              }
+            }}
             className="w-full p-3 border rounded mb-24 outline-none focus:ring-2 focus:ring-black/10"
             rows={4}
           />
