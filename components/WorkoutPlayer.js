@@ -785,9 +785,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             {!submitted ? (
               <button
                 type="button"
-                onMouseDown={(e)=>e.stopPropagation()}
+                data-finish-btn="1"
+                tabIndex={-1}
+                onMouseDown={(e)=>{ e.preventDefault(); e.stopPropagation(); }}
                 className={`bg-green-600 text-white px-6 py-3 rounded-lg font-semibold ${submitting ? "opacity-70 cursor-wait" : "hover:bg-green-700"}`}
-                onClick={async () => {
+                onClick={async () => { if (submitting) return;
                   const y = lastYRef.current; setSubmitting(true);
                   try {
                     const rsp = await fetch("/api/complete-plan", {
@@ -871,7 +873,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             value={comment}
             onChange={e => { const el = e.target; caretRef.current = { start: el.selectionStart, end: el.selectionEnd }; setComment(el.value); const y = lastYRef.current; requestAnimationFrame(()=>{ try { const ta = textareaRef.current; if (ta) { ta.focus({ preventScroll: true }); const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} restoreScroll(y); }); }}
             onFocus={() => setInputActive(true)}
-            onBlur={() => setInputActive(false)}
+            onBlur={(e) => { try { const to = e.relatedTarget; if (to && to.getAttribute && to.getAttribute("data-finish-btn") === "1") return; } catch {} setInputActive(false); }}
             onKeyDown={(e) => e.stopPropagation()}
             className="w-full p-3 border rounded mb-24 outline-none focus:ring-2 focus:ring-black/10"
             onInput={() => { const y = lastYRef.current; requestAnimationFrame(()=>{ try { const ta = textareaRef.current; if (ta) { ta.focus({ preventScroll: true }); const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} restoreScroll(y); }); }}
