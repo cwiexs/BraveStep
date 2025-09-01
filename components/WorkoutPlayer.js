@@ -754,7 +754,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return (
       <Shell
         footer={
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="flex flex-col items-center justify-center gap-3">
             <button
               className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold"
               onClick={async () => {
@@ -781,7 +781,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           </div>
         }
       >
-        <div className="max-w-2xl mx-auto">
+        <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl font-bold mb-2 text-center">🎉 {workoutCompletedLabel}</h2>
           <p className="mb-4 text-gray-800 whitespace-pre-wrap text-center">
             {workoutData?.days?.[0]?.motivationEnd || thanksForWorkingOut}
@@ -800,11 +800,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
           <p className="text-sm text-gray-700 mb-2 font-semibold">{howWasDifficulty}</p>
 
-          <div className="flex justify-start gap-2 mb-2">
+          <div className="flex justify-center gap-2 mb-2">
             {options.map(opt => (
               <button
                 key={opt.value}
-                onClick={() => setRating(opt.value)}
+                onMouseDown={(e) => e.preventDefault()} onClick={() => setRating(opt.value)}
                 className={`text-3xl p-1 rounded-full border-2 
                   ${rating === opt.value ? "border-green-600 bg-green-50" : "border-transparent"}
                   hover:border-green-400`}
@@ -817,7 +817,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             ))}
           </div>
 
-          <div className="flex flex-wrap gap-2 mb-4">
+          <div className="flex flex-wrap gap-2 mb-4 justify-center">
             {options.map(opt => (
               <span key={opt.value} className={`text-xs ${rating === opt.value ? "font-bold text-green-700" : "text-gray-400"}`}>
                 {opt.text}
@@ -825,7 +825,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             ))}
           </div>
 
-          <textarea
+          <textarea onMouseDown={(e) => e.stopPropagation()}
             placeholder={commentPlaceholder}
             value={comment}
             onChange={e => setComment(e.target.value)}
