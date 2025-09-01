@@ -7,6 +7,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
   const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
+  const isAndroid = typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
   // iOS body scroll lock while typing
   const pageYRef = useRef(0);
   const lockBodyScroll = () => {
@@ -909,12 +910,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           <textarea ref={textareaRef} onClick={(e)=>e.stopPropagation()} onMouseDown={(e) => { e.stopPropagation(); const y = lastYRef.current; requestAnimationFrame(()=>restoreScroll(y)); }}
             placeholder={commentPlaceholder}
             value={comment}
-            onChange={e => { const el = e.target; caretRef.current = { start: el.selectionStart, end: el.selectionEnd }; setComment(el.value); const y = lastYRef.current; requestAnimationFrame(()=>{ if (!isIOS) { try { const ta = textareaRef.current; if (ta) { ta.focus({ preventScroll: true }); const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} } restoreScroll(y); }); }}
+            onChange={e => { const el = e.target; caretRef.current = { start: el.selectionStart, end: el.selectionEnd }; setComment(el.value); const y = lastYRef.current; requestAnimationFrame(()=>{ if (!(isIOS || isAndroid)) { try { const ta = textareaRef.current; if (ta) { if (!(isIOS || isAndroid)) { ta.focus({ preventScroll: true }); } const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} } restoreScroll(y); }); }}
             onFocus={() => setInputActive(true)}
             onBlur={(e) => { if (isIOS) return; try { const to = e.relatedTarget; if (to && to.getAttribute && to.getAttribute("data-finish-btn") === "1") return; } catch {} setInputActive(false); }}
             onKeyDown={(e) => e.stopPropagation()}
             className="w-full p-3 border rounded mb-24 outline-none focus:ring-2 focus:ring-black/10"
-            onInput={() => { const y = lastYRef.current; requestAnimationFrame(()=>{ if (!isIOS) { try { const ta = textareaRef.current; if (ta) { ta.focus({ preventScroll: true }); const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} } restoreScroll(y); }); }}
+            onInput={() => { const y = lastYRef.current; requestAnimationFrame(()=>{ if (!(isIOS || isAndroid)) { try { const ta = textareaRef.current; if (ta) { if (!(isIOS || isAndroid)) { ta.focus({ preventScroll: true }); } const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} } restoreScroll(y); }); }}
             rows={4}
           />
         </div>
