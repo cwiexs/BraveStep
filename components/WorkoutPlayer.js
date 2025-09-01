@@ -1,9 +1,11 @@
 import { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
+import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power } from "lucide-react";
 import { useTranslation } from "next-i18next";
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
+  const router = (typeof window !== "undefined" ? useRouter() : null);
 
   // ---- State ----
   const [currentDay, setCurrentDay] = useState(0);
@@ -18,6 +20,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [rating, setRating] = useState(3);
   const [comment, setComment] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   // Settings (persisted)
   const [showSettings, setShowSettings] = useState(false);
@@ -777,25 +780,45 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
     return (
       <Shell
-        footer={<div className="flex flex-col items-center justify-center gap-3">
-            <button
-              className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold"
-              onClick={async () => {
-                try {
-                  await fetch("/api/complete-plan", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ planId, difficultyRating: rating, userComment: comment })
-                  });
-                } catch {}
-                setSubmitted(true);
-              }}
-              disabled={submitted}
-            >
-              {finishWorkout}
-            </button>
-            {submitted && <span className="text-green-600">{thanksForFeedback}</span>}
-          </div>}
+        footer={
+          <div className="flex flex-col items-center justify-center gap-3">
+            {!submitted ? (
+              <button
+                className={`bg-green-600 text-white px-6 py-3 rounded-lg font-semibold ${submitting ? "opacity-70 cursor-wait" : "hover:bg-green-700"}`}
+                onClick={async () => {
+                  const y = lastYRef.current; setSubmitting(true);
+                  try {
+                    const rsp = await fetch("/api/complete-plan", {
+                      method: "POST", headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ planId, difficultyRating: rating, userComment: comment })
+                    });
+                    if (!rsp.ok) throw new Error(`HTTP ${rsp.status}`);
+                    setSubmitted(true);
+                    requestAnimationFrame(()=>restoreScroll(y));
+                    setTimeout(() => { try { onClose?.(); } catch {} try { if (!onClose && router) router.push("/workouts"); } catch {} }, 3000);
+                  } catch (e) {
+                    // TODO: optionally show error toast
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
+                disabled={submitting}
+              >
+                <span className="inline-flex items-center gap-2">
+                  {submitting && (
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25"/>
+                      <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" opacity="0.75"/>
+                    </svg>
+                  )}
+                  {finishWorkout}
+                </span>
+              </button>
+            ) : (
+              <span className="text-green-600">{thanksForFeedback}</span>
+            )}
+          </div>
+        }
       >
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl font-bold mb-2 text-center">🎉 {workoutCompletedLabel}</h2>
