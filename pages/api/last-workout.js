@@ -9,10 +9,8 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
-    // Stabilu prod'e: pagal email -> gaunam user.id
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      select: { id: true },
     });
 
     if (!user) {
@@ -22,49 +20,29 @@ export default async function handler(req, res) {
     const lastPlan = await prisma.generatedPlan.findFirst({
       where: { userId: user.id },
       orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        createdAt: true,
-        type: true,
-        planData: true,
-        wasCompleted: true,
-        difficultyRating: true,
-        userComment: true,
-        completionStatus: true,
-      },
     });
 
     const totalWorkouts = await prisma.generatedPlan.count({
       where: { userId: user.id },
     });
 
-    // Jei nevedi laiko/kalorijų – paliekam 0
-    const stats = {
-      totalWorkouts,
-      totalTime: 0,
-      calories: 0,
-    };
+    // Jei neturi logikos laikui ir kalorijoms, paliekam 0
+    const totalTime = 0;
+    const calories = 0;
 
-    // planData turi būti JSON; jeigu ne objektas – apgaubiam
-    const plan =
-      lastPlan
-        ? {
-            id: lastPlan.id,
-            createdAt: lastPlan.createdAt,
-            type: lastPlan.type,
-            wasCompleted: lastPlan.wasCompleted ?? false,
-            difficultyRating: lastPlan.difficultyRating ?? null,
-            userComment: lastPlan.userComment ?? null,
-            completionStatus: lastPlan.completionStatus ?? null,
-            data: typeof lastPlan.planData === "object" && lastPlan.planData !== null
-              ? lastPlan.planData
-              : { value: lastPlan.planData },
-          }
-        : null;
+    return res.status(200).json({
+      stats: {
+        totalWorkouts,
+        totalTime,
+        calories
+      },
+      plan: lastPlan
+        ? { ...lastPlan.planData, id: lastPlan.id, createdAt: lastPlan.createdAt }
+        : null
+    });
 
-    return res.status(200).json({ stats, plan });
   } catch (err) {
-    console.error("💥 /api/last-workout error:", err);
+    console.error("💥 Klaida /api/last-workout:", err);
     return res.status(500).json({ error: "Internal Server Error", details: String(err) });
   }
 }

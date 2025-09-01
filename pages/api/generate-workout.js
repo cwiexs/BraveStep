@@ -18,20 +18,8 @@ export default async function handler(req, res) {
 
   // 2. Gauti user iš DB
   const user = await prisma.user.findUnique({
-  where: { email: session.user.email },
-  select: {
-    id: true,
-    email: true,
-    name: true,
-    gender: true,
-    bodyType: true,
-    stressLevel: true,
-    country: true,
-    height: true, // via @map("heightCm")
-    weight: true, // via @map("weightKg") Decimal
-  },
-});
-
+    where: { email: session.user.email },
+  });
   if (!user) {
     return res.status(404).json({ error: "User not found" });
   }
@@ -58,13 +46,6 @@ const latestSportReport = await prisma.sportsHabitsReport.findFirst({
   email,
   ...userData
 } = user;
-
-// Normalize weight (supports Decimal/string)
-if (userData.weight !== undefined && userData.weight !== null) {
-  try { userData.weight = Number(String(userData.weight)); } catch {}
-} else if (userData.weightKg !== undefined && userData.weightKg !== null) {
-  try { userData.weight = Number(String(userData.weightKg).replace(",", ".")); } catch {}
-}
 
 // 4. Konvertuoja weightKg į skaičių, jei buvo tekstas
 if (userData.weightKg !== undefined && userData.weightKg !== null) {

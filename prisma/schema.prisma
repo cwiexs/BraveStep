@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Gender {
@@ -21,17 +20,6 @@ enum BodyType {
   unknown
 }
 
-enum TrainingGoal {
-  weight_loss
-  muscle_gain
-  endurance
-  general_health
-  mobility
-  flexibility
-  mixed
-  unknown
-}
-
 enum FitnessLevel {
   beginner
   intermediate
@@ -44,164 +32,155 @@ enum PhysicalActivityLevel {
   medium
   high
   very_high
-}
-
-enum SleepQuality {
-  poor
-  average
-  good
-  excellent
-}
-
-enum StressLevel {
-  very_low
-  low
-  medium
-  high
-  very_high
-}
-
-enum MedicalCondition {
-  heart_conditions
-  diabetes
-  hypertension
-  asthma
-  joint_issues
-  back_pain
-  knee_pain
-  shoulder_pain
   other
 }
 
-enum FoodPreference {
-  vegan
-  vegetarian
-  pescatarian
-  omnivore
-  paleo
-  keto
+enum WorkSchedule {
+  early
+  late
+  shift
+  flexible
+  normal
   other
 }
 
-enum FoodAllergy {
-  nuts
-  dairy
-  gluten
-  soy
-  eggs
-  shellfish
-  fish
-  other
-}
-
-enum TrainingPlace {
+enum WorkoutLocation {
   home
   gym
   outdoor
+  other
 }
 
-enum TrainingDays {
-  one
-  two
-  three
-  four
-  five
-  six
-  seven
-}
-
-enum MealFrequency {
-  two
-  three
-  four
-  five
-  six
+enum PlanUpdateFrequency {
+  weekly
+  monthly
+  quarterly
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id                         String     @id @default(uuid())
+  name                       String?    @db.VarChar(50)
+  email                      String     @unique @db.VarChar(100)
+  password                   String
+  phone                      String?    @db.VarChar(20)
+  preferredLanguage          String?    @db.VarChar(64)
+  profilePhotoUrl            String?    @db.VarChar(250)
+  dateOfBirth                DateTime?
+  gender                     Gender?
+  city                       String?    @db.VarChar(50)
+  country                    String?    @db.VarChar(50)
+  address                    String?    @db.VarChar(100)
+  heightCm                   Int?       @db.SmallInt
+  weightKg                   Decimal?   @db.Decimal(5,2)
+  bodyType                   BodyType?
+  fitnessLevel               FitnessLevel?
+  healthConditions           String?   @db.VarChar(100)
+  allergies                  String?   @db.VarChar(100)
+  foodRestrictions           String?   @db.VarChar(50)
+  jobType                    String?    @db.VarChar(50)
+  workHoursPerDay            Float?
+  workSchedule               WorkSchedule?
+  workScheduleOther          String?  
+  wakeUpTime                 String?    @db.VarChar(20)
+  bedTime                    String?    @db.VarChar(20)
+  sleepHours                 Float?
+  familyStatus               String?    @db.VarChar(50)
+  mealsPerDay                Int?       @db.SmallInt
+  eatingHabitsAnalysis       Json?
+  eatingHabitsAnalysisDate   DateTime?
+  favoriteActivities         String[]   @db.VarChar(50)
+  gymMember                  Boolean?
+  physicalActivityLevel      PhysicalActivityLevel?
+  physicalActivityLevelOther String?
+  stepsPerDay                Int?
+  currentSports              String[]   @db.VarChar(50)
+  newActivitiesInterest      String[]   @db.VarChar(50)
+  minutesPerWorkout          Int?
+  workoutsPerWeek            Int?
+  workoutLocation            WorkoutLocation?
+  equipmentAvailable         String?   @db.VarChar(200)
+  dietType                   String?    @db.VarChar(50)
+  favoriteFoods              String?   @db.VarChar(100)
+  dislikedFoods              String?   @db.VarChar(100)
+  cuisinePreference          String?   @db.VarChar(50)
+  supplements                String?   @db.VarChar(100)
+  coffeePerDay               Int?
+  teaPerDay                  Int?
+  sugarPerDay                Int?
+  motivationLevel            Int?
+  mainObstacles              String?    @db.VarChar(200)
+  notifications              Boolean?
+  successDefinition          String?    @db.VarChar(200)
+  previousFitnessExperience  String?    @db.VarChar(200)
+  planUpdateFrequency        PlanUpdateFrequency?
+  smokes                     Boolean?
+  alcohol                    String?    @db.VarChar(50)
+  stressLevel                Int?
+  medications                String?   @db.VarChar(100)
+  smartWatch                 Boolean?
+  goal                       String?    @db.VarChar(100)
+  goalDeadline               DateTime?
+  wantsRestRecommendations   Boolean?
+  accessLevel                Int?       @default(0)
+  additionalNotes            String?    @db.VarChar(500)
+  preferredContactTime       String?    @db.VarChar(20)
+  referralSource             String?    @db.VarChar(100)
+  created_at                 DateTime   @default(now())
+  updated_at                 DateTime   @default(now()) @updatedAt
 
-  age               Int? @ignore
-  height            Int? @map("heightCm")
-  weight Decimal? @db.Decimal(5, 2) @map("weightKg")
-  gender            Gender?
-  bodyType          BodyType?
-  trainingGoal      TrainingGoal? @ignore
-  fitnessLevel      FitnessLevel?
-  physicalActivity  PhysicalActivityLevel? @map("physicalActivityLevel")
-  sleepQuality      SleepQuality?
-  stressLevel       StressLevel?
-  medicalConditions MedicalCondition[]
-  foodPreferences   FoodPreference[]
-  foodAllergies     FoodAllergy[]
-  country           String?                @db.VarChar(128)
+  generatedPlans             GeneratedPlan[]
+  sportsHabitsReports  SportsHabitsReport[]
 
-  generatedPlans  GeneratedPlan[]
-  sportsHabits    SportsHabitsReport[]
-  eatingHabits    EatingHabitsReport[]
-  exerciseHistory ExerciseHistory[]
+  exerciseHistory  ExerciseHistory[]
 
-  // DB lentelė yra "users", todėl mapinam tik šį modelį
   @@map("users")
 }
 
 model GeneratedPlan {
-  id     String @id @default(uuid())
-  userId String
+  id                 String              @id @default(uuid())
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String
+  type               String              // GRĄŽINTA – reikalinga senam kodui
+  planData           Json                // Originaliai sugeneruotas planas
+  modifiedPlanData   Json?               // Jei vartotojas jį koregavo
+  feedbackNotes      String?             @db.VarChar(500) // Kodėl planas buvo koreguotas
+  completionStatus   Json?               // Pvz., { "day1": true, "day2": false }
+  wasCompleted       Boolean             @default(false)  // Naujas laukas – ar planas atliktas
+  difficultyRating   Int?                // Naujas – 1–5 skalė
+  userComment        String?             // Naujas – komentaras
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  exerciseHistory    ExerciseHistory[]   // ryšys su istorija
 
-  // Tikroji tavo DB struktūra
-  type             String
-  planData         Json
-  userComment      String?
-  difficultyRating Int?
-  wasCompleted     Boolean @default(false)
-  completionStatus Json?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user              User              @relation(fields: [userId], references: [id])
-  exerciseHistories ExerciseHistory[]
+  @@index([userId, createdAt])
 }
+
+
+
+
 
 model SportsHabitsReport {
-  id        String   @id @default(uuid())
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  reportJson Json
-
-  user User @relation(fields: [userId], references: [id])
-}
-
-model EatingHabitsReport {
-  id        String   @id @default(uuid())
-  userId    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  reportJson Json
-
-  user User @relation(fields: [userId], references: [id])
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  userId      String
+  answers     Json
+  aiAnalysis  String
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model ExerciseHistory {
-  id           String   @id @default(uuid())
-  userId       String
-  planId       String
-  workoutDate  DateTime @default(now())
-  exerciseName String
-  muscleGroups String[]
-  difficulty   String
-  userRating   Int?
-  comment      String?
-  createdAt    DateTime @default(now())
+  id              String   @id @default(uuid())
+  userId          String
+  planId          String
+  workoutDate     DateTime  @default(now())
+  exerciseName    String
+  muscleGroups    String[]
+  difficulty      String
+  userRating      Int?
+  comment         String?
+  createdAt       DateTime  @default(now())
 
-  user User          @relation(fields: [userId], references: [id])
-  plan GeneratedPlan @relation(fields: [planId], references: [id])
+  user            User            @relation(fields: [userId], references: [id])
+  plan            GeneratedPlan   @relation(fields: [planId], references: [id])
 }
+
