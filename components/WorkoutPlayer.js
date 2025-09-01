@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power } from "lucide-react";
 import { useTranslation } from "next-i18next";
 
@@ -32,6 +32,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // ---- Refs ----
   const wakeLockRef = useRef(null);
+  // Textarea focus & caret preservation
+  const textareaRef = useRef(null);
+  const caretRef = useRef({ start: null, end: null });
+
 
   // Tikslus laikmatis
   const tickRafRef = useRef(null);
@@ -45,7 +49,22 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const scrollRef = useRef(null);
 
   const saveScroll = () => (scrollRef.current ? scrollRef.current.scrollTop : 0);
-  const restoreScroll = (y) => { const el = scrollRef.current; if (el) el.scrollTop = y; };
+  const restoreScroll = (y) => { const el = scrollRef.current; if (el && y > 0) el.scrollTop = y; };
+  // Keep focus & caret in comment textarea without scrolling
+  useLayoutEffect(() => {
+    if (inputActive && textareaRef.current) {
+      try {
+        const el = textareaRef.current;
+        // restore caret
+        const { start, end } = caretRef.current || {};
+        el.focus({ preventScroll: true });
+        if (start != null && end != null) {
+          el.setSelectionRange(start, end);
+        }
+      } catch {}
+    }
+  }, [comment, inputActive]);
+
 
   // Garso sistema (WebAudio + fallback)
   const audioRef = useRef({
@@ -823,10 +842,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             ))}
           </div>
 
-          <textarea onMouseDown={(e) => e.stopPropagation()}
+          <textarea ref={textareaRef} onMouseDown={(e) => e.stopPropagation()}
             placeholder={commentPlaceholder}
             value={comment}
-            onChange={e => { const y = saveScroll(); setComment(e.target.value); requestAnimationFrame(() => restoreScroll(y)); }}
+            onChange={e => { const el = e.target; caretRef.current = { start: el.selectionStart, end: el.selectionEnd }; setComment(el.value); }}
             onFocus={() => setInputActive(true)}
             onBlur={() => setInputActive(false)}
             onKeyDown={(e) => e.stopPropagation()}
