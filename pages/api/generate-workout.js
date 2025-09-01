@@ -48,8 +48,13 @@ const latestSportReport = await prisma.sportsHabitsReport.findFirst({
 } = user;
 
 // 4. Konvertuoja weightKg į skaičių, jei buvo tekstas
-if (userData.weightKg !== undefined && userData.weightKg !== null) {
-  userData.weightKg = Number(String(userData.weightKg).replace(",", "."));
+if (userData.weight === undefined || userData.weight === null) {
+  // fallback if legacy key still in memory
+  if (userData.weightKg !== undefined && userData.weightKg !== null) {
+    userData.weight = Number(String(userData.weightKg).replace(",", "."));
+  }
+} else {
+  userData.weight = Number(String(userData.weight).replace(",", "."));
 }
 
 
