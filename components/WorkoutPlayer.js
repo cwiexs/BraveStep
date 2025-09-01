@@ -41,6 +41,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   const timeoutsRef = useRef([]);
 
+  // Scroll container ref to prevent jumps on re-render
+  const scrollRef = useRef(null);
+
+  const saveScroll = () => (scrollRef.current ? scrollRef.current.scrollTop : 0);
+  const restoreScroll = (y) => { const el = scrollRef.current; if (el) el.scrollTop = y; };
+
   // Garso sistema (WebAudio + fallback)
   const audioRef = useRef({
     html: {
@@ -521,7 +527,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const Shell = ({ children, footer }) => (
     <div className="fixed inset-0 bg-white text-gray-900 flex flex-col z-40">
       <HeaderBar />
-      <div className="flex-1 overflow-auto p-6 pt-8">{children}</div>
+      <div ref={scrollRef} className="flex-1 overflow-auto p-6 pt-8">{children}</div>
       {footer ? <div className="border-t p-4 sticky bottom-0 bg-white">{footer}</div> : null}
 
       {/* Settings modal */}
@@ -753,8 +759,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
     return (
       <Shell
-        footer={
-          <div className="flex flex-col items-center justify-center gap-3">
+        footer={<div className="flex flex-col items-center justify-center gap-3">
             <button
               className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold"
               onClick={async () => {
@@ -771,15 +776,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             >
               {finishWorkout}
             </button>
-            <button
-              className="text-sm text-gray-600 underline"
-              onClick={() => { if (!inputActive) onClose?.(); }}
-            >
-              {t("common.close", { defaultValue: "Uždaryti" })}
-            </button>
             {submitted && <span className="text-green-600">{thanksForFeedback}</span>}
-          </div>
-        }
+          </div>}
       >
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl font-bold mb-2 text-center">🎉 {workoutCompletedLabel}</h2>
@@ -804,7 +802,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             {options.map(opt => (
               <button
                 key={opt.value}
-                onMouseDown={(e) => e.preventDefault()} onClick={() => setRating(opt.value)}
+                onMouseDown={(e) => e.preventDefault()} onClick={() => { const y = saveScroll(); setRating(opt.value); requestAnimationFrame(() => restoreScroll(y)); }}
                 className={`text-3xl p-1 rounded-full border-2 
                   ${rating === opt.value ? "border-green-600 bg-green-50" : "border-transparent"}
                   hover:border-green-400`}
@@ -828,7 +826,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           <textarea onMouseDown={(e) => e.stopPropagation()}
             placeholder={commentPlaceholder}
             value={comment}
-            onChange={e => setComment(e.target.value)}
+            onChange={e => { const y = saveScroll(); setComment(e.target.value); requestAnimationFrame(() => restoreScroll(y)); }}
             onFocus={() => setInputActive(true)}
             onBlur={() => setInputActive(false)}
             onKeyDown={(e) => e.stopPropagation()}
