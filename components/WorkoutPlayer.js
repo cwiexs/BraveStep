@@ -7,6 +7,30 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
   const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
+  // iOS body scroll lock while typing
+  const pageYRef = useRef(0);
+  const lockBodyScroll = () => {
+    try {
+      pageYRef.current = window.scrollY || window.pageYOffset || 0;
+      document.body.style.position = 'fixed';
+      document.body.style.width = '100%';
+      document.body.style.top = `-${pageYRef.current}px`;
+      document.body.style.overscrollBehavior = 'contain';
+      document.documentElement.style.overscrollBehavior = 'contain';
+    } catch {}
+  };
+  const unlockBodyScroll = () => {
+    try {
+      const y = pageYRef.current || 0;
+      document.body.style.position = '';
+      document.body.style.width = '';
+      document.body.style.top = '';
+      document.body.style.overscrollBehavior = '';
+      document.documentElement.style.overscrollBehavior = '';
+      window.scrollTo(0, y);
+    } catch {}
+  };
+
 
   // ---- State ----
   const [currentDay, setCurrentDay] = useState(0);
@@ -54,6 +78,16 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const lastYRef = useRef(0);
   const saveScroll = () => (scrollRef.current ? scrollRef.current.scrollTop : 0);
   const restoreScroll = (y) => { const el = scrollRef.current; if (el) el.scrollTop = y; };
+  useEffect(() => {
+    if (!isIOS) return;
+    if (inputActive) {
+      lockBodyScroll();
+    } else {
+      unlockBodyScroll();
+    }
+    return () => { if (isIOS) unlockBodyScroll(); };
+  }, [isIOS, inputActive]);
+
   // Keep focus & caret in comment textarea without scrolling
   useLayoutEffect(() => {
     if (inputActive && textareaRef.current) {
@@ -549,7 +583,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const Shell = ({ children, footer }) => (
     <div className="fixed inset-0 bg-white text-gray-900 flex flex-col z-40">
       <HeaderBar />
-      <div ref={scrollRef} onScroll={(e)=>{ lastYRef.current = e.currentTarget.scrollTop; }} className={`flex-1 overscroll-contain p-6 pt-8 ${isIOS && inputActive ? "overflow-hidden" : "overflow-auto"}`}>{children}</div>
+      <div ref={scrollRef} onScroll={(e)=>{ lastYRef.current = e.currentTarget.scrollTop; }} className={`flex-1 overscroll-contain p-6 pt-8 ${isIOS && inputActive ? "overflow-hidden" : "overflow-auto"}`}
+          style={isIOS && inputActive ? { WebkitOverflowScrolling: "auto" } : { WebkitOverflowScrolling: "touch" }}>{children}</div>
       {footer ? <div className="border-t p-4 sticky bottom-0 bg-white">{footer}</div> : null}
 
       {/* Settings modal */}
@@ -794,6 +829,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                   const y = lastYRef.current; setSubmitting(true);
                   try {
                     setInputActive(false);
+                  if (isIOS) { try { unlockBodyScroll(); } catch {} }
                   const rsp = await fetch("/api/complete-plan", {
                       method: "POST", headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ planId, difficultyRating: rating, userComment: comment })
