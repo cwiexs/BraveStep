@@ -548,7 +548,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const Shell = ({ children, footer }) => (
     <div className="fixed inset-0 bg-white text-gray-900 flex flex-col z-40">
       <HeaderBar />
-      <div ref={scrollRef} onScroll={(e)=>{ lastYRef.current = e.currentTarget.scrollTop; }} className="flex-1 overflow-auto p-6 pt-8">{children}</div>
+      <div ref={scrollRef} onScroll={(e)=>{ lastYRef.current = e.currentTarget.scrollTop; }} className="flex-1 overflow-auto overscroll-contain p-6 pt-8">{children}</div>
       {footer ? <div className="border-t p-4 sticky bottom-0 bg-white">{footer}</div> : null}
 
       {/* Settings modal */}
@@ -784,6 +784,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           <div className="flex flex-col items-center justify-center gap-3">
             {!submitted ? (
               <button
+                type="button"
+                onMouseDown={(e)=>e.stopPropagation()}
                 className={`bg-green-600 text-white px-6 py-3 rounded-lg font-semibold ${submitting ? "opacity-70 cursor-wait" : "hover:bg-green-700"}`}
                 onClick={async () => {
                   const y = lastYRef.current; setSubmitting(true);
@@ -864,7 +866,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             ))}
           </div>
 
-          <textarea ref={textareaRef} onMouseDown={(e) => { e.stopPropagation(); const y = lastYRef.current; requestAnimationFrame(()=>restoreScroll(y)); }}
+          <textarea ref={textareaRef} onClick={(e)=>e.stopPropagation()} onMouseDown={(e) => { e.stopPropagation(); const y = lastYRef.current; requestAnimationFrame(()=>restoreScroll(y)); }}
             placeholder={commentPlaceholder}
             value={comment}
             onChange={e => { const el = e.target; caretRef.current = { start: el.selectionStart, end: el.selectionEnd }; setComment(el.value); const y = lastYRef.current; requestAnimationFrame(()=>{ try { const ta = textareaRef.current; if (ta) { ta.focus({ preventScroll: true }); const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} restoreScroll(y); }); }}
