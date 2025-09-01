@@ -844,12 +844,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           <textarea ref={textareaRef} onMouseDown={(e) => { e.stopPropagation(); const y = lastYRef.current; requestAnimationFrame(()=>restoreScroll(y)); }}
             placeholder={commentPlaceholder}
             value={comment}
-            onChange={e => { const el = e.target; caretRef.current = { start: el.selectionStart, end: el.selectionEnd }; setComment(el.value); const y = lastYRef.current; requestAnimationFrame(()=>restoreScroll(y)); }}
+            onChange={e => { const el = e.target; caretRef.current = { start: el.selectionStart, end: el.selectionEnd }; setComment(el.value); const y = lastYRef.current; requestAnimationFrame(()=>{ try { const ta = textareaRef.current; if (ta) { ta.focus({ preventScroll: true }); const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} restoreScroll(y); }); }}
             onFocus={() => setInputActive(true)}
             onBlur={() => setInputActive(false)}
             onKeyDown={(e) => e.stopPropagation()}
             className="w-full p-3 border rounded mb-24 outline-none focus:ring-2 focus:ring-black/10"
-            onInput={() => { const y = lastYRef.current; requestAnimationFrame(()=>restoreScroll(y)); }}
+            onInput={() => { const y = lastYRef.current; requestAnimationFrame(()=>{ try { const ta = textareaRef.current; if (ta) { ta.focus({ preventScroll: true }); const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} restoreScroll(y); }); }}
             rows={4}
           />
         </div>
