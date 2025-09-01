@@ -47,9 +47,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // Scroll container ref to prevent jumps on re-render
   const scrollRef = useRef(null);
-
+  const lastYRef = useRef(0);
   const saveScroll = () => (scrollRef.current ? scrollRef.current.scrollTop : 0);
-  const restoreScroll = (y) => { const el = scrollRef.current; if (el && y > 0) el.scrollTop = y; };
+  const restoreScroll = (y) => { const el = scrollRef.current; if (el) el.scrollTop = y; };
   // Keep focus & caret in comment textarea without scrolling
   useLayoutEffect(() => {
     if (inputActive && textareaRef.current) {
@@ -57,7 +57,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         const el = textareaRef.current;
         // restore caret
         const { start, end } = caretRef.current || {};
-        el.focus({ preventScroll: true });
         if (start != null && end != null) {
           el.setSelectionRange(start, end);
         }
@@ -546,7 +545,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const Shell = ({ children, footer }) => (
     <div className="fixed inset-0 bg-white text-gray-900 flex flex-col z-40">
       <HeaderBar />
-      <div ref={scrollRef} className="flex-1 overflow-auto p-6 pt-8">{children}</div>
+      <div ref={scrollRef} onScroll={(e)=>{ lastYRef.current = e.currentTarget.scrollTop; }} className="flex-1 overflow-auto p-6 pt-8">{children}</div>
       {footer ? <div className="border-t p-4 sticky bottom-0 bg-white">{footer}</div> : null}
 
       {/* Settings modal */}
@@ -842,14 +841,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             ))}
           </div>
 
-          <textarea ref={textareaRef} onMouseDown={(e) => e.stopPropagation()}
+          <textarea ref={textareaRef} onMouseDown={(e) => { e.stopPropagation(); const y = lastYRef.current; requestAnimationFrame(()=>restoreScroll(y)); }}
             placeholder={commentPlaceholder}
             value={comment}
-            onChange={e => { const el = e.target; caretRef.current = { start: el.selectionStart, end: el.selectionEnd }; setComment(el.value); }}
+            onChange={e => { const el = e.target; caretRef.current = { start: el.selectionStart, end: el.selectionEnd }; setComment(el.value); const y = lastYRef.current; requestAnimationFrame(()=>restoreScroll(y)); }}
             onFocus={() => setInputActive(true)}
             onBlur={() => setInputActive(false)}
             onKeyDown={(e) => e.stopPropagation()}
             className="w-full p-3 border rounded mb-24 outline-none focus:ring-2 focus:ring-black/10"
+            onInput={() => { const y = lastYRef.current; requestAnimationFrame(()=>restoreScroll(y)); }}
             rows={4}
           />
         </div>
