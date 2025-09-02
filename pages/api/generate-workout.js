@@ -506,36 +506,65 @@ Never mention this validation step in the visible response. Only show the final,
 
   const aiPrompt = promptParts.join("\n\n");
 
+  // -- OpenAI call with fallback & better error reporting
+  async function callOpenAIWithFallback(payload, models) {
+    if (!process.env.OPENAI_API_KEY) {
+      throw new Error("Missing OPENAI_API_KEY");
+    }
+    let lastErr = "";
+    for (const m of models) {
+      try {
+        const resp = await fetch("https://api.openai.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          },
+          body: JSON.stringify({ ...payload, model: m }),
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          return { data, modelUsed: m };
+        }
+        // read error text/json
+        let errTxt = "";
+        try { const ej = await resp.json(); errTxt = JSON.stringify(ej); } catch { errTxt = await resp.text(); }
+        lastErr = `HTTP ${resp.status} for model ${m}: ${errTxt}`;
+        // try next model on model_not_found
+        if (resp.status === 404 || /model(.+)?not found/i.test(errTxt)) continue;
+        // stop on quota
+        if (resp.status === 429 || /insufficient_quota/i.test(errTxt)) break;
+      } catch (e) {
+        lastErr = `Exception for model ${m}: ${String(e)}`;
+        continue;
+      }
+    }
+    throw new Error(lastErr || "OpenAI request failed");
+  }
+
+
   // 7. Siunčiam į OpenAI
-  let aiResponse;
+  
+  // Use fallback chain for models: env MODEL -> OPENAI_MODEL_FALLBACK -> safe defaults
+  let aiData, modelUsed;
   try {
-    aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: "system", content: "You are a professional fitness coach and data safety validator." },
-          { role: "user", content: aiPrompt },
-        ],
-        max_tokens: 8000,
-        temperature: 0.7,
-      }),
-    });
+    const primary = MODEL;
+    const fallback = process.env.OPENAI_MODEL_FALLBACK || "gpt-4o";
+    const chain = Array.from(new Set([primary, fallback, "gpt-4o-mini"])).filter(Boolean);
+    const resObj = await callOpenAIWithFallback({
+      messages: [
+        { role: "system", content: "You are a professional fitness coach and data safety validator." },
+        { role: "user", content: aiPrompt },
+      ],
+      max_tokens: 8000,
+      temperature: 0.7,
+    }, chain);
+    aiData = resObj.data;
+    modelUsed = resObj.modelUsed;
   } catch (error) {
-    return res.status(500).json({ error: "AI connection error", details: String(error) });
+    return res.status(502).json({ error: "AI request failed", details: String(error) });
   }
-
-  if (!aiResponse.ok) {
-    const err = await aiResponse.text();
-    return res.status(500).json({ error: "AI error", details: err });
-  }
-
-  const aiData = await aiResponse.json();
-  const generatedText = aiData.choices?.[0]?.message?.content || "No plan generated.";
+const generatedText = aiData.choices?.[0]?.message?.content || "No plan generated.";
 
   // Jei AI atsako "Cannot create plan:" – plano neišsaugom, grąžinam vartotojui
   if (generatedText.startsWith("Cannot create plan:")) {
