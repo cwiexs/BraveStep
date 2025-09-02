@@ -404,8 +404,18 @@ EXAMPLE WITH LABELS:
   // 14. Vartotojo duomenų sekcija
   `Here are the field descriptions and their values:`
 ];
+// Įdėti balansavimo kontekstą (paskutinė ir nesena istorija)
+const { last: lastNamesFromHistory, recent: recentNamesFromHistory } = extractNamesFromHistory(exerciseHistorySummary);
+if (lastNamesFromHistory.length) {
+  promptParts.push("##LAST_SESSION_MAIN_NAMES##");
+  promptParts.push(lastNamesFromHistory.join(", "));
+}
+if (recentNamesFromHistory.length) {
+  promptParts.push("##RECENT_MAIN_NAMES##");
+  promptParts.push(recentNamesFromHistory.join(", "));
+}
 
-// (moved) If there is exercise history, append it to promptParts
+// (moved) Jeigu yra atliktų pratimų – pridėti prie AI prompto
 if (Array.isArray(exerciseHistorySummary) && exerciseHistorySummary.length > 0) {
   promptParts.push("##EXERCISE_HISTORY_SUMMARY##");
   promptParts.push(JSON.stringify(exerciseHistorySummary, null, 2));
@@ -506,7 +516,66 @@ Never mention this validation step in the visible response. Only show the final,
 
 
 
-  const aiPrompt = promptParts.join("\n\n");
+  
+// 6.x BALANCED ROTATION RULES (ne visada viskas nauja, bet ir ne kartojasi per daug)
+`BALANCED ROTATION (FOLLOW STRICTLY):
+- MAIN WORKOUT turi turėti 5–7 pratimus.
+- IŠ PRAEITOS treniruotės (L-1) PAKARTOK 1–3 „staple“ pratimus (kasdienės bazės), BET BŪTINAI PAKEISK bent 2 pratimus į ALTERNATYVAS.
+- IŠ PASKUTINIŲ 3 treniruočių (L-1…L-3) įtrauk bent 1 NAUJĄ (dar nenaudotą) pratimų variantą.
+- NEDUBLIUOK `@name` šiame plane (vienas pavadinimas – vieną kartą).
+- KATEGORIJŲ BALANSAS: kelio-dominant, klubo-dominant (hinge), stūmimas, traukimas, core (+ pasirinktinai conditioning/carry).
+- WARM-UP 3–4 trumpi, COOL-DOWN 3–4 tempimai – ne kartoti MAIN pavadinimų.
+- JEI L-1 turėjo „pritūpimai“ + „plankas“, tada pvz.: „atbuliniai įtūpstai“ + „šoninis plankas“, bet gali išlaikyti 1–3 bazes (pvz., „atsispaudimai“).`,
+const aiPrompt = promptParts.join("\n\n");
+
+  // --- Helpers to extract exercise names from history & generated text
+  function extractNamesFromHistory(summary, limitSessions = 3) {
+    try {
+      const src = typeof summary === "string" ? summary : JSON.stringify(summary);
+      const rxName = /"name"\s*:\s*"([^"]+)"/g;
+      let m; const names = [];
+      while ((m = rxName.exec(src)) !== null) {
+        const nm = (m[1] || "").trim();
+        if (nm) names.append ? names.append(nm) : names.push(nm);
+      }
+      const last = names.slice(-8);
+      const recent = names.slice(-20);
+      return { last, recent };
+    } catch { return { last: [], recent: [] }; }
+  }
+  function extractMainExerciseNames(text) {
+    const mainStart = text.indexOf("### MAIN WORKOUT");
+    const coolStart = text.indexOf("### COOL-DOWN");
+    const slice = text.slice(mainStart === -1 ? 0 : mainStart, coolStart === -1 ? undefined : coolStart);
+    const names = [];
+    const rx = /@name:\s*([^\n]+)/g;
+    let m;
+    while ((m = rx.exec(slice)) !== null) {
+      const name = (m[1] || "").trim();
+      if (name) names.push(name);
+    }
+    return names;
+  }
+
+
+  // 7.x Balanced validator + one retry
+  function balancedOk(text, lastList = []) {
+    const gen = extractMainExerciseNames(text);
+    const uniq = new Set(gen);
+    if (uniq.size !== gen.length) return false; // no duplicates within plan
+    if (!gen.length) return false;
+    if (gen.length < 5) return false; // ensure enough main
+    if (!lastList || !lastList.length) return true; // no history -> accept
+    const lastSet = new Set(lastList.map(s => s.toLowerCase()));
+    let overlap = 0;
+    for (const n of gen) if (lastSet.has(n.toLowerCase())) overlap++;
+    const minRepeat = 1;
+    const maxRepeat = Math.min(3, Math.ceil(gen.length/2));
+    const newCount = gen.length - overlap;
+    const minNew = 2;
+    return overlap >= minRepeat && overlap <= maxRepeat && newCount >= minNew;
+  }
+
 
   // 7. Siunčiam į OpenAI
   let aiResponse;
@@ -538,6 +607,40 @@ Never mention this validation step in the visible response. Only show the final,
 
   const aiData = await aiResponse.json();
   const generatedText = aiData.choices?.[0]?.message?.content || "No plan generated.";
+
+  const lastForCheck = lastNamesFromHistory || [];
+  if (!balancedOk(generatedText, lastForCheck)) {
+    const used = Array.from(new Set(extractMainExerciseNames(generatedText)));
+    const keepSome = (lastForCheck || []).slice(-4);
+    const retryPrompt =
+      aiPrompt +
+      "\n\nBALANCED ROTATION FIX: previous attempt not balanced (either too many repeats from last session or too few). " +
+      "Keep 1–3 staples from LAST: [" + keepSome.join(", ") + "], but replace at least 2 exercises with alternatives not in LAST. " +
+      "Do NOT duplicate @name within the plan. Keep MAIN count 5–7. Keep the same format and language.";
+    try {
+      const retryResp = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.OPENAI_API_KEY}` },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            { role: "system", content: "You are a professional fitness coach and program designer." },
+            { role: "user", content: retryPrompt },
+          ],
+          max_tokens: 8000,
+          temperature: 0.8
+        }),
+      });
+      if (retryResp.ok) {
+        const retryData = await retryResp.json();
+        const retryText = retryData.choices?.[0]?.message?.content || generatedText;
+        if (balancedOk(retryText, lastForCheck)) {
+          aiData.choices[0].message.content = retryText;
+        }
+      }
+    } catch {}
+  }
+
 
   // Jei AI atsako "Cannot create plan:" – plano neišsaugom, grąžinam vartotojui
   if (generatedText.startsWith("Cannot create plan:")) {
