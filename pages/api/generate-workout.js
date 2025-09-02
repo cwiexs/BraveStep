@@ -27,13 +27,6 @@ export default async function handler(req, res) {
 const exerciseHistorySummary = await generateExerciseHistorySummary(user.id);
 console.log("🧠 Į AI siunčiama treniruočių istorija:", exerciseHistorySummary);
 
-// 2.2 Jeigu yra atliktų pratimų – pridėti prie AI prompto
-if (Array.isArray(exerciseHistorySummary) && exerciseHistorySummary.length > 0) {
-  promptParts.push("##EXERCISE_HISTORY_SUMMARY##");
-  promptParts.push(JSON.stringify(exerciseHistorySummary, null, 2));
-}
-
-
 // Gauti paskutinę sporto ataskaitą
 const latestSportReport = await prisma.sportsHabitsReport.findFirst({
   where: { userId: user.id },
@@ -47,9 +40,12 @@ const latestSportReport = await prisma.sportsHabitsReport.findFirst({
   ...userData
 } = user;
 
-// 4. Konvertuoja weightKg į skaičių, jei buvo tekstas
-if (userData.weightKg !== undefined && userData.weightKg !== null) {
-  userData.weightKg = Number(String(userData.weightKg).replace(",", "."));
+// 4. Konvertuoja weight/weightKg ir height/heightCm į skaičius, jei buvo tekstas
+{
+  const wRaw = userData.weightKg ?? userData.weight;
+  if (wRaw !== undefined && wRaw !== null) userData.weightKg = Number(String(wRaw).replace(",", "."));
+  const hRaw = userData.heightCm ?? userData.height;
+  if (hRaw !== undefined && hRaw !== null) userData.heightCm = Number(String(hRaw).replace(",", "."));
 }
 
 
@@ -408,6 +404,13 @@ EXAMPLE WITH LABELS:
   // 14. Vartotojo duomenų sekcija
   `Here are the field descriptions and their values:`
 ];
+
+// (moved) If there is exercise history, append it to promptParts
+if (Array.isArray(exerciseHistorySummary) && exerciseHistorySummary.length > 0) {
+  promptParts.push("##EXERCISE_HISTORY_SUMMARY##");
+  promptParts.push(JSON.stringify(exerciseHistorySummary, null, 2));
+}
+
 
 
 
