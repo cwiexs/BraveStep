@@ -404,6 +404,9 @@ EXAMPLE WITH LABELS:
   // 14. Vartotojo duomenų sekcija
   `Here are the field descriptions and their values:`
 ];
+// Language directive: force Lithuanian outputs (while using English prompt instructions)
+promptParts.push("OUTPUT LANGUAGE: Lithuanian (lt-LT). Use natural Lithuanian for all user-facing text and exercise names. Keep tokens exactly as specified.");
+
 // Įdėti balansavimo kontekstą (paskutinė ir nesena istorija)
 const { last: lastNamesFromHistory, recent: recentNamesFromHistory } = extractNamesFromHistory(exerciseHistorySummary);
 if (lastNamesFromHistory.length) {
@@ -517,15 +520,17 @@ Never mention this validation step in the visible response. Only show the final,
 
 
   
-// 6.x BALANCED ROTATION RULES (ne visada viskas nauja, bet ir ne kartojasi per daug)
+// 6.x BALANCED ROTATION RULES (English prompt; output must still be Lithuanian)
 `BALANCED ROTATION (FOLLOW STRICTLY):
-- MAIN WORKOUT turi turėti 5–7 pratimus.
-- IŠ PRAEITOS treniruotės (L-1) PAKARTOK 1–3 „staple“ pratimus (kasdienės bazės), BET BŪTINAI PAKEISK bent 2 pratimus į ALTERNATYVAS.
-- IŠ PASKUTINIŲ 3 treniruočių (L-1…L-3) įtrauk bent 1 NAUJĄ (dar nenaudotą) pratimų variantą.
-- NEDUBLIUOK `@name` šiame plane (vienas pavadinimas – vieną kartą).
-- KATEGORIJŲ BALANSAS: kelio-dominant, klubo-dominant (hinge), stūmimas, traukimas, core (+ pasirinktinai conditioning/carry).
-- WARM-UP 3–4 trumpi, COOL-DOWN 3–4 tempimai – ne kartoti MAIN pavadinimų.
-- JEI L-1 turėjo „pritūpimai“ + „plankas“, tada pvz.: „atbuliniai įtūpstai“ + „šoninis plankas“, bet gali išlaikyti 1–3 bazes (pvz., „atsispaudimai“).`,
+- MAIN WORKOUT must contain 5–7 exercises.
+- From the LAST session (L-1) KEEP 1–3 staple exercises, BUT REPLACE at least 2 exercises with close ALTERNATIVES (variation, not total novelty).
+- From the last 3 sessions (L-1…L-3) include at least 1 NEW variation not used recently.
+- Do NOT duplicate @name within the same plan (no renaming the same movement).
+- MOVEMENT BALANCE: knee-dominant, hip-dominant (hinge), push, pull, core (+ optional conditioning/carry).
+- WARM-UP: 3–4 short drills (30–40s), do not reuse names from MAIN.
+- COOL-DOWN: 3–4 stretches, do not reuse names from MAIN.
+- VERY IMPORTANT: All narrative/output must be in Lithuanian (lt-LT). Keep the exact token format (@@exercise@@, @name:, @steps, etc.).`,
+
 const aiPrompt = promptParts.join("\n\n");
 
   // --- Helpers to extract exercise names from history & generated text
@@ -589,7 +594,7 @@ const aiPrompt = promptParts.join("\n\n");
       body: JSON.stringify({
         model: "gpt-4o",
         messages: [
-          { role: "system", content: "You are a professional fitness coach and data safety validator." },
+          { role: "system", content: "You are a professional fitness coach and data safety validator. Respond only in Lithuanian (lt-LT). Keep the exact token format." },
           { role: "user", content: aiPrompt },
         ],
         max_tokens: 8000,
@@ -624,7 +629,7 @@ const aiPrompt = promptParts.join("\n\n");
         body: JSON.stringify({
           model: "gpt-4o",
           messages: [
-            { role: "system", content: "You are a professional fitness coach and program designer." },
+            { role: "system", content: "You are a professional fitness coach and program designer. Respond only in Lithuanian (lt-LT). Keep the exact token format." },
             { role: "user", content: retryPrompt },
           ],
           max_tokens: 8000,
