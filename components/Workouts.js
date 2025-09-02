@@ -53,7 +53,16 @@ export default function Workouts() {
       .then((res) => res.json())
       .then((data) => {
         const list = Array.isArray(data.plans) ? data.plans : [];
-        const sorted = list
+        const meEmail = session?.user?.email || null;
+        const meId = session?.user?.id || null;
+        const onlyMine = list.filter((p) => {
+          const ownerEmail = p?.user?.email || p?.ownerEmail || p?.email || null;
+          const ownerId = p?.userId || p?.user?.id || null;
+          if (ownerEmail && meEmail) return ownerEmail === meEmail;
+          if (ownerId && meId) return ownerId === meId;
+          return false;
+        });
+        const sorted = onlyMine
           .slice()
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setPlans(sorted);
