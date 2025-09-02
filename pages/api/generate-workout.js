@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "./auth/[...nextauth]";
 import { prisma } from "../../lib/prisma";
 import { generateExerciseHistorySummary } from "../../components/utils/generateExerciseHistorySummary";
+const MODEL = process.env.OPENAI_MODEL_WORKOUT || "gpt-5"; // arba "gpt-5-mini"
 
 
 
@@ -515,15 +516,13 @@ Never mention this validation step in the visible response. Only show the final,
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-5",
+        model: MODEL,
         messages: [
           { role: "system", content: "You are a professional fitness coach and data safety validator." },
           { role: "user", content: aiPrompt },
         ],
         max_tokens: 8000,
         temperature: 0.7,
-          reasoning_effort: "minimal",
-          verbosity: "medium",
       }),
     });
   } catch (error) {
