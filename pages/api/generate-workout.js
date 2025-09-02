@@ -405,7 +405,7 @@ EXAMPLE WITH LABELS:
   `Here are the field descriptions and their values:`
 ];
 // Language directive: force Lithuanian outputs (while using English prompt instructions)
-promptParts.push("OUTPUT LANGUAGE: Lithuanian (lt-LT). Use natural Lithuanian for all user-facing text and exercise names. Keep tokens exactly as specified.");
+promptParts.push(`OUTPUT LANGUAGE: ${outputLanguageLabel}. Use natural wording for all user-facing text and exercise names. Keep tokens exactly as specified.`);
 
 // Įdėti balansavimo kontekstą (paskutinė ir nesena istorija)
 const { last: lastNamesFromHistory, recent: recentNamesFromHistory } = extractNamesFromHistory(exerciseHistorySummary);
@@ -594,7 +594,7 @@ const aiPrompt = promptParts.join("\n\n");
       body: JSON.stringify({
         model: "gpt-4o",
         messages: [
-          { role: "system", content: "You are a professional fitness coach and data safety validator. Respond only in Lithuanian (lt-LT). Keep the exact token format." },
+          { role: "system", content: `You are a professional fitness coach and data safety validator. Respond only in ${outputLanguageLabel}. Keep the exact token format.` },
           { role: "user", content: aiPrompt },
         ],
         max_tokens: 8000,
@@ -629,7 +629,7 @@ const aiPrompt = promptParts.join("\n\n");
         body: JSON.stringify({
           model: "gpt-4o",
           messages: [
-            { role: "system", content: "You are a professional fitness coach and program designer. Respond only in Lithuanian (lt-LT). Keep the exact token format." },
+            { role: "system", content: `You are a professional fitness coach and program designer. Respond only in ${outputLanguageLabel}. Keep the exact token format.` },
             { role: "user", content: retryPrompt },
           ],
           max_tokens: 8000,
