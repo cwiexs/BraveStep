@@ -38,15 +38,27 @@ function isPlanCompleted(p) {
     if (v === true) return true;
     if (v === false || v === 0) return false;
     if (v == null) return false;
-    if (typeof v === "number") return v === 1;
+    if (typeof v === "number") return v === 1 || v >= 100; // 100%
     if (v instanceof Date) return !isNaN(v.getTime());
     if (typeof v === "string") {
       const s = v.trim().toLowerCase();
-      if (["true","1","yes","y","done","completed","complete","atlikta","baigta","užbaigta","uzbaigta","finished"].includes(s)) return true;
-      if (["false","0","no","n","not completed","neatlikta","nebaigta","unfinished","pending","incomplete"].includes(s)) return false;
+      if ([
+        "true","t","1","yes","y","done","completed","complete","finished",
+        "atlikta","baigta","užbaigta","uzbaigta","ready","success"
+      ].includes(s)) return true;
+      if ([
+        "false","f","0","no","n","not completed","neatlikta","nebaigta",
+        "unfinished","pending","incomplete"
+      ].includes(s)) return false;
       // jei tai panašu į datą – laikom kaip completed timestamp
       const ts = Date.parse(v);
       return !Number.isNaN(ts);
+    }
+    if (typeof v === "object") {
+      // Kai kuriuose API status būna kaip { code: 'COMPLETED' }
+      const code = (v?.code || v?.status || v?.value || "").toString().toLowerCase();
+      if (["completed","complete","done","finished","success"].includes(code)) return true;
+      if (["pending","incomplete","failed","open"].includes(code)) return false;
     }
     return !!v;
   };
@@ -59,10 +71,16 @@ function isPlanCompleted(p) {
     p?.isDone,
     p?.status,
     p?.planStatus,
+    p?.completionStatus,
     p?.progress?.status,
+    p?.progress,
+    p?.completedPercent,
+
+    // Įdėti ir viduje esančius laukus – jei API grąžina giliai
     p?.planData?.wasCompleted,
     p?.planData?.wasCompleated,
     p?.planData?.completed,
+    p?.planData?.completionStatus,
     p?.completedAt,
     p?.finishedAt,
     p?.planData?.completedAt,
