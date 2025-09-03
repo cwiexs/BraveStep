@@ -31,65 +31,10 @@ function formatYMD(dateLike) {
   return `${y}/${m}/${day}`;
 }
 
-// 🔍 Helper: patikrinam ar planas užbaigtas (palaikom kelis galimus laukų pavadinimus)
+// 🔍 Helper: paprastas ir tikslus pagal DB schemą
+// Prisma: model GeneratedPlan { wasCompleted Boolean @default(false) }
 function isPlanCompleted(p) {
-  // Konvertuojam įvairius formatus į boolean
-  const truthy = (v) => {
-    if (v === true) return true;
-    if (v === false || v === 0) return false;
-    if (v == null) return false;
-    if (typeof v === "number") return v === 1 || v >= 100; // 100%
-    if (v instanceof Date) return !isNaN(v.getTime());
-    if (typeof v === "string") {
-      const s = v.trim().toLowerCase();
-      if ([
-        "true","t","1","yes","y","done","completed","complete","finished",
-        "atlikta","baigta","užbaigta","uzbaigta","ready","success"
-      ].includes(s)) return true;
-      if ([
-        "false","f","0","no","n","not completed","neatlikta","nebaigta",
-        "unfinished","pending","incomplete"
-      ].includes(s)) return false;
-      // jei tai panašu į datą – laikom kaip completed timestamp
-      const ts = Date.parse(v);
-      return !Number.isNaN(ts);
-    }
-    if (typeof v === "object") {
-      // Kai kuriuose API status būna kaip { code: 'COMPLETED' }
-      const code = (v?.code || v?.status || v?.value || "").toString().toLowerCase();
-      if (["completed","complete","done","finished","success"].includes(code)) return true;
-      if (["pending","incomplete","failed","open"].includes(code)) return false;
-    }
-    return !!v;
-  };
-
-  const candidates = [
-    p?.wasCompleted,
-    p?.wasCompleated, // dažna rašyba
-    p?.completed,
-    p?.isCompleted,
-    p?.isDone,
-    p?.status,
-    p?.planStatus,
-    p?.completionStatus,
-    p?.progress?.status,
-    p?.progress,
-    p?.completedPercent,
-
-    // Įdėti ir viduje esančius laukus – jei API grąžina giliai
-    p?.planData?.wasCompleted,
-    p?.planData?.wasCompleated,
-    p?.planData?.completed,
-    p?.planData?.completionStatus,
-    p?.completedAt,
-    p?.finishedAt,
-    p?.planData?.completedAt,
-  ];
-
-  for (const v of candidates) {
-    if (truthy(v)) return true;
-  }
-  return false;
+  return p?.wasCompleted === true;
 }
 
 export default function Workouts() {
