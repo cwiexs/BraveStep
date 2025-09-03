@@ -466,24 +466,27 @@
   "form.dateCannotBeFuture": "Date cannot be in the future",
 
 
-  "welcomeUser": "Welcome back, {{name}}!",
+
+
+  "pleaseLogin": "Please log in.",
+  "welcomeUser": "Welcome, {{name}}!",
   "user": "User",
   "lastGenerated": "Last generated",
   "noPlans": "No plans yet",
-  "noDate": "No date",
   "workouts": "Workouts",
-  "workoutsInfo": "Total number of completed workouts.",
-  "totalTime": "Total Time",
-  "totalTimeInfo": "Total time spent on workouts.",
-  "caloriesBurned": "Calories Burned",
-  "caloriesInfo": "Estimated calories burned.",
-  "selectPlan": "Select plan",
-  "viewPlan": "View Plan",
-  "generatePlan": "Generate New Plan",
+  "workoutsInfo": "Total number of finished workouts.",
+  "totalTime": "Total time",
+  "totalTimeInfo": "Sum of estimated workout durations.",
+  "caloriesBurned": "Calories burned",
+  "caloriesInfo": "Estimated calories burned across workouts.",
+  "viewPlan": "View plan",
   "generating": "Generating",
-  "generateFailed": "Failed to generate plan",
-  "startWorkout": "Start Workout",
-  "pleaseLogin": "Please log in to view your workouts.",
+  "generatePlan": "Generate plan",
+  "startWorkout": "Start workout",
+  "noDate": "No date",
+  "generateFailed": "Failed to generate the plan.",
+  "completed": "Completed",
+  "notCompleted": "Not completed",
 
 
   "workoutPlan": "Workout Plan",
@@ -530,5 +533,7 @@
       "voiceDescShort": "Count down 5,4,3,2,1 in the final seconds."
   }
 }
+
+
 
 }

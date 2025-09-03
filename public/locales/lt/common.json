@@ -469,24 +469,26 @@
   "form.dateCannotBeFuture": "Negalima įvesti datos iš ateities",
 
 
-  "welcomeUser": "Sveikas sugrįžęs, {{name}}!",
+
+  "pleaseLogin": "Prisijunkite.",
+  "welcomeUser": "Sveiki, {{name}}!",
   "user": "Vartotojas",
-  "lastGenerated": "Paskutinis sugeneruotas",
-  "noPlans": "Kol kas planų nėra",
-  "noDate": "Nėra datos",
+  "lastGenerated": "Paskutinį kartą sugeneruota",
+  "noPlans": "Planų nėra",
   "workouts": "Treniruotės",
-  "workoutsInfo": "Iš viso atliktų treniruočių skaičius.",
+  "workoutsInfo": "Baigtų treniruočių skaičius.",
   "totalTime": "Bendras laikas",
-  "totalTimeInfo": "Bendras treniruočių laikas minutėmis.",
+  "totalTimeInfo": "Apytikslė visų treniruočių trukmės suma.",
   "caloriesBurned": "Sudegintos kalorijos",
-  "caloriesInfo": "Apytiksliai sudegintos kalorijos.",
-  "selectPlan": "Pasirinkite planą",
+  "caloriesInfo": "Apytikslės sudegintos kalorijos.",
   "viewPlan": "Peržiūrėti planą",
-  "generatePlan": "Generuoti naują planą",
   "generating": "Generuojama",
-  "generateFailed": "Nepavyko sugeneruoti plano",
+  "generatePlan": "Generuoti planą",
   "startWorkout": "Pradėti treniruotę",
-  "pleaseLogin": "Prisijunkite, norėdami peržiūrėti savo treniruotes.",
+  "noDate": "Nėra datos",
+  "generateFailed": "Nepavyko sugeneruoti plano.",
+  "completed": "Atlikta",
+  "notCompleted": "Neatlikta",
 
 
  
