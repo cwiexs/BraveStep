@@ -2,7 +2,6 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "./auth/[...nextauth]";
 import { prisma } from "../../lib/prisma";
 import { generateExerciseHistorySummary } from "../../components/utils/generateExerciseHistorySummary";
-const MODEL = process.env.OPENAI_MODEL_WORKOUT || "gpt-5"; // arba "gpt-5-mini"
 
 
 
@@ -373,6 +372,35 @@ RULES:
 
 
 ADDITIONAL LABEL FIELDS (HUMAN-READABLE, IN USER'S LANGUAGE):
+
+STRUCTURED MACHINE FIELDS (ALWAYS IN ENGLISH KEYS):
+- For every step in @steps include EXACTLY ONE of the following fields, written in English and as raw integers (no units, no quotes around numbers):
+  * durationTime (or durationtime): <integer seconds>         // time-based (convert minutes to total seconds)
+  * durationQuantity (or durationquantity): <integer repetitions> // repetition-based
+- Keep the human-facing "duration" string localized for the user (e.g., "30 sek.", "15 kartų", "30 sec.", etc.).
+- Never include both machine fields on the same step. One or the other.
+- These keys MUST be present on every step to ensure robust parsing regardless of language.
+
+EXAMPLES (fragment):
+@steps:
+- type: exercise
+  set: 1
+  set_label: "Serija"
+  duration: "30 sek."
+  durationTime: 30
+- type: rest
+  label: "Poilsis"
+  duration: "30 sek."
+  durationTime: 30
+- type: exercise
+  set: 2
+  set_label: "Serija"
+  duration: "15 kartų"
+  durationQuantity: 15
+- type: rest_after
+  label: "Poilsis po pratimo"
+  duration: "60 sek."
+  durationTime: 60
 - For every step you MUST include localized, human-friendly labels:
   * For type: "rest" and "rest_after", add:  label: "<localized label for the step>"
   * For type: "exercise", add:               set_label: "<localized word for 'Set' or 'Serija'>"
@@ -506,65 +534,36 @@ Never mention this validation step in the visible response. Only show the final,
 
   const aiPrompt = promptParts.join("\n\n");
 
-  // -- OpenAI call with fallback & better error reporting
-  async function callOpenAIWithFallback(payload, models) {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new Error("Missing OPENAI_API_KEY");
-    }
-    let lastErr = "";
-    for (const m of models) {
-      try {
-        const resp = await fetch("https://api.openai.com/v1/chat/completions", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-          },
-          body: JSON.stringify({ ...payload, model: m }),
-        });
-        if (resp.ok) {
-          const data = await resp.json();
-          return { data, modelUsed: m };
-        }
-        // read error text/json
-        let errTxt = "";
-        try { const ej = await resp.json(); errTxt = JSON.stringify(ej); } catch { errTxt = await resp.text(); }
-        lastErr = `HTTP ${resp.status} for model ${m}: ${errTxt}`;
-        // try next model on model_not_found
-        if (resp.status === 404 || /model(.+)?not found/i.test(errTxt)) continue;
-        // stop on quota
-        if (resp.status === 429 || /insufficient_quota/i.test(errTxt)) break;
-      } catch (e) {
-        lastErr = `Exception for model ${m}: ${String(e)}`;
-        continue;
-      }
-    }
-    throw new Error(lastErr || "OpenAI request failed");
-  }
-
-
   // 7. Siunčiam į OpenAI
-  
-  // Use fallback chain for models: env MODEL -> OPENAI_MODEL_FALLBACK -> safe defaults
-  let aiData, modelUsed;
+  let aiResponse;
   try {
-    const primary = MODEL;
-    const fallback = process.env.OPENAI_MODEL_FALLBACK || "gpt-4o";
-    const chain = Array.from(new Set([primary, fallback, "gpt-4o-mini"])).filter(Boolean);
-    const resObj = await callOpenAIWithFallback({
-      messages: [
-        { role: "system", content: "You are a professional fitness coach and data safety validator." },
-        { role: "user", content: aiPrompt },
-      ],
-      max_tokens: 8000,
-      temperature: 0.7,
-    }, chain);
-    aiData = resObj.data;
-    modelUsed = resObj.modelUsed;
+    aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          { role: "system", content: "You are a professional fitness coach and data safety validator." },
+          { role: "user", content: aiPrompt },
+        ],
+        max_tokens: 8000,
+        temperature: 0.7,
+      }),
+    });
   } catch (error) {
-    return res.status(502).json({ error: "AI request failed", details: String(error) });
+    return res.status(500).json({ error: "AI connection error", details: String(error) });
   }
-const generatedText = aiData.choices?.[0]?.message?.content || "No plan generated.";
+
+  if (!aiResponse.ok) {
+    const err = await aiResponse.text();
+    return res.status(500).json({ error: "AI error", details: err });
+  }
+
+  const aiData = await aiResponse.json();
+  const generatedText = aiData.choices?.[0]?.message?.content || "No plan generated.";
 
   // Jei AI atsako "Cannot create plan:" – plano neišsaugom, grąžinam vartotojui
   if (generatedText.startsWith("Cannot create plan:")) {

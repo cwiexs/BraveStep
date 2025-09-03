@@ -20,12 +20,54 @@ function detectLocaleFromText(text) {
   return "en";
 }
 
+// ---- Language-agnostic helpers (prefer structured fields, fallback by words) ----
+function getSeconds(step) {
+  if (!step) return 0;
+  if (typeof step.durationTime === "number") return step.durationTime;
+  if (typeof step.duration_time === "number") return step.duration_time;
+  if (typeof step.seconds === "number") return step.seconds;
+  if (typeof step.duration_sec === "number") return step.duration_sec;
+  if (typeof step.value === "number" && typeof step.unit === "string") {
+    const u = String(step.unit).toLowerCase();
+    if (["sec","secs","second","seconds","s","sek","sek.","сек","сек.","с","seg","seg.","segundo","segundos","sekunden","seconde","secondes","secondi"].includes(u)) return step.value;
+    if (["min","mins","minute","minutes","min.","мин","мин.","dk","dakika","minutos","minuti","minuten","minūtes"].includes(u)) return step.value * 60;
+  }
+  const text = String(step.duration || "").toLowerCase();
+  const secWords = ["sek","sec","s","сек","сек.","с","seg","seg.","segundo","segundos","sekunden","seconde","secondes","secondi"];
+  const minWords = ["min","mins","minute","minutes","min.","мин","мин.","dk","dakika","minutos","minuti","minuten","minūtes"];
+  const secRegex = new RegExp(String.raw`(\d+)\s*(?:${secWords.join("|")})(?:\.|\b)`, "i");
+  const minRegex = new RegExp(String.raw`(\d+)\s*(?:${minWords.join("|")})(?:\.|\b)`, "i");
+  let m = text.match(secRegex);
+  if (m) return parseInt(m[1], 10);
+  m = text.match(minRegex);
+  if (m) return parseInt(m[1], 10) * 60;
+  return 0;
+}
+function getReps(step) {
+  if (!step) return 0;
+  if (typeof step.durationQuantity === "number") return step.durationQuantity;
+  if (typeof step.duration_quantity === "number") return step.duration_quantity;
+  if (typeof step.reps === "number") return step.reps;
+  if (typeof step.count === "number") return step.count;
+  if (typeof step.value === "number" && typeof step.unit === "string") {
+    const u = String(step.unit).toLowerCase();
+    if (["rep","reps","powt","powtórzeń","kartų","kartai","повтор","повторів"].includes(u)) return step.value;
+  }
+  const text = String(step.duration || "").toLowerCase();
+  if (getSeconds({ duration: text }) > 0) return 0;
+  const m = text.match(/(\d+)/);
+  return m ? parseInt(m[1], 10) : 0;
+}
+
 export default function WorkoutViewer({ planText, planLocale, onClose }) {
   const { t } = useTranslation("common");
   if (!planText) return null;
 
   const locale = planLocale || detectLocaleFromText(planText);
   const F = FALLBACK[locale] || FALLBACK.en;
+
+  const secShort = locale === "lt" ? "sek" : (locale === "pl" ? "s" : "sec");
+  const repsWord = locale === "lt" ? "kartų" : (locale === "pl" ? "powt." : "reps");
 
   const parsedPlan = parseWorkoutText(planText) || {};
   const days = Array.isArray(parsedPlan.days) ? parsedPlan.days : [];
@@ -34,15 +76,41 @@ export default function WorkoutViewer({ planText, planLocale, onClose }) {
     if (e.target === e.currentTarget) onClose?.();
   };
 
+  
   function renderStep(step) {
     if (!step) return "";
     if (typeof step === "string") return step;
 
     const type = step.type;
+    const secs = getSeconds(step);
+    const reps = getReps(step);
+
+    const humanDur =
+      step.duration ||
+      (secs > 0 ? `${secs} ${secShort}` : (reps > 0 ? `${reps} ${repsWord}` : ""));
 
     if (type === "exercise") {
       const word = step.setLabel || F.set;
       const series = step.set ? `${word} ${step.set}` : word;
+      const duration = humanDur ? ` — ${humanDur}` : "";
+      return `${series}${duration}`;
+    }
+
+    if (type === "rest") {
+      const word = step.label || F.rest;
+      const duration = humanDur ? ` — ${humanDur}` : "";
+      return `${word}${duration}`;
+    }
+
+    if (type === "rest_after") {
+      const word = step.label || F.rest_after;
+      const duration = humanDur ? ` — ${humanDur}` : "";
+      return `${word}${duration}`;
+    }
+
+    return humanDur || "";
+  }
+ ${step.set}` : word;
       const duration = step.duration ? ` — ${step.duration}` : "";
       return `${series}${duration}`;
     }
