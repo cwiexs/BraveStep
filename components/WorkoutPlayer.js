@@ -475,8 +475,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       return;
     }
 
-    const duration = parseSeconds(step?.duration);
-    if (duration > 0) {
+    const isTimedStep = isTimed(step?.duration);
+    if (isTimedStep) {
+      const duration = parseSeconds(step?.duration);
       startTimedStep(duration);
     } else {
       setSecondsLeft(0);
@@ -557,8 +558,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   function restartCurrentStep() {
     cancelRaf();
     stopAllScheduled();
-    const duration = parseSeconds(step?.duration);
-    if (duration > 0) startTimedStep(duration);
+    const isTimedStep = isTimed(step?.duration);
+    if (isTimedStep) {
+      const duration = parseSeconds(step?.duration);
+      if (duration > 0) startTimedStep(duration);
+    } else {
+      setSecondsLeft(0);
+      setWaitingForUser(true);
+    }
   }
 
   // ===================== UI =====================
@@ -760,7 +767,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             <p className="text-sm text-gray-700 italic mb-4">{exercise?.description}</p>
           )}
 
-          {(parseSeconds(step?.duration) > 0) && (
+          {(isTimed(step?.duration)) && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
               {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
             </p>
