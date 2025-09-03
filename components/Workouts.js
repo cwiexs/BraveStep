@@ -1,5 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
+// Jei nori viso puslapio perkrovimo po generavimo, pakeisk į true
+const HARD_RELOAD_ON_GENERATE_DONE = false;
+
 /**
  * Workouts.js – savarankiškas, vieno failo komponentas
  * ---------------------------------------------------
@@ -96,6 +99,10 @@ export default function Workouts() {
 
   const pollRef = useRef(null);
 
+  // Stebime, kada animacija baigiasi (loadingGenerate -> false)
+  const prevLoadingRef = useRef(false);
+  const lastGenerateOkRef = useRef(false);
+
   // ---------- Inicialus planų užkrovimas ----------
   useEffect(() => {
     refreshPlans();
@@ -104,7 +111,27 @@ export default function Workouts() {
     };
   }, []);
 
-  // ---------- Pagalbinės funkcijos ----------
+  // Kai tik animacija baigiasi (loadingGenerate nuo true -> false), atnaujinam sąrašą arba perkraunam puslapį
+  useEffect(() => {
+    const wasLoading = prevLoadingRef.current;
+    if (wasLoading && !loadingGenerate) {
+      if (lastGenerateOkRef.current) {
+        if (HARD_RELOAD_ON_GENERATE_DONE) {
+          try { window.location.reload(); } catch (_) {}
+        } else {
+          // „Soft“ refresh – persikraunam planų sąrašą ir automatiškai parenkam naujausią
+          refreshPlans().then((list) => {
+            if (Array.isArray(list) && list.length > 0) {
+              setSelected(list[0]);
+            }
+          });
+        }
+      }
+    }
+    prevLoadingRef.current = loadingGenerate;
+  }, [loadingGenerate]);
+
+// ---------- Pagalbinės funkcijos ----------
   const refreshPlans = async () => {
     try {
       setError("");
@@ -149,6 +176,7 @@ export default function Workouts() {
         const next = sortByCreatedDesc([data.plan, ...plans]);
         setPlans(next);
         setSelected(next[0] || data.plan);
+        lastGenerateOkRef.current = true;
         setLoadingGenerate(false);
         refreshStats();
         return;
@@ -164,12 +192,14 @@ export default function Workouts() {
         const hasNew = nowTs > beforeTs;
 
         if (hasNew) {
+          lastGenerateOkRef.current = true;
           clearInterval(pollRef.current);
           pollRef.current = null;
           setLoadingGenerate(false);
           setSelected(latest[0] || null); // automatiškai parenkam naujausią
           refreshStats();
         } else if (Date.now() > deadline) {
+          lastGenerateOkRef.current = false;
           clearInterval(pollRef.current);
           pollRef.current = null;
           setLoadingGenerate(false);
@@ -178,6 +208,7 @@ export default function Workouts() {
       }, 2000);
     } catch (e) {
       setLoadingGenerate(false);
+      lastGenerateOkRef.current = false;
       setError(e?.message || "Nepavyko sugeneruoti plano.");
     }
   };
