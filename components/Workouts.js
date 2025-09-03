@@ -33,7 +33,45 @@ function formatYMD(dateLike) {
 
 // 🔍 Helper: patikrinam ar planas užbaigtas (palaikom kelis galimus laukų pavadinimus)
 function isPlanCompleted(p) {
-  return p?.wasCompleted === true || p?.wasCompleated === true || p?.completed === true;
+  // Konvertuojam įvairius formatus į boolean
+  const truthy = (v) => {
+    if (v === true) return true;
+    if (v === false || v === 0) return false;
+    if (v == null) return false;
+    if (typeof v === "number") return v === 1;
+    if (v instanceof Date) return !isNaN(v.getTime());
+    if (typeof v === "string") {
+      const s = v.trim().toLowerCase();
+      if (["true","1","yes","y","done","completed","complete","atlikta","baigta","užbaigta","uzbaigta","finished"].includes(s)) return true;
+      if (["false","0","no","n","not completed","neatlikta","nebaigta","unfinished","pending","incomplete"].includes(s)) return false;
+      // jei tai panašu į datą – laikom kaip completed timestamp
+      const ts = Date.parse(v);
+      return !Number.isNaN(ts);
+    }
+    return !!v;
+  };
+
+  const candidates = [
+    p?.wasCompleted,
+    p?.wasCompleated, // dažna rašyba
+    p?.completed,
+    p?.isCompleted,
+    p?.isDone,
+    p?.status,
+    p?.planStatus,
+    p?.progress?.status,
+    p?.planData?.wasCompleted,
+    p?.planData?.wasCompleated,
+    p?.planData?.completed,
+    p?.completedAt,
+    p?.finishedAt,
+    p?.planData?.completedAt,
+  ];
+
+  for (const v of candidates) {
+    if (truthy(v)) return true;
+  }
+  return false;
 }
 
 export default function Workouts() {
@@ -230,9 +268,9 @@ export default function Workouts() {
         <select
           className="border p-2 rounded shadow cursor-pointer w-full sm:w-auto"
           onChange={(e) =>
-            setSelectedPlan(plans.find((p) => p.id === e.target.value))
+            setSelectedPlan(plans.find((p) => String(p.id) === e.target.value))
           }
-          value={selectedPlan?.id || ""}
+          value={selectedPlan?.id != null ? String(selectedPlan.id) : ""}
           disabled={loading}
         >
           {plans.map((plan) => {
@@ -240,23 +278,12 @@ export default function Workouts() {
           const statusText = completed ? t("completed") : t("notCompleted");
           const dateText = plan.createdAt ? formatYMD(plan.createdAt) : t("noDate");
           return (
-            <option key={plan.id} value={plan.id}>
+            <option key={String(plan.id)} value={String(plan.id)}>
               {dateText} — {statusText}
             </option>
           );
           })}
         </select>
-
-        {selectedPlan && (
-          <span
-            className={
-              "px-2 py-1 rounded text-xs font-semibold " +
-              (isPlanCompleted(selectedPlan) ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")
-            }
-          >
-            {isPlanCompleted(selectedPlan) ? t("completed") : t("notCompleted")}
-          </span>
-        )}
 
         <button
           className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded shadow transition w-full sm:w-auto disabled:opacity-60"
