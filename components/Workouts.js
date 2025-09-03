@@ -1,470 +1,315 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
+import { useTranslation } from "next-i18next";
+import { useState, useEffect, useRef } from "react";
+import { parseWorkoutText } from "./utils/parseWorkoutText";
+import { Info, CalendarDays } from "lucide-react";
+import WorkoutPlayer from "./WorkoutPlayer";
+import WorkoutViewer from "./WorkoutViewer";
 
-// Jei nori viso puslapio perkrovimo po generavimo, pakeisk į true
+// ⛳️ Minimalus jungiklis: jei nori pilno puslapio perkrovimo po generavimo – nustatyk į true
 const HARD_RELOAD_ON_GENERATE_DONE = false;
 
-/**
- * Workouts.js – savarankiškas, vieno failo komponentas
- * ---------------------------------------------------
- * Tikslas: po "Generate" paspaudimo AUTOMATIŠKAI atsinaujinti planų sąrašą,
- * kai tik backendas baigia generuoti planą (be puslapio perkrovimo).
- *
- * Priklausomybės: tik React. Jokio i18n, next-auth ar UI bibliotekų –
- * kad būtų galima nukopijuoti į „tuščią aplanką“.
- *
- * API endpoint’ai (pakeisk pagal savo realius):
- *  - POST  /api/generate-workout    → pradeda generuoti planą; gali grąžinti { plan }
- *  - GET   /api/archive-plans       → grąžina { plans: [...] } (naujausi viršuje arba apačioje – nesvarbu)
- *  - GET   /api/last-workout        → (nebūtina) metrikoms atnaujinti { stats }
- *
- * „Polling“ logika:
- *  1) Paspaudus Generate, išsisaugom dabartinį naujausio plano laiką (createdAt) – newestBefore.
- *  2) Jei /api/generate-workout NEgrąžino naujo plano, paleidžiam kas 2 s tikrinti /api/archive-plans
- *     kol atsiras įrašas su createdAt > newestBefore (max 2 min). Tada sustabdom „polling“,
- *     įkeliame naują planą į būseną ir parenkam jį automatiškai.
- */
-
-// ---------- Pagalbiniai įrankiai ----------
-
-async function fetchJSON(url, options) {
-  const res = await fetch(url, options);
-  // Bandome JSON – net ir esant klaidai backend dažnai grąžina JSON
-  let body = null;
-  try {
-    body = await res.json();
-  } catch (_) {
-    // paliekam null – be JSON
-  }
-  if (!res.ok) {
-    const msg = body?.error || body?.message || `Request failed: ${res.status}`;
-    throw new Error(msg);
-  }
-  return body;
+/** Paprasta trijų taškų animacija: ., .., ... */
+function DotsAnimation() {
+  const [dots, setDots] = useState("");
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length < 3 ? prev + "." : ""));
+    }, 500);
+    return () => clearInterval(interval);
+  }, []);
+  return <span>{dots}</span>;
 }
 
-function toTime(value) {
-  const d = value ? new Date(value) : null;
-  const t = d?.getTime?.() ?? NaN;
-  return Number.isFinite(t) ? t : 0;
-}
-
-function newestCreatedAt(plans) {
-  if (!Array.isArray(plans) || plans.length === 0) return 0;
-  // Ieškome max createdAt (jei nėra – bandome updatedAt)
-  return plans.reduce((mx, p) => Math.max(mx, toTime(p?.createdAt) || toTime(p?.updatedAt)), 0);
-}
-
-function sortByCreatedDesc(list) {
-  return (list || [])
-    .slice()
-    .sort((a, b) => (toTime(b?.createdAt) || toTime(b?.updatedAt)) - (toTime(a?.createdAt) || toTime(a?.updatedAt)));
-}
-
-function fmtDate(value) {
-  const t = toTime(value);
-  if (!t) return "—";
-  try {
-    return new Date(t).toLocaleString();
-  } catch {
-    return String(value ?? "—");
-  }
-}
-
-// Mažas trijų taškų loader’is
-function DotLoader({ active }) {
-  return (
-    <span className="dot-loader" aria-hidden>
-      <span className={active ? "dot d1 on" : "dot d1"} />
-      <span className={active ? "dot d2 on" : "dot d2"} />
-      <span className={active ? "dot d3 on" : "dot d3"} />
-      <style>{`
-        .dot-loader { display:inline-flex; gap:6px; align-items:center; }
-        .dot { width:6px; height:6px; border-radius:50%; background: currentColor; opacity:.35; }
-        @keyframes pulse { 0%{opacity:.2} 50%{opacity:1} 100%{opacity:.2} }
-        .on.d1 { animation: pulse 900ms ease-in-out infinite; animation-delay: 0ms; }
-        .on.d2 { animation: pulse 900ms ease-in-out infinite; animation-delay: 150ms; }
-        .on.d3 { animation: pulse 900ms ease-in-out infinite; animation-delay: 300ms; }
-      `}</style>
-    </span>
-  );
+/** YYYY/MM/DD formatas */
+function formatYMD(dateLike) {
+  if (!dateLike) return "";
+  const d = new Date(dateLike);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}/${m}/${day}`;
 }
 
 export default function Workouts() {
-  // ---------- Būsenos ----------
+  const { data: session, status } = useSession();
+  const { t } = useTranslation("common");
+
   const [plans, setPlans] = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [loadingGenerate, setLoadingGenerate] = useState(false);
-  const [error, setError] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState(null);
+  const [parsedPlan, setParsedPlan] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const [showPlayer, setShowPlayer] = useState(false);
+  const [showViewer, setShowViewer] = useState(false);
   const [stats, setStats] = useState({ totalWorkouts: 0, totalTime: 0, calories: 0 });
 
-  const pollRef = useRef(null);
+  // 👇 Naudosime, kad perduotume teisingą planId į WorkoutPlayer (feedback išsaugojimui)
+  const [activePlanId, setActivePlanId] = useState(null);
 
-  // Stebime, kada animacija baigiasi (loadingGenerate -> false)
-  const prevLoadingRef = useRef(false);
+  // 🔎 Minimalus sėkmės indikatorius + perėjimo sekimas
   const lastGenerateOkRef = useRef(false);
+  const prevLoadingRef = useRef(false);
 
-  // ---------- Inicialus planų užkrovimas ----------
+  // Parsinešam planų archyvą + statistiką (inic.)
   useEffect(() => {
-    refreshPlans();
-    return () => {
-      if (pollRef.current) clearInterval(pollRef.current);
-    };
-  }, []);
+    if (!session) return;
 
-  // Kai tik animacija baigiasi (loadingGenerate nuo true -> false), atnaujinam sąrašą arba perkraunam puslapį
+    // Planai
+    fetch("/api/archive-plans")
+      .then((res) => res.json())
+      .then((data) => {
+        const list = Array.isArray(data.plans) ? data.plans : [];
+        const meEmail = session?.user?.email || null;
+        const meId = session?.user?.id || null;
+        const onlyMine = list.filter((p) => {
+          const ownerEmail = p?.user?.email || p?.ownerEmail || p?.email || null;
+          const ownerId = p?.userId || p?.user?.id || null;
+          if (ownerEmail && meEmail) return ownerEmail === meEmail;
+          if (ownerId && meId) return ownerId === meId;
+          return false;
+        });
+        const sorted = onlyMine
+          .slice()
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setPlans(sorted);
+        setSelectedPlan(sorted[0] || null); // naujausias – numatytasis
+      })
+      .catch(() => {
+        setPlans([]);
+        setSelectedPlan(null);
+      });
+
+    // Statistika
+    fetch("/api/last-workout")
+      .then((res) => res.json())
+      .then((data) => setStats(data.stats || { totalWorkouts: 0, totalTime: 0, calories: 0 }))
+      .catch(() => setStats({ totalWorkouts: 0, totalTime: 0, calories: 0 }));
+  }, [session]);
+
+  // 👇 Maža pagalbinė: „soft refresh“ planų po generavimo
+  const refreshPlans = async () => {
+    if (!session) return [];
+    try {
+      const res = await fetch("/api/archive-plans");
+      const data = await res.json();
+      const list = Array.isArray(data.plans) ? data.plans : [];
+      const meEmail = session?.user?.email || null;
+      const meId = session?.user?.id || null;
+      const onlyMine = list.filter((p) => {
+        const ownerEmail = p?.user?.email || p?.ownerEmail || p?.email || null;
+        const ownerId = p?.userId || p?.user?.id || null;
+        if (ownerEmail && meEmail) return ownerEmail === meEmail;
+        if (ownerId && meId) return ownerId === meId;
+        return false;
+      });
+      const sorted = onlyMine
+        .slice()
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setPlans(sorted);
+      setSelectedPlan((prev) => prev || sorted[0] || null);
+      return sorted;
+    } catch {
+      setPlans([]);
+      setSelectedPlan(null);
+      return [];
+    }
+  };
+
+  // 🔔 REAKCIJA Į ANIMACIJOS PABAIGĄ: kai loading pereina iš true į false IR sėkmė → darom refresh
   useEffect(() => {
     const wasLoading = prevLoadingRef.current;
-    if (wasLoading && !loadingGenerate) {
+    if (wasLoading && !loading) {
       if (lastGenerateOkRef.current) {
         if (HARD_RELOAD_ON_GENERATE_DONE) {
           try { window.location.reload(); } catch (_) {}
         } else {
-          // „Soft“ refresh – persikraunam planų sąrašą ir automatiškai parenkam naujausią
           refreshPlans().then((list) => {
             if (Array.isArray(list) && list.length > 0) {
-              setSelected(list[0]);
+              setSelectedPlan(list[0]);
             }
           });
         }
       }
     }
-    prevLoadingRef.current = loadingGenerate;
-  }, [loadingGenerate]);
+    prevLoadingRef.current = loading;
+  }, [loading, session]);
 
-// ---------- Pagalbinės funkcijos ----------
-  const refreshPlans = async () => {
+  const handleGeneratePlan = async () => {
+    setLoading(true);
+    lastGenerateOkRef.current = false;
     try {
-      setError("");
-      const data = await fetchJSON("/api/archive-plans");
-      const list = Array.isArray(data?.plans) ? data.plans : [];
-      const sorted = sortByCreatedDesc(list);
-      setPlans(sorted);
-      // Jei niekas neparinkta – parenkam naujausią
-      setSelected((prev) => prev ?? sorted[0] ?? null);
-      return sorted;
-    } catch (e) {
-      setPlans([]);
-      setSelected(null);
-      setError(e?.message || "Nepavyko įkelti planų.");
-      return [];
-    }
-  };
+      const response = await fetch("/api/generate-workout", { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data?.error || "generateFailed");
 
-  const refreshStats = async () => {
-    try {
-      const s = await fetchJSON("/api/last-workout");
-      setStats(s?.stats || { totalWorkouts: 0, totalTime: 0, calories: 0 });
-    } catch {
-      /* optional */
-    }
-  };
+      // ✅ pažymime sėkmę – po animacijos pabaigos įvyks refresh (soft arba hard)
+      lastGenerateOkRef.current = true;
 
-  // ---------- Pagrindinė – Generate + Polling ----------
-  const handleGenerate = async () => {
-    if (loadingGenerate) return;
-    setLoadingGenerate(true);
-    setError("");
-
-    // Fiksuojam kas buvo iki dabar – pagal tai spręsim, ar atsirado NAUJAS
-    const beforeTs = newestCreatedAt(plans);
-
-    try {
-      const data = await fetchJSON("/api/generate-workout", { method: "POST" });
-
-      // 1) Jei backendas iškart grąžino planą – super, integruojam be „polling“
       if (data?.plan?.id) {
-        const next = sortByCreatedDesc([data.plan, ...plans]);
-        setPlans(next);
-        setSelected(next[0] || data.plan);
-        lastGenerateOkRef.current = true;
-        setLoadingGenerate(false);
-        refreshStats();
-        return;
+        // įdedam naują planą į viršų ir pažymim kaip aktyvų (paliekam tavo logiką)
+        const nextPlans = [data.plan, ...plans];
+        const sorted = nextPlans.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setPlans(sorted);
+        setSelectedPlan(sorted[0] || data.plan);
       }
-
-      // 2) Kitaip – paleidžiam „polling“ kol atsiras NAUJAS įrašas
-      if (pollRef.current) clearInterval(pollRef.current);
-      const deadline = Date.now() + 2 * 60 * 1000; // max 2 min
-
-      pollRef.current = setInterval(async () => {
-        const latest = await refreshPlans();
-        const nowTs = newestCreatedAt(latest);
-        const hasNew = nowTs > beforeTs;
-
-        if (hasNew) {
-          lastGenerateOkRef.current = true;
-          clearInterval(pollRef.current);
-          pollRef.current = null;
-          setLoadingGenerate(false);
-          setSelected(latest[0] || null); // automatiškai parenkam naujausią
-          refreshStats();
-        } else if (Date.now() > deadline) {
-          lastGenerateOkRef.current = false;
-          clearInterval(pollRef.current);
-          pollRef.current = null;
-          setLoadingGenerate(false);
-          // Gal planas dar generuojamas – naudotojui paliekam sprendimą
-        }
-      }, 2000);
-    } catch (e) {
-      setLoadingGenerate(false);
+    } catch (error) {
       lastGenerateOkRef.current = false;
-      setError(e?.message || "Nepavyko sugeneruoti plano.");
+      alert(t("generateFailed"));
+    } finally {
+      setLoading(false); // 👈 tai „išjungia“ animaciją; useEffect suveiks ir padarys refresh jei sėkmė
     }
   };
 
-  const hasPlans = plans?.length > 0;
+  const handleViewPlan = () => {
+    if (!selectedPlan?.planData?.text) return;
+    setShowViewer(true);
+  };
 
-  // ---------- UI ----------
+  const handleStartWorkout = () => {
+    if (!selectedPlan?.planData?.text) return;
+    if (!parsedPlan) {
+      setParsedPlan(parseWorkoutText(selectedPlan.planData.text || ""));
+    }
+    setActivePlanId(selectedPlan?.id || null); // 👈 perduosim į grotuvą
+    setShowPlayer(true);
+  };
+
+  const handleCloseWorkout = () => {
+    setShowPlayer(false);
+    setParsedPlan(null);
+    setActivePlanId(null);
+  };
+
+  if (status === "loading") return <div>{t("loading")}</div>;
+  if (!session) return <div>{t("pleaseLogin")}</div>;
+
+  const newestPlan = plans[0];
+
   return (
-    <div style={styles.wrap}>
-      <header style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Workout Plans</h1>
-          <p style={styles.subtitle}>Automatinis atsinaujinimas vos tik planas paruoštas.</p>
-        </div>
-        <div style={styles.headerActions}>
-          <button onClick={refreshPlans} style={styles.ghostBtn} aria-label="Refresh plans">
-            ↻ Refresh
-          </button>
-          <button onClick={handleGenerate} style={styles.primaryBtn} disabled={loadingGenerate}>
-            {loadingGenerate ? (
-              <>
-                Generuojama&nbsp;<DotLoader active={true} />
-              </>
-            ) : (
-              "Generate plan"
-            )}
-          </button>
-        </div>
-      </header>
+    <div className="max-w-4xl mx-auto p-4 sm:p-8 bg-white shadow-xl rounded-2xl">
+      <h1 className="text-3xl font-bold text-blue-900 text-center mb-2">
+        {t("welcomeUser", { name: session.user.name || t("user") })}
+      </h1>
 
-      {error ? (
-        <div style={styles.errorBox} role="alert">{error}</div>
-      ) : null}
+      <p className="text-center text-gray-500 mb-4 flex items-center justify-center gap-1">
+        <CalendarDays className="w-5 h-5" />
+        {t("lastGenerated")}: {" "}
+        {newestPlan?.createdAt ? formatYMD(newestPlan.createdAt) : t("noPlans")}
+      </p>
 
-      <section style={styles.layout}>
-        <aside style={styles.sidebar}>
-          <div style={styles.sectionHeader}>
-            <h2 style={styles.h2}>Planų sąrašas</h2>
-            <span style={styles.count}>{plans.length}</span>
-          </div>
+      {/* Stat kortelės */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <StatCard
+          value={stats?.totalWorkouts || 0}
+          label={t("workouts")}
+          tooltip={t("workoutsInfo")}
+          color="bg-blue-50"
+        />
+        <StatCard
+          value={`${stats?.totalTime || 0} min`}
+          label={t("totalTime")}
+          tooltip={t("totalTimeInfo")}
+          color="bg-green-50"
+        />
+        <StatCard
+          value={`${stats?.calories || 0} kcal`}
+          label={t("caloriesBurned")}
+          tooltip={t("caloriesInfo")}
+          color="bg-yellow-50"
+        />
+      </div>
 
-          {!hasPlans ? (
-            <div style={styles.empty}>
-              <p>Planų nėra. Paspausk „Generate plan“.</p>
-            </div>
+      {/* Valdikliai */}
+      <div className="flex flex-wrap gap-2 justify-center mb-3">
+        <select
+          className="border p-2 rounded shadow cursor-pointer w-full sm:w-auto"
+          onChange={(e) =>
+            setSelectedPlan(plans.find((p) => p.id === e.target.value))
+          }
+          value={selectedPlan?.id || ""}
+          disabled={loading}
+        >
+          {plans.map((plan) => (
+            <option key={plan.id} value={plan.id}>
+              {plan.createdAt ? formatYMD(plan.createdAt) : t("noDate")}
+            </option>
+          ))}
+        </select>
+
+        <button
+          className="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded shadow transition w-full sm:w-auto disabled:opacity-60"
+          onClick={handleViewPlan}
+          disabled={!selectedPlan?.planData?.text || loading}
+        >
+          {t("viewPlan")}
+        </button>
+
+        <button
+          onClick={handleGeneratePlan}
+          className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow transition w-full sm:w-auto disabled:opacity-60 flex items-center justify-center gap-1"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              {t("generating")} <DotsAnimation />
+            </>
           ) : (
-            <ul style={styles.list}>
-              {plans.map((p) => {
-                const isActive = selected?.id === p?.id;
-                const label = p?.title || p?.name || `Plan #${p?.id ?? "—"}`;
-                return (
-                  <li key={p?.id ?? `${toTime(p?.createdAt)}-${Math.random()}`}
-                      onClick={() => setSelected(p)}
-                      style={isActive ? { ...styles.item, ...styles.itemActive } : styles.item}
-                      title={label}>
-                    <div style={styles.itemTitle}>{label}</div>
-                    <div style={styles.itemMeta}>
-                      <span>{fmtDate(p?.createdAt || p?.updatedAt)}</span>
-                      {p?.id ? <span style={styles.badge}>ID: {p.id}</span> : null}
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
+            t("generatePlan")
           )}
-        </aside>
+        </button>
+      </div>
 
-        <main style={styles.main}>
-          <div style={styles.sectionHeader}>
-            <h2 style={styles.h2}>Plano informacija</h2>
-          </div>
+      {/* Start mygtukas */}
+      {selectedPlan?.planData?.text && (
+        <div className="flex justify-center mb-6">
+          <button
+            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded shadow disabled:opacity-60"
+            onClick={handleStartWorkout}
+            disabled={loading}
+          >
+            {t("startWorkout")}
+          </button>
+        </div>
+      )}
 
-          {!selected ? (
-            <div style={styles.empty}><p>Pasirink planą iš kairės.</p></div>
-          ) : (
-            <div style={styles.card}>
-              <div style={styles.rowBetween}>
-                <h3 style={styles.h3}>{selected?.title || selected?.name || `Plan #${selected?.id ?? "—"}`}</h3>
-                <span style={styles.dim}>{fmtDate(selected?.createdAt || selected?.updatedAt)}</span>
-              </div>
+      {/* Peržiūra */}
+      {showViewer && selectedPlan?.planData?.text && (
+        <WorkoutViewer
+          planText={selectedPlan.planData.text}
+          onClose={() => setShowViewer(false)}
+        />
+      )}
 
-              {/* Greita metrika (pasirinktinai iš /api/last-workout) */}
-              <div style={styles.kpisWrap}>
-                <KPI label="Total workouts" value={stats?.totalWorkouts ?? 0} />
-                <KPI label="Total time (min)" value={stats?.totalTime ?? 0} />
-                <KPI label="Calories" value={stats?.calories ?? 0} />
-              </div>
-
-              {/* Pateikiam struktūrą – prisitaiko prie bet kokio plano formato */}
-              <div style={styles.jsonBox}>
-                <pre style={styles.pre}>{JSON.stringify(selected, null, 2)}</pre>
-              </div>
-            </div>
-          )}
-        </main>
-      </section>
-
-      {/* Minimalistinis stilius */}
-      <style>{globalCSS}</style>
+      {/* Grotuvas (su planId perdavimu, kad /api/complete-plan(s) turėtų ID) */}
+      {showPlayer && parsedPlan && (
+        <WorkoutPlayer
+          workoutData={parsedPlan}
+          planId={activePlanId}
+          onClose={handleCloseWorkout}
+        />
+      )}
     </div>
   );
 }
 
-function KPI({ label, value }) {
+function StatCard({ value, label, tooltip, color }) {
   return (
-    <div style={styles.kpi}>
-      <div style={styles.kpiValue}>{String(value)}</div>
-      <div style={styles.kpiLabel}>{label}</div>
+    <div className={`${color} p-4 rounded-xl shadow relative group`}>
+      <p className="text-lg font-semibold">{value}</p>
+      <p className="text-sm text-gray-600">{label}</p>
+      <InfoTooltip text={tooltip} />
     </div>
   );
 }
 
-// ---------- Stiliai ----------
-const styles = {
-  wrap: {
-    maxWidth: 1200,
-    margin: "0 auto",
-    padding: "24px 16px",
-    fontFamily: "ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial",
-    color: "#0f172a",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: 12,
-    marginBottom: 16,
-  },
-  title: { fontSize: 24, margin: 0 },
-  subtitle: { margin: "6px 0 0", opacity: 0.7, fontSize: 14 },
-  headerActions: { display: "flex", gap: 8 },
-  primaryBtn: {
-    appearance: "none",
-    background: "#2563eb",
-    color: "white",
-    border: 0,
-    padding: "10px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  ghostBtn: {
-    appearance: "none",
-    background: "transparent",
-    color: "#2563eb",
-    border: "1px solid #c7d2fe",
-    padding: "10px 14px",
-    borderRadius: 10,
-    cursor: "pointer",
-    fontWeight: 600,
-  },
-  errorBox: {
-    background: "#fee2e2",
-    color: "#991b1b",
-    border: "1px solid #fecaca",
-    padding: 12,
-    borderRadius: 12,
-    margin: "8px 0 16px",
-    fontSize: 14,
-  },
-  layout: {
-    display: "grid",
-    gridTemplateColumns: "minmax(260px, 360px) 1fr",
-    gap: 16,
-  },
-  sidebar: {
-    background: "#f8fafc",
-    border: "1px solid #e2e8f0",
-    borderRadius: 14,
-    padding: 12,
-    minHeight: 400,
-  },
-  main: {
-    background: "#fff",
-    border: "1px solid #e2e8f0",
-    borderRadius: 14,
-    padding: 12,
-    minHeight: 400,
-  },
-  sectionHeader: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 8,
-  },
-  h2: { fontSize: 16, margin: 0 },
-  h3: { fontSize: 18, margin: "0 0 6px" },
-  count: {
-    background: "#eef2ff",
-    color: "#3730a3",
-    padding: "2px 8px",
-    borderRadius: 999,
-    fontSize: 12,
-    fontWeight: 700,
-  },
-  list: { listStyle: "none", margin: 0, padding: 0, display: "grid", gap: 8 },
-  item: {
-    border: "1px solid #e2e8f0",
-    padding: 10,
-    borderRadius: 12,
-    cursor: "pointer",
-    background: "white",
-  },
-  itemActive: {
-    borderColor: "#c7d2fe",
-    boxShadow: "0 0 0 3px rgba(99,102,241,0.15)",
-  },
-  itemTitle: { fontWeight: 700, fontSize: 14, marginBottom: 4 },
-  itemMeta: { display: "flex", gap: 8, alignItems: "center", fontSize: 12, opacity: 0.7 },
-  badge: { background: "#f1f5f9", borderRadius: 999, padding: "2px 6px" },
-  empty: {
-    border: "1px dashed #cbd5e1",
-    borderRadius: 12,
-    minHeight: 120,
-    display: "grid",
-    placeItems: "center",
-    color: "#475569",
-    fontSize: 14,
-  },
-  card: {
-    border: "1px solid #e2e8f0",
-    borderRadius: 14,
-    padding: 12,
-  },
-  rowBetween: { display: "flex", alignItems: "center", justifyContent: "space-between" },
-  dim: { opacity: 0.7, fontSize: 13 },
-  kpisWrap: { display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, marginTop: 6 },
-  kpi: {
-    background: "#f8fafc",
-    border: "1px solid #e2e8f0",
-    borderRadius: 12,
-    padding: 12,
-    textAlign: "center",
-  },
-  kpiValue: { fontSize: 20, fontWeight: 800 },
-  kpiLabel: { fontSize: 12, opacity: 0.7, marginTop: 2 },
-  jsonBox: {
-    marginTop: 12,
-    background: "#0b1020",
-    color: "#e5e7eb",
-    borderRadius: 12,
-    overflow: "hidden",
-    border: "1px solid #111827",
-  },
-  pre: {
-    margin: 0,
-    padding: 12,
-    fontSize: 12,
-    lineHeight: 1.55,
-    overflowX: "auto",
-    tabSize: 2,
-  },
-};
-
-const globalCSS = `
-  :root { color-scheme: light; }
-  html, body, #root { height: 100%; }
-  * { box-sizing: border-box; }
-`;
+function InfoTooltip({ text }) {
+  return (
+    <div className="absolute top-2 right-2">
+      <Info className="w-4 h-4 text-gray-400 hover:text-gray-600 cursor-pointer peer" />
+      <div className="absolute hidden peer-hover:block bg-white border shadow-md rounded p-2 text-xs w-48 max-w-[calc(100vw-2rem)] left-1/2 -translate-x-1/2 top-6 z-20">
+        {text}
+      </div>
+    </div>
+  );
+}
