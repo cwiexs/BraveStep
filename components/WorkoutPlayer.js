@@ -215,6 +215,160 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return null;
   }
 
+  // Gražesnis reps label: prioritetas – paimti iš DB teksto (pvz. "15 kartų"),
+  // jei nėra – sugeneruoti pagal kalbą.
+  function formatRepsLabel(step) {
+    const n = getReps(step);
+    if (n == null) return '';
+
+    const sources = [step?.duration, step?.label, step?.description];
+    for (const s of sources) {
+      if (typeof s !== 'string') continue;
+      const low = s.toLowerCase();
+      // turi turėti tą patį skaičių ir žodį "kart" arba "rep"
+      if (s.includes(String(n)) && (low.includes('kart') || low.includes('rep'))) {
+        // bandome ištraukti formą po skaičiaus
+        const reg = new RegExp(String(n) + "\\s+([A-Za-zĄČĘĖĮŠŲŪąčęėįšųū]+)");
+        const m = s.match(reg);
+        if (m && m[1] && (m[1].toLowerCase().startsWith('kart') || m[1].toLowerCase().startsWith('rep'))) {
+          return `${n} ${m[1]}`.trim();
+        }
+        // jei nepavyko – grąžinam visą fragmentą kaip n + žodis default
+        // bet kad nebūtų angliška, sugeneruosim patys žemiau
+      }
+    }
+
+    // Sugeneruojam pagal kalbą
+    if (i18n?.language?.startsWith('lt')) {
+      const form = (n === 1) ? 'kartą' : 'kartų';
+      return `${n} ${form}`;
+    }
+    return `${n} ${repsWord}`;
+  }
+      if (!Number.isFinite(v)) {
+        const digits = Array.from(s).filter(ch => ch >= '0' && ch <= '9').join('');
+        v = parseInt(digits, 10);
+      }
+      if (Number.isFinite(v) && v > 0) return v;
+    }
+    return null;
+  }
+
+  // Gražesnis reps label: prioritetas – paimti iš DB teksto (pvz. "15 kartų"),
+  // jei nėra – sugeneruoti pagal kalbą.
+  function formatRepsLabel(step) {
+    const n = getReps(step);
+    if (n == null) return '';
+
+    const sources = [step?.duration, step?.label, step?.description];
+    for (const s of sources) {
+      if (typeof s !== 'string') continue;
+      const low = s.toLowerCase();
+      // turi turėti tą patį skaičių ir žodį "kart" arba "rep"
+      if (s.includes(String(n)) && (low.includes('kart') || low.includes('rep'))) {
+        // bandome ištraukti formą po skaičiaus
+        const reg = new RegExp(String(n) + "\\s+([A-Za-zĄČĘĖĮŠŲŪąčęėįšųū]+)");
+        const m = s.match(reg);
+        if (m && m[1] && (m[1].toLowerCase().startsWith('kart') || m[1].toLowerCase().startsWith('rep'))) {
+          return `${n} ${m[1]}`.trim();
+        }
+        // jei nepavyko – grąžinam visą fragmentą kaip n + žodis default
+        // bet kad nebūtų angliška, sugeneruosim patys žemiau
+      }
+    }
+
+    // Sugeneruojam pagal kalbą
+    if (i18n?.language?.startsWith('lt')) {
+      const form = (n === 1) ? 'kartą' : 'kartų';
+      return `${n} ${form}`;
+    }
+    return `${n} ${repsWord}`;
+  }
+      if (!Number.isFinite(v)) {
+        const digits = Array.from(s).filter(ch => ch >= '0' && ch <= '9').join('');
+        v = parseInt(digits, 10);
+      }
+      if (Number.isFinite(v) && v > 0) return v;
+    }
+    return null;
+  }
+
+  // Gražesnis reps label: prioritetas – paimti iš DB teksto (pvz. "15 kartų"),
+  // jei nėra – sugeneruoti pagal kalbą.
+  function formatRepsLabel(step) {
+    const n = getReps(step);
+    if (n == null) return '';
+
+    const sources = [step?.duration, step?.label, step?.description];
+    for (const s of sources) {
+      if (typeof s !== 'string') continue;
+      const low = s.toLowerCase();
+      // turi turėti tą patį skaičių ir žodį "kart" arba "rep"
+      if (s.includes(String(n)) && (low.includes('kart') || low.includes('rep'))) {
+        // bandome ištraukti formą po skaičiaus
+        const reg = new RegExp(String(n) + "\\s+([A-Za-zĄČĘĖĮŠŲŪąčęėįšųū]+)");
+        const m = s.match(reg);
+        if (m && m[1] && (m[1].toLowerCase().startsWith('kart') || m[1].toLowerCase().startsWith('rep'))) {
+          return `${n} ${m[1]}`.trim();
+        }
+        // jei nepavyko – grąžinam visą fragmentą kaip n + žodis default
+        // bet kad nebūtų angliška, sugeneruosim patys žemiau
+      }
+    }
+
+    // Sugeneruojam pagal kalbą
+    if (i18n?.language?.startsWith('lt')) {
+      const form = (n === 1) ? 'kartą' : 'kartų';
+      return `${n} ${form}`;
+    }
+    return `${n} ${repsWord}`;
+  }
+      if (!Number.isFinite(v)) {
+        const digits = Array.from(s).filter(ch => ch >= '0' && ch <= '9').join('');
+        v = parseInt(digits, 10);
+      }
+      if (Number.isFinite(v) && v > 0) return v;
+    }
+    return null;
+  }
+
+  // Gražesnis reps label: prioritetas – paimti iš DB teksto (pvz. "15 kartų"),
+  // jei nėra – sugeneruoti pagal kalbą.
+  function formatRepsLabel(step) {
+    const n = getReps(step);
+    if (n == null) return '';
+
+    const sources = [step?.duration, step?.label, step?.description];
+    for (const s of sources) {
+      if (typeof s !== 'string') continue;
+      const low = s.toLowerCase();
+      // turi turėti tą patį skaičių ir žodį "kart" arba "rep"
+      if (s.includes(String(n)) && (low.includes('kart') || low.includes('rep'))) {
+        // bandome ištraukti formą po skaičiaus
+        const reg = new RegExp(String(n) + "\\s+([A-Za-zĄČĘĖĮŠŲŪąčęėįšųū]+)");
+        const m = s.match(reg);
+        if (m && m[1] && (m[1].toLowerCase().startsWith('kart') || m[1].toLowerCase().startsWith('rep'))) {
+          return `${n} ${m[1]}`.trim();
+        }
+        // jei nepavyko – grąžinam visą fragmentą kaip n + žodis default
+        // bet kad nebūtų angliška, sugeneruosim patys žemiau
+      }
+    }
+
+    // Sugeneruojam pagal kalbą
+    if (i18n?.language?.startsWith('lt')) {
+      const form = (n === 1) ? 'kartą' : 'kartų';
+      return `${n} ${form}`;
+    }
+    return `${n} ${r      if (!Number.isFinite(v)) {
+        const digits = Array.from(s).filter(ch => ch >= '0' && ch <= '9').join('');
+        v = parseInt(digits, 10);
+      }
+      if (Number.isFinite(v) && v > 0) return v;
+    }
+    return null;
+  }
+
   function clearAllTimeouts() {
     timeoutsRef.current.forEach(id => clearTimeout(id));
     timeoutsRef.current = [];
@@ -814,10 +968,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           )}
           {(!isRestPhase && getReps(step) != null) && (
             <p className="text-5xl font-extrabold text-green-700 mt-6">
-              {getReps(step)} {repsWord}
+              {getRepsText(step)}
             </p>
           )}
-          {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
+            </p>
+          )}     {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
 
           {waitingForUser && step?.type === "exercise" && (
             <div className="mt-6">
@@ -885,97 +1040,4 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                   try {
                     setInputActive(false);
                     if (isIOS) { try { unlockBodyScroll(); } catch {} }
-                    const rsp = await fetch("/api/complete-plan", {
-                      method: "POST", headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ planId, difficultyRating: rating, userComment: commentRef.current })
-                    });
-                    if (!rsp.ok) throw new Error(`HTTP ${rsp.status}`);
-                    setSubmitted(true);
-                    requestAnimationFrame(()=>restoreScroll(y));
-                    setTimeout(() => { try { onClose?.(); } catch {} try { if (!onClose && router) router.push("/workouts"); } catch {} }, 3000);
-                  } catch (e) {
-                    // TODO: optionally show error toast
-                  } finally {
-                    setSubmitting(false);
-                  }
-                }}
-                disabled={submitting}
-              >
-                <span className="inline-flex items-center gap-2">
-                  {submitting && (
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25"/>
-                      <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" opacity="0.75"/>
-                    </svg>
-                  )}
-                  {finishWorkout}
-                </span>
-              </button>
-            ) : (
-              <span className="text-green-600">{thanksForFeedback}</span>
-            )}
-          </div>
-        }
-      >
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-2 text-center">🎉 {workoutCompletedLabel}</h2>
-          <p className="mb-4 text-gray-800 whitespace-pre-wrap text-center">
-            {workoutData?.days?.[0]?.motivationEnd || thanksForWorkingOut}
-          </p>
-
-          {workoutData?.days?.[0]?.waterRecommendation && (
-            <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900 mb-3">
-              💧 {workoutData.days[0].waterRecommendation}
-            </div>
-          )}
-          {workoutData?.days?.[0]?.outdoorSuggestion && (
-            <div className="p-3 bg-green-50 rounded-lg text-sm text-green-900 mb-3">
-              🌿 {workoutData.days[0].outdoorSuggestion}
-            </div>
-          )}
-
-          <p className="text-sm text-gray-700 mb-2 font-semibold">{howWasDifficulty}</p>
-
-          <div className="flex justify-center gap-2 mb-2">
-            {options.map(opt => (
-              <button
-                key={opt.value}
-                onMouseDown={(e) => e.preventDefault()} onClick={() => { const y = saveScroll(); setRating(opt.value); requestAnimationFrame(() => restoreScroll(y)); }}
-                className={`text-3xl p-1 rounded-full border-2 
-                  ${rating === opt.value ? "border-green-600 bg-green-50" : "border-transparent"}
-                  hover:border-green-400`}
-                type="button"
-                title={opt.text}
-                aria-label={opt.text}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-2 mb-4 justify-center">
-            {options.map(opt => (
-              <span key={opt.value} className={`text-xs ${rating === opt.value ? "font-bold text-green-700" : "text-gray-400"}`}>
-                {opt.text}
-              </span>
-            ))}
-          </div>
-
-          <textarea ref={textareaRef} onClick={(e)=>e.stopPropagation()} onMouseDown={(e) => { e.stopPropagation(); const y = lastYRef.current; requestAnimationFrame(()=>restoreScroll(y)); }}
-            placeholder={commentPlaceholder}
-            defaultValue={commentRef.current}
-            onChange={e => { const el = e.target; caretRef.current = { start: el.selectionStart, end: el.selectionEnd }; commentRef.current = el.value; const y = lastYRef.current; requestAnimationFrame(()=>{ if (!isIOS) { try { const ta = textareaRef.current; if (ta) { ta.focus({ preventScroll: true }); const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} } restoreScroll(y); }); }}
-            onFocus={() => setInputActive(true)}
-            onBlur={(e) => { if (isIOS) return; try { const to = e.relatedTarget; if (to && to.getAttribute && to.getAttribute("data-finish-btn") === "1") return; } catch {} setInputActive(false); }}
-            onKeyDown={(e) => e.stopPropagation()}
-            className="w-full p-3 border rounded mb-24 outline-none focus:ring-2 focus:ring-black/10"
-            onInput={() => { const y = lastYRef.current; requestAnimationFrame(()=>{ if (!isIOS) { try { const ta = textareaRef.current; if (ta) { ta.focus({ preventScroll: true }); const c = caretRef.current || {}; if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end); } } catch {} } restoreScroll(y); }); }}
-            rows={4}
-          />
-        </div>
-      </Shell>
-    );
-  }
-
-  return null;
-}
+   
