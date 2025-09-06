@@ -16,43 +16,37 @@ function normalizeLocale(value) {
   return "en";
 }
 
+// ... viršuje kaip yra
+
 export const authOptions = {
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: { email: {}, password: {} },
-      async authorize(credentials) {
-        const user = await prisma.user.findUnique({
-          where: { email: credentials?.email || "" },
-        });
-        if (!user) return null;
-        return { id: String(user.id), email: user.email };
-      },
-    }),
-  ],
+  providers: [ /* tavo providers */ ],
   callbacks: {
     async jwt({ token, user }) {
-      if (user || !token.locale) {
+      if (user || !token.locale || !token.name) {
         try {
           const dbUser = await prisma.user.findUnique({
             where: { id: user ? user.id : token.sub },
-            select: { preferredLanguage: true },
+            select: { preferredLanguage: true, name: true }, // ← PRIDĖTA name
           });
           const raw = dbUser?.preferredLanguage ?? "en";
           token.locale = normalizeLocale(raw);
+          if (dbUser?.name) token.name = dbUser.name;        // ← PRIDĖTA
         } catch {
           token.locale = token.locale || "en";
         }
       }
       return token;
     },
+
     async session({ session, token }) {
       if (!session.user) session.user = {};
       session.user.id = token.sub;
       session.user.locale = token.locale || "en";
+      // ↓ PRIDĖTA: perduodam vardą į sesiją
+      session.user.name = token.name || session.user.name || (session.user.email ? session.user.email.split('@')[0] : "Vartotojas");
       return session;
-    },
-  },
+    }
+  }
 };
 
 export default NextAuth(authOptions);
