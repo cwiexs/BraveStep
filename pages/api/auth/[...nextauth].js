@@ -1,80 +1,50 @@
-// pages/api/auth/[...nextauth].js
-import NextAuth from 'next-auth';
-import FacebookProvider from 'next-auth/providers/facebook';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import PostgresAdapter from '@auth/pg-adapter';       // ← default import
-import { pool, query } from '../../../lib/db';
-import bcrypt from 'bcryptjs';
 
-export default NextAuth({
-  adapter: PostgresAdapter(pool),                    // ← be gražiųjų skliaustų
+import NextAuth from "next-auth";
+// Replace/extend with your real providers:
+import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaClient } from "@prisma/client";
 
+const prisma = new PrismaClient();
+
+export const authOptions = {
   providers: [
     CredentialsProvider({
-      name: 'Email',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
-      },
+      name: "Credentials",
+      credentials: { email: {}, password: {} },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email or password is incorrect");
-        }
-        const res = await query(
-          'SELECT id, name, email, password FROM users WHERE email = $1',
-          [credentials.email]
-        );
-        const user = res.rows[0];
-
-        if (!user) {
-          // Wrong email – but don't tell user!
-          throw new Error("Email or password is incorrect");
-        }
-
-        const passwordMatch = await bcrypt.compare(credentials.password, user.password);
-        if (!passwordMatch) {
-          // Wrong password – but don't tell user!
-          throw new Error("Email or password is incorrect");
-        }
-
-        // Success!
-        return { id: user.id, name: user.name, email: user.email };
-      },
-    }),
-
-    FacebookProvider({
-      authorization: { params: { scope: 'email,public_profile' } },
-      clientId: process.env.FACEBOOK_CLIENT_ID,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-    }),
+        const user = await prisma.user.findUnique({ where: { email: credentials?.email || "" } });
+        if (!user) return null;
+        return { id: String(user.id), email: user.email };
+      }
+    })
   ],
-
-  pages: {
-    signIn: '/auth/signin',
-    error: '/auth/signin',
-    newUser: '/auth/signup',
-  },
-
-  session: {
-    strategy: 'jwt',
-  },
-
-  secret: process.env.NEXTAUTH_SECRET,
-
   callbacks: {
     async jwt({ token, user }) {
-      if (user) {
-        token.sub = user.id;
-        token.email = user.email; // <-- pridėta!
+      // On first sign in or if token lacks locale, read from DB
+      if (user || !token.locale) {
+        try {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: user ? user.id : token.sub },
+            select: { preferences: true, language: true }
+          });
+          const locale =
+            dbUser?.preferences?.language ||
+            dbUser?.language || // legacy flat field
+            "en";
+          token.locale = locale;
+        } catch (e) {
+          token.locale = token.locale || "en";
+        }
       }
       return token;
     },
     async session({ session, token }) {
+      if (!session.user) session.user = {};
       session.user.id = token.sub;
-      session.user.email = token.email; // <-- pridėta!
+      session.user.locale = token.locale || "en";
       return session;
-    },
-  },
+    }
+  }
+};
 
-  debug: process.env.NODE_ENV !== 'production',
-});
+export default NextAuth(authOptions);
