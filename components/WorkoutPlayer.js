@@ -502,17 +502,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
 
     const durationSec = getTimedSeconds(step);
+    const hasReps = Number.isFinite(getReps(step)) && getReps(step) > 0;
     if (durationSec > 0) {
       startTimedStep(durationSec);
+    } else if (step?.type === 'exercise' && hasReps) {
+      setSecondsLeft(0);
+      setWaitingForUser(true);
     } else {
-      // Untimed step: jei exercise su reps – laukiam vartotojo; jei rest – be laukimo
-      if (step?.type === 'exercise' && getReps(step) != null) {
-        setSecondsLeft(0);
-        setWaitingForUser(true);
-      } else {
-        setSecondsLeft(0);
-        setWaitingForUser(false);
-      }
+      setSecondsLeft(0);
+      setWaitingForUser(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentExerciseIndex, currentStepIndex, phase, step, isTerminalRestAfter]);
@@ -750,6 +748,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
     const timedSeconds = getTimedSeconds(step);
     const reps = getReps(step);
+    const isTimedStep = Number.isFinite(timedSeconds) && timedSeconds > 0;
+    const hasReps = Number.isFinite(reps) && reps > 0;
 
     const timerColorClass = isRestPhase ? "text-yellow-500" : "text-green-600";
     const restLabelClass = "text-yellow-500";
@@ -796,11 +796,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           )}
 
           {/* Timed vs Reps presentation (FIXED) */}
-          {timedSeconds > 0 ? (
+          {isTimedStep ? (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
               {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
             </p>
-          ) : (!isRestPhase && reps != null) ? (
+          ) : (!isRestPhase && hasReps) ? (
             <p className="text-5xl font-extrabold text-green-700 mt-6">
               {reps} {repsWord}
             </p>
@@ -808,7 +808,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
           {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
 
-          {waitingForUser && step?.type === "exercise" && (
+          {(!isTimedStep && step?.type === "exercise" && hasReps) && (
             <div className="mt-6">
               <button
                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold"
