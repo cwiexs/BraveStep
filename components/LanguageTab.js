@@ -26,7 +26,7 @@ export default function LanguageTab() {
     if (!next || next === router.locale) { setOpen(false); return; }
 
     // Perjungiam Next maršrutizatoriaus locale (be pilno reload)
-    await router.replace(router.asPath, undefined, { locale: next, scroll: false, shallow: true });
+    await router.replace(router.asPath, undefined, { locale: next, scroll: false });
 
     // Persistinam pasirinkimą
     persistLocale(next);

@@ -29,7 +29,7 @@ export default function LocaleBootstrapper() {
     if (router.locale === desired) return;
 
     // Perjungiame Next maršrutizatorių į kitą locale (be perkrolinimo)
-    router.replace(router.asPath, undefined, { locale: desired, scroll: false, shallow: true });
+    router.replace(router.asPath, undefined, { locale: desired, scroll: false });
 
     // Persistinam
     try { document.cookie = `NEXT_LOCALE=${desired}; path=/`; } catch {}
@@ -43,7 +43,7 @@ export default function LocaleBootstrapper() {
     if (!pref) return;
     if (router.locale === pref) return;
 
-    router.replace(router.asPath, undefined, { locale: pref, scroll: false, shallow: true });
+    router.replace(router.asPath, undefined, { locale: pref, scroll: false });
     try { document.cookie = `NEXT_LOCALE=${pref}; path=/`; } catch {}
   }, [router]);
 
