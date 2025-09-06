@@ -1,15 +1,15 @@
+import '../styles/globals.css'
+import { appWithTranslation } from 'next-i18next';
+import { SessionProvider } from 'next-auth/react';
+import LocaleBootstrapper from "@/components/LocaleBootstrapper";
 
-import { appWithTranslation } from "next-i18next";
-import { SessionProvider } from "next-auth/react";
-import LocaleBootstrapper from "../components/LocaleBootstrapper";
-
-function MyApp({ Component, pageProps: { session, ...pageProps } }) {
+function App({ Component, pageProps: { session, ...pageProps } }) {
   return (
     <SessionProvider session={session}>
-      <LocaleBootstrapper />
       <Component {...pageProps} />
+      <LocaleBootstrapper />
     </SessionProvider>
   );
 }
 
-export default appWithTranslation(MyApp);
+export default appWithTranslation(App);
