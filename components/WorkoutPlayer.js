@@ -51,7 +51,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [showSettings, setShowSettings] = useState(false);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [fxEnabled, setFxEnabled] = useState(true);       // perjungimo garsas
-  const [fxTrack, setFxTrack] = useState("beep");         // "beep" | "silence"
+  const [fxTrack, setFxTrack] = useState("beep");         // "beep" | "silence" (pavadinimas paliktas suderinamumui)
   const [voiceEnabled, setVoiceEnabled] = useState(true); // balso skaičiavimas
   const [vibrationSupported, setVibrationSupported] = useState(false);
 
@@ -118,7 +118,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       ctx: null,                 // AudioContext
       ready: false,
       buffers: new Map(),        // "beep" | "1".."5" -> AudioBuffer
-      scheduled: [],             // {source, when}
+      scheduled: [],             // {source, when} – kad galėtume atšaukti pauzės metu
     }
   });
 
@@ -141,7 +141,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
   const setWord = t("player.setWord", { defaultValue: "Serija" });
   const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
-  const repsWord = t("player.repsShort", { defaultValue: i18n.language?.startsWith("lt") ? "kartai" : "reps" });
   const startWorkoutLabel = t("player.startWorkout", { defaultValue: "Pradėti treniruotę" });
   const doneLabel = t("player.done", { defaultValue: "Atlikta" });
   const prevLabel = t("player.prev", { defaultValue: "Atgal" });
@@ -160,13 +159,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const motivationTitle = t("player.motivationTitle", { defaultValue: "Motyvacija" });
 
   // ---- Utils ----
-  function getTimedSeconds(step) {
-    const n = step?.durationTime;
-    return (typeof n === 'number' && n > 0) ? Math.round(n) : 0;
+  function parseSeconds(text) {
+    if (typeof text === "number") return text;
+    const match = text?.match?.(/(\d+)/);
+    return match ? parseInt(match[1], 10) : 0;
   }
-  function getReps(step) {
-    const n = step?.durationQuantity ?? step?.reps ?? step?.repeat ?? step?.repetitions ?? step?.count ?? step?.quantity;
-    return (typeof n === 'number' && n > 0) ? Math.round(n) : null;
+  function isTimed(text) {
+    if (typeof text === "number") return text > 0;
+    if (!text) return false;
+    return /(\d+)\s*(sek|sec)\.?/i.test(text);
   }
 
   function clearAllTimeouts() {
@@ -452,7 +453,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   };
 
-  // ---- Timer setup per step (FIXED to structured fields) ----
+  // ---- Timer setup per step ----
   useEffect(() => {
     cancelRaf();
     stopAllScheduled();
@@ -474,8 +475,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       return;
     }
 
-    const duration = getTimedSeconds(step);
-    if (duration > 0) {
+    const isTimedStep = isTimed(step?.duration);
+    if (isTimedStep) {
+      const duration = parseSeconds(step?.duration);
       startTimedStep(duration);
     } else {
       setSecondsLeft(0);
@@ -556,8 +558,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   function restartCurrentStep() {
     cancelRaf();
     stopAllScheduled();
-    const duration = getTimedSeconds(step);
-    if (duration > 0) startTimedStep(duration);
+    const isTimedStep = isTimed(step?.duration);
+    if (isTimedStep) {
+      const duration = parseSeconds(step?.duration);
+      if (duration > 0) startTimedStep(duration);
+    } else {
+      setSecondsLeft(0);
+      setWaitingForUser(true);
+    }
   }
 
   // ===================== UI =====================
@@ -715,8 +723,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     const seriesTotal = exercise?.steps?.filter(s => s.type === "exercise").length || 0;
     const seriesIdx = step?.type === "exercise" ? step?.set : null;
 
-    const timedSeconds = getTimedSeconds(step);
-
     const timerColorClass = isRestPhase ? "text-yellow-500" : "text-green-600";
     const restLabelClass = "text-yellow-500";
 
@@ -761,14 +767,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             <p className="text-sm text-gray-700 italic mb-4">{exercise?.description}</p>
           )}
 
-          {(getTimedSeconds(step) > 0) && (
+          {(isTimed(step?.duration)) && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
               {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
-            </p>
-          )}
-          {(!isRestPhase && getReps(step) != null) && (
-            <p className="text-5xl font-extrabold text-green-700 mt-6">
-              {getReps(step)} {repsWord}
             </p>
           )}
           {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
@@ -838,8 +839,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                   const y = lastYRef.current; setSubmitting(true);
                   try {
                     setInputActive(false);
-                    if (isIOS) { try { unlockBodyScroll(); } catch {} }
-                    const rsp = await fetch("/api/complete-plan", {
+                  if (isIOS) { try { unlockBodyScroll(); } catch {} }
+                  const rsp = await fetch("/api/complete-plan", {
                       method: "POST", headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ planId, difficultyRating: rating, userComment: commentRef.current })
                     });
