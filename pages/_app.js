@@ -1,7 +1,7 @@
 import '../styles/globals.css';
 import { appWithTranslation } from 'next-i18next';
 import { SessionProvider } from 'next-auth/react';
-import LocaleBootstrapper from '@/components/LocaleBootstrapper';
+import LocaleBootstrapper from '../components/LocaleBootstrapper';
 
 function App({ Component, pageProps: { session, ...pageProps } }) {
   return (
