@@ -1,50 +1,51 @@
+// components/LocaleBootstrapper.jsx
 import { useEffect } from "react";
-import { useTranslation } from "next-i18next";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 function normalizeLocale(v) {
   if (!v) return null;
   const s = String(v).toLowerCase().trim();
-
-  // tikslios reikšmės
-  if (["lt", "en", "pl", "ru", "de"].includes(s)) return s;
-
-  // žodžiai / sinonimai
-  if (s.includes("liet")) return "lt";       // Lietuvių, lietuviskai, etc.
-  if (s.includes("eng") || s === "english") return "en";
+  if (["lt","en","pl","ru","de"].includes(s)) return s;
+  if (s.includes("liet")) return "lt";
+  if (s.includes("eng")) return "en";
   if (s.startsWith("pl") || s.includes("pol")) return "pl";
   if (s.startsWith("ru") || s.includes("rus")) return "ru";
   if (s.startsWith("de") || s.includes("ger") || s.includes("deut")) return "de";
-
   return null;
 }
 
 export default function LocaleBootstrapper() {
-  const { i18n } = useTranslation();
   const { data } = useSession();
+  const router = useRouter();
 
-  const desiredRaw = data?.user?.locale;
-  const desired = normalizeLocale(desiredRaw);
-
-  // Po prisijungimo – iš sesijos
+  // 1) Po prisijungimo – imame iš session.user.locale
   useEffect(() => {
+    const desiredRaw = data?.user?.locale;
+    const desired = normalizeLocale(desiredRaw);
     if (!desired) return;
-    if (i18n.language !== desired) {
-      i18n.changeLanguage(desired);
-      try { document.cookie = `NEXT_LOCALE=${desired}; path=/`; } catch {}
-      try { localStorage.setItem("user_locale", desired); } catch {}
-    }
-  }, [desired, i18n]);
 
-  // Anonimams – iš localStorage (irgi normalizuojam)
+    // Jei jau esame norimoje kalboje – nieko nedarom
+    if (router.locale === desired) return;
+
+    // Perjungiame Next maršrutizatorių į kitą locale (be perkrolinimo)
+    router.replace(router.asPath, undefined, { locale: desired, scroll: false, shallow: true });
+
+    // Persistinam
+    try { document.cookie = `NEXT_LOCALE=${desired}; path=/`; } catch {}
+    try { localStorage.setItem("user_locale", desired); } catch {}
+  }, [data?.user?.locale, router]);
+
+  // 2) Anonimams – iš localStorage
   useEffect(() => {
     const raw = (typeof window !== "undefined") ? localStorage.getItem("user_locale") : null;
     const pref = normalizeLocale(raw);
-    if (pref && i18n.language !== pref) {
-      i18n.changeLanguage(pref);
-      try { document.cookie = `NEXT_LOCALE=${pref}; path=/`; } catch {}
-    }
-  }, [i18n]);
+    if (!pref) return;
+    if (router.locale === pref) return;
+
+    router.replace(router.asPath, undefined, { locale: pref, scroll: false, shallow: true });
+    try { document.cookie = `NEXT_LOCALE=${pref}; path=/`; } catch {}
+  }, [router]);
 
   return null;
 }
