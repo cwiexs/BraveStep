@@ -141,6 +141,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
   const setWord = t("player.setWord", { defaultValue: "Serija" });
   const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
+  const repsWord = t("player.repsWord", { defaultValue: i18n.language?.startsWith("lt") ? "kartų" : "reps" });
   const startWorkoutLabel = t("player.startWorkout", { defaultValue: "Pradėti treniruotę" });
   const doneLabel = t("player.done", { defaultValue: "Atlikta" });
   const prevLabel = t("player.prev", { defaultValue: "Atgal" });
@@ -754,6 +755,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             <p className="text-lg font-semibold text-gray-900 mb-2">
               {setWord} {seriesIdx}/{seriesTotal}
             </p>
+          )}
+          {!isRestPhase && step?.type === "exercise" && !isTimed(step?.duration) && parseReps(step?.duration) > 0 && (
+            <p className="text-xl font-bold text-gray-900 mb-1">{parseReps(step?.duration)} {repsWord}</p>
           )}
 
           {!isRestPhase && (
