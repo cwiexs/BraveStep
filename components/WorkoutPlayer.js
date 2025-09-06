@@ -161,12 +161,58 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // ---- Utils ----
   function getTimedSeconds(step) {
-    const n = step?.durationTime;
-    return (typeof n === 'number' && n > 0) ? Math.round(n) : 0;
+    // 1) Naujoji struktūra (paverčiam į Number, nes gali ateiti "30" kaip string)
+    const n1 = Number(step?.durationTime);
+    if (Number.isFinite(n1) && n1 > 0) return Math.round(n1);
+
+    // 2) Fallback į tekstą be regex (veikia su: "30 sek.", "30 sec", "30 sekundžių", "30 s")
+    const sources = [step?.duration, step?.duration_label, step?.label, step?.description];
+    for (const s of sources) {
+      if (typeof s !== 'string') continue;
+      const low = s.toLowerCase();
+      const mentionsSeconds = low.includes('sek') || low.includes('sec') || low.includes(' sekund');
+      if (!mentionsSeconds) continue;
+      const digits = Array.from(s).filter(ch => ch >= '0' && ch <= '9').join('');
+      const v = parseInt(digits, 10);
+      if (Number.isFinite(v) && v > 0) return v;
+    }
+    return 0;
   }
   function getReps(step) {
-    const n = step?.durationQuantity ?? step?.reps ?? step?.repeat ?? step?.repetitions ?? step?.count ?? step?.quantity;
-    return (typeof n === 'number' && n > 0) ? Math.round(n) : null;
+    // 1) Naujoji struktūra (paverčiam į Number)
+    const cand = step?.durationQuantity ?? step?.reps ?? step?.repeat ?? step?.repetitions ?? step?.count ?? step?.quantity;
+    const n1 = Number(cand);
+    if (Number.isFinite(n1) && n1 > 0) return Math.round(n1);
+
+    // 2) Fallback į tekstą be regex: "15 kartų", "15 reps", "x15", "15x"
+    const sources = [step?.duration, step?.label, step?.description];
+    for (const s of sources) {
+      if (typeof s !== 'string') continue;
+      const low = s.toLowerCase();
+      const looksLikeReps = low.includes('kart') || low.includes('rep') || low.includes('x');
+      if (!looksLikeReps) continue;
+
+      // bandome pagauti skaičių:
+      // prioritetas: formos "x15" / "15x"
+      let v = NaN;
+      const idxX = low.indexOf('x');
+      if (idxX >= 0) {
+        // skaičius po 'x'
+        const after = Array.from(low.slice(idxX + 1)).filter(ch => ch >= '0' && ch <= '9').join('');
+        const before = Array.from(low.slice(0, idxX)).filter(ch => ch >= '0' && ch <= '9').reverse().join('');
+        // rinkis kuri dalis turi skaičius
+        const vAfter = parseInt(after, 10);
+        const vBefore = parseInt(before.split('').reverse().join(''), 10);
+        if (Number.isFinite(vAfter)) v = vAfter;
+        else if (Number.isFinite(vBefore)) v = vBefore;
+      }
+      if (!Number.isFinite(v)) {
+        const digits = Array.from(s).filter(ch => ch >= '0' && ch <= '9').join('');
+        v = parseInt(digits, 10);
+      }
+      if (Number.isFinite(v) && v > 0) return v;
+    }
+    return null;
   }
 
   function clearAllTimeouts() {
