@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/router";
-import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power } from "lucide-react";
+import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
@@ -885,7 +885,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
           {/* Description under title (toggleable) */}
           {!isRestPhase && descriptionsEnabled && exercise?.description && (
-            <p className="text-sm text-gray-700 italic mb-4">{exercise.description}</p>
+            <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2"><Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" /><span className="font-normal">{exercise.description}</span></div>
           )}
 
           </h2>
