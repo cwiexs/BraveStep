@@ -618,9 +618,6 @@ Never mention this validation step in the visible response. Only show the final,
 
   const aiData = await aiResponse.json();
   const generatedText = aiData.choices?.[0]?.message?.content || "No plan generated.";
-  }
-
-
   // Jei AI atsako "Cannot create plan:" – plano neišsaugom, grąžinam vartotojui
   if (generatedText.startsWith("Cannot create plan:")) {
     return res.status(400).json({ error: "AI validation failed", details: generatedText });
