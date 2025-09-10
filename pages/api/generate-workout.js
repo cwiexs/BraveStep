@@ -118,7 +118,60 @@ if (userData.weightKg !== undefined && userData.weightKg !== null) {
   };
 
   // 6. Promptas AI su duomenų validacija ir motyvacija kiekvienai dienai
+
+  // Environment-aware equipment handling
+  const norm = (v) => String(v || "").trim().toLowerCase();
+  const toArrayLower = (v) => Array.isArray(v)
+    ? v.map((s) => norm(s)).filter(Boolean)
+    : (typeof v === "string" ? v.split(/[,;|]/).map((s) => norm(s)).filter(Boolean) : []);
+
+  const location = norm(userData.workoutLocation || userData.trainingLocation || userData.location);
+  const gymMember = Boolean(userData.gymMember);
+  const explicitAvail = toArrayLower(userData.equipmentAvailable || userData.availableEquipment);
+
+  // Baseline by environment
+  let baseline;
+  if (location.includes("gym") || gymMember) {
+    baseline = [
+      "bodyweight","mat","bench","dumbbell","barbell","kettlebell","cable machine","smith machine","lat pulldown",
+      "leg press","seated row","rowing machine","treadmill","exercise bike","elliptical","sled","trap bar","medicine ball",
+      "resistance band","trx","pull-up bar","dip bars","weight plate"
+    ];
+  } else if (location.includes("outdoor") || location.includes("park") || location.includes("outside")) {
+    baseline = ["bodyweight","ground","grass","track","stairs","hill","park bench","mat","resistance band"];
+  } else { // home / default
+    baseline = ["bodyweight","mat","wall","door frame","chair","stairs","towel","resistance band"];
+  }
+
+  // Merge explicit equipment (adds to baseline)
+  const allowedSet = new Set([...baseline, ...explicitAvail]);
+
+  // Pull-up rule: permit only if explicitly in allowedSet
+  const allowsPullUps = allowedSet.has("pull-up bar") || allowedSet.has("skersinis") || allowedSet.has("pullup bar");
+
+  const equipmentUniverse = [
+    "pull-up bar","skersinis","chin-up bar","barbell","dumbbell","kettlebell","cable machine","smith machine","rowing machine","treadmill",
+    "exercise bike","elliptical","bench","weight plate","medicine ball","sled","trap bar","lat pulldown","leg press","dip bars","trx"
+  ];
+  const forbiddenEquipment = equipmentUniverse.filter((x) => !allowedSet.has(x) || (!allowsPullUps && (x.includes("pull") || x.includes("chin"))));
+
+  const allowedEquipment = Array.from(allowedSet);
+
+  const equipmentRuleBlock =
+`ENVIRONMENT: ${location || "unspecified"}${gymMember ? " (gym member)" : ""}
+ALLOWED_EQUIPMENT: ${allowedEquipment.length ? allowedEquipment.join(", ") : "bodyweight only"}.
+FORBIDDEN_EQUIPMENT: ${forbiddenEquipment.length ? forbiddenEquipment.join(", ") : "none"}.
+HARD RULES:
+- Generate ONLY exercises that can be performed with ALLOWED_EQUIPMENT.
+- If environment is home and there is no explicit pull-up bar, DO NOT include hanging movements (pull-ups, chin-ups, hanging knee raises).
+- You MAY use common household fixtures at home (wall, doorway frame for gentle isometrics/stretch, sturdy chair, stairs), but AVOID unsafe hanging or heavy load assumptions.
+- For outdoor workouts, you MAY use ground, stairs and park bench; only use bar-based movements if explicitly available.
+- For gym workouts, you may use standard gym equipment without listing each item individually unless the user explicitly restricts equipment.
+- State equipment only when needed; otherwise, assume bodyweight.`;
+
 const promptParts = [
+  equipmentRuleBlock,
+  equipmentRuleBlock,
   // 1. Kas esi
   "You are a professional fitness coach, data safety validator, and empathetic psychological guide. Your mission is to generate realistic, personalized, and safe workout plans, while also providing emotionally supportive and psychologically aware motivational messages adapted to the user's mental and emotional needs.",
 
@@ -565,6 +618,8 @@ Never mention this validation step in the visible response. Only show the final,
 
   const aiData = await aiResponse.json();
   const generatedText = aiData.choices?.[0]?.message?.content || "No plan generated.";
+  }
+
 
   // Jei AI atsako "Cannot create plan:" – plano neišsaugom, grąžinam vartotojui
   if (generatedText.startsWith("Cannot create plan:")) {
