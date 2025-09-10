@@ -524,6 +524,14 @@
     "secShortLt": "sek.",
     "secShortEn": "sec.",
     "upNext": "Up next:",
+    "confirmExitTitle": "Exit workout?",
+    "confirmExitBody": "If you exit now, this session won't be marked as completed.",
+    "confirmExitCta": "Exit",
+
+  "common": {
+    "cancel": "Cancel"
+  },
+
 
     "settings": {
       "title": "Settings",

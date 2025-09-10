@@ -528,6 +528,13 @@
     "secShortLt": "sek.",
     "secShortEn": "sec.",
     "upNext": "Kitas:",
+    "confirmExitTitle": "Išeiti iš treniruotės?",
+    "confirmExitBody": "Jei išeisite dabar, ši sesija nebus užskaityta kaip atlikta.",
+    "confirmExitCta": "Išeiti",
+
+  "common": {
+    "cancel": "Atšaukti"
+  },
 
     "settings": {
       "title": "Nustatymai",
@@ -537,6 +544,7 @@
       "voiceDescShort": "Skaičiuoti 5,4,3,2,1 paskutinėmis sekundėmis."
     }
   }
+  
 }
 
 

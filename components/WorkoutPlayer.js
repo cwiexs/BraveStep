@@ -56,6 +56,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // Apsauga: kai aktyvus įvesties laukas – neleidžiam „Power“
   const [inputActive, setInputActive] = useState(false);
+  const [showConfirmExit, setShowConfirmExit] = useState(false);
 
   // ---- Refs ----
   const wakeLockRef = useRef(null);
@@ -559,10 +560,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }, [phase, step, currentExerciseIndex, currentStepIndex, isTerminal, isRestAfter]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // automatinė pauzė atidarius nustatymus
+  // automatinė pauzė atidarius nustatymus ar išeities patvirtinimą
   useEffect(() => {
     if (showSettings) pauseTimer();
   }, [showSettings]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (showConfirmExit) pauseTimer();
+  }, [showConfirmExit]);
 
   useEffect(() => {
     setStepFinished(false);
@@ -661,7 +665,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       </button>
       <button
         onClick={() => {
-          if (!inputActive) onClose?.();
+          if (!inputActive) setShowConfirmExit(true);
         }}
         className={`p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow ${inputActive ? "pointer-events-none opacity-50" : ""}`}
         aria-label={t("common.close", { defaultValue: "Uždaryti" })}
@@ -687,11 +691,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       </div>
       {footer ? <div className="border-t p-4 sticky bottom-0 bg-white">{footer}</div> : null}
 
+      {/* Settings modal */}
       {showSettings && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5">
             <h3 className="text-xl font-bold mb-4">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
 
+            {/* Vibracija */}
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
@@ -710,15 +716,16 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               </div>
             )}
 
+            {/* Perjungimo garsas */}
             <div className="mb-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify_between">
                 <div>
                   <p className="font-medium">{t("player.fx", { defaultValue: "Perjungimo garsas" })}</p>
                   <p className="text-sm text-gray-500">{t("player.fxDesc", { defaultValue: "Skambėti keičiantis pratimą / poilsį." })}</p>
                 </div>
                 <button
                   onClick={() => setFxEnabled((v) => !v)}
-                  className={`px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text_white" : "bg-gray-200"}`}
                 >
                   {fxEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
                 </button>
@@ -735,6 +742,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               </div>
             </div>
 
+            {/* Balso skaičiavimas (5..1) */}
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="font-medium">{t("player.voice", { defaultValue: "Balso skaičiavimas" })}</p>
@@ -760,6 +768,40 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           </div>
         </div>
       )}
+
+      {/* Confirm Exit modal */}
+      {showConfirmExit && (
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5">
+            <h3 className="text-xl font-bold mb-3">
+              {t("player.confirmExitTitle", { defaultValue: "Išeiti iš treniruotės?" })}
+            </h3>
+            <p className="text-sm text-gray-700 mb-5">
+              {t("player.confirmExitBody", {
+                defaultValue: "Jei išeisite dabar, ši sesija nebus užskaityta kaip atlikta."
+              })}
+            </p>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowConfirmExit(false)}
+                className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"
+              >
+                {t("common.cancel", { defaultValue: "Atšaukti" })}
+              </button>
+              <button
+                onClick={() => {
+                  try { cancelRaf(); stopAllScheduled(); } catch {}
+                  setShowConfirmExit(false);
+                  onClose?.();
+                }}
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+              >
+                {t("player.confirmExitCta", { defaultValue: "Išeiti" })}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 
@@ -775,7 +817,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           </div>
         }
       >
-        <div className="w-full min-h-[60vh] grid place-items-center">
+        <div className="w-full min-h_[60vh] grid place-items-center">
           <div className="max-w-2xl text-center">
             <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
             <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
@@ -957,7 +999,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           </div>
         }
       >
-        <div className="max-w-2xl mx-auto text-center">
+        <div className="max-w-2xl mx_auto text-center">
           <h2 className="text-2xl font-bold mb-2 text-center">🎉 {workoutCompletedLabel}</h2>
           <p className="mb-4 text-gray-800 whitespace-pre-wrap text-center">
             {workoutData?.days?.[0]?.motivationEnd || thanksForWorkingOut}
@@ -982,7 +1024,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                   setRating(opt.value);
                   requestAnimationFrame(() => restoreScroll(y));
                 }}
-                className={`text-3xl p-1 rounded-full border-2 ${
+                className={`text-3xl p-1 rounded-full border-2 ${ 
                   rating === opt.value ? "border-green-600 bg-green-50" : "border-transparent"
                 } hover:border-green-400`}
                 type="button"
