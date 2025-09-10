@@ -52,6 +52,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [fxEnabled, setFxEnabled] = useState(true);
   const [fxTrack, setFxTrack] = useState("beep");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
   const [vibrationSupported, setVibrationSupported] = useState(false);
 
   // Apsauga: kai aktyvus įvesties laukas – neleidžiam „Power“
@@ -427,6 +428,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       if (ft) setFxTrack(ft);
       const vo = localStorage.getItem("bs_voice_enabled");
       if (vo != null) setVoiceEnabled(vo === "true");
+      const de = localStorage.getItem("bs_descriptions_enabled");
+      if (de != null) setDescriptionsEnabled(de === "true");
     } catch {}
   }, []);
   useEffect(() => {
@@ -447,6 +450,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => {
     try {
       localStorage.setItem("bs_voice_enabled", String(voiceEnabled));
+    } catch {}
+  }, [voiceEnabled]);
+  useEffect(() => {
+    try {
+      localStorage.setItem("bs_descriptions_enabled", String(descriptionsEnabled));
     } catch {}
   }, [voiceEnabled]);
 
@@ -757,6 +765,20 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 {voiceEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
+                        {/* Descriptions toggle */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="font-medium">{t("player.descriptions", { defaultValue: "Pratimų aprašymai" })}</p>
+                <p className="text-sm text-gray-500">{t("player.descriptionsDescShort", { defaultValue: "Rodyti aprašymą po pavadinimu." })}</p>
+              </div>
+              <button
+                onClick={() => setDescriptionsEnabled(v => !v)}
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${descriptionsEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
+              >
+                {descriptionsEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+              </button>
+            </div>
+
             <div className="flex justify-end gap-2">
               <button onClick={() => { primeIOSAudio(); }} className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">
                 {t("player.primeAudio", { defaultValue: "Paruošti garsą" })}
@@ -860,6 +882,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         <div className="max-w-2xl mx-auto text-center mt-6">
           <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
             {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
+
+          {/* Description under title (toggleable) */}
+          {!isRestPhase && descriptionsEnabled && exercise?.description && (
+            <p className="text-sm text-gray-700 italic mb-4">{exercise.description}</p>
+          )}
+
           </h2>
 
           {!isRestPhase && step?.type === "exercise" && (
@@ -868,7 +896,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             </p>
           )}
 
-          {!isRestPhase && <p className="text-sm text-gray-700 italic mb-4">{exercise?.description}</p>}
+          
 
           {getTimedSeconds(step) > 0 && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>

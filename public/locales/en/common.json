@@ -527,6 +527,8 @@
     "confirmExitTitle": "Exit workout?",
     "confirmExitBody": "If you exit now, this session won't be marked as completed.",
     "confirmExitCta": "Exit",
+    "descriptions": "Exercise descriptions",
+    "descriptionsDescShort": "Show the text description under the title.",
 
   "common": {
     "cancel": "Cancel"

@@ -531,6 +531,8 @@
     "confirmExitTitle": "Išeiti iš treniruotės?",
     "confirmExitBody": "Jei išeisite dabar, ši sesija nebus užskaityta kaip atlikta.",
     "confirmExitCta": "Išeiti",
+    "descriptions": "Pratimų aprašymai",
+    "descriptionsDescShort": "Rodyti aprašymą po pavadinimu.",
 
   "common": {
     "cancel": "Atšaukti"
