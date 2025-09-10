@@ -625,23 +625,22 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const prevEx = day?.exercises?.[prevIdx];
       setCurrentStepIndex(prevEx?.steps?.length ? prevEx.steps.length - 1 : 0);
     }
-  function goToNext() {
-  cancelRaf();
-  stopAllScheduled();
-
-  if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
-    // dar yra žingsnių tame pačiame pratime
-    setCurrentStepIndex(prev => prev + 1);
-  } else if (day && currentExerciseIndex + 1 < day.exercises.length) {
-    // žingsnių nebėra, bet yra kitas pratimas
-    setCurrentExerciseIndex(prev => prev + 1);
-    setCurrentStepIndex(0);
-  } else {
-    // nebėra nei žingsnių, nei pratimų — einame į apibendrinimą
-    setPhase("summary");
   }
-}
-
+  function goToNext() {
+    cancelRaf();
+    stopAllScheduled();
+    if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
+      // dar yra žingsnių tame pačiame pratime
+      setCurrentStepIndex((prev) => prev + 1);
+    } else if (day && currentExerciseIndex + 1 < day.exercises.length) {
+      // žingsnių nebėra, bet yra kitas pratimas
+      setCurrentExerciseIndex((prev) => prev + 1);
+      setCurrentStepIndex(0);
+    } else {
+      // nebėra nei žingsnių, nei pratimų — einame į apibendrinimą
+      setPhase("summary");
+    }
+  }
   function restartCurrentStep() {
     cancelRaf();
     stopAllScheduled();
