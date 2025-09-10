@@ -718,14 +718,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
             {/* Perjungimo garsas */}
             <div className="mb-4">
-              <div className="flex items-center justify_between">
+              <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">{t("player.fx", { defaultValue: "Perjungimo garsas" })}</p>
                   <p className="text-sm text-gray-500">{t("player.fxDesc", { defaultValue: "Skambėti keičiantis pratimą / poilsį." })}</p>
                 </div>
                 <button
                   onClick={() => setFxEnabled((v) => !v)}
-                  className={`px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text_white" : "bg-gray-200"}`}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
                 >
                   {fxEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
                 </button>
@@ -854,12 +854,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
-            <div className="mt-3 flex justify-center">
-              <button onClick={onClose} className="text-sm text-red-600 hover:underline">
-                {endSessionLabel}
-              </button>
-            </div>
-          </>
+</>
         }
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
@@ -999,7 +994,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           </div>
         }
       >
-        <div className="max-w-2xl mx_auto text-center">
+        <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl font-bold mb-2 text-center">🎉 {workoutCompletedLabel}</h2>
           <p className="mb-4 text-gray-800 whitespace-pre-wrap text-center">
             {workoutData?.days?.[0]?.motivationEnd || thanksForWorkingOut}
