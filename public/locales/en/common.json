@@ -542,7 +542,17 @@
       "voiceCountdown": "Voice countdown (5–1)",
       "voiceDescShort": "Count down 5,4,3,2,1 in the final seconds."
   }
-}
+},
+
+  "preGen": {
+    "title": "Before generating",
+    "intro": "Your plan will be created based on your profile data, goals, and habits.",
+    "disclaimer": "If you have discomfort, pain, or any other notes, add them below so the plan can be adjusted safely.",
+    "notesLabel": "Additional notes (optional)",
+    "placeholder": "E.g., lower back pain today; avoid jumps; prioritize posture and mobility.",
+    "cancel": "Cancel",
+    "generateNow": "Generate plan"
+  }
 
 
 

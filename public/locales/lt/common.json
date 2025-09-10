@@ -545,6 +545,16 @@
       "voiceCountdown": "Skaičiavimas balsu (5–1)",
       "voiceDescShort": "Skaičiuoti 5,4,3,2,1 paskutinėmis sekundėmis."
     }
+  },
+  
+  "preGen": {
+    "title": "Prieš kuriant planą",
+    "intro": "Individualus planas bus kuriamas pagal jūsų paskyros duomenis, tikslus ir įpročius.",
+    "disclaimer": "Jei turite diskomfortą, skausmą ar kitų svarbių pastabų — įrašykite žemiau, kad planas būtų pritaikytas saugiau.",
+    "notesLabel": "Papildoma informacija (nebūtina)",
+    "placeholder": "Pvz., šiandien jaučiu nugaros skausmą; venkite šuoliukų; prioritetas — laikysena ir mobilumas.",
+    "cancel": "Atšaukti",
+    "generateNow": "Kurti planą"
   }
   
 }

@@ -46,6 +46,10 @@ export default function Workouts() {
   const [parsedPlan, setParsedPlan] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  // Pre-generation modal
+  const [showPreGen, setShowPreGen] = useState(false);
+  const [preGenNotes, setPreGenNotes] = useState("");
+
   const [showPlayer, setShowPlayer] = useState(false);
   const [showViewer, setShowViewer] = useState(false);
   const [stats, setStats] = useState({ totalWorkouts: 0, totalTime: 0, calories: 0 });
@@ -141,11 +145,15 @@ export default function Workouts() {
     prevLoadingRef.current = loading;
   }, [loading, session]);
 
-  const handleGeneratePlan = async () => {
+  const handleGeneratePlan = async (notes = "") => {
     setLoading(true);
     lastGenerateOkRef.current = false;
     try {
-      const response = await fetch("/api/generate-workout", { method: "POST" });
+      const response = await fetch("/api/generate-workout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userNotes: notes })
+      });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || "generateFailed");
 
@@ -257,7 +265,7 @@ export default function Workouts() {
         </button>
 
         <button
-          onClick={handleGeneratePlan}
+          onClick={() => setShowPreGen(true)}
           className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded shadow transition w-full sm:w-auto disabled:opacity-60 flex items-center justify-center gap-1"
           disabled={loading}
         >
@@ -271,7 +279,26 @@ export default function Workouts() {
         </button>
       </div>
 
-      {/* Start mygtukas */}
+      {/* Pre-generation modal */}
+{showPreGen && (
+  <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/40">
+    <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6">
+      <h3 className="text-xl font-semibold mb-2">{t("preGen.title", { defaultValue: "Prieš kuriant planą" })}</h3>
+      <p className="text-sm text-gray-600 mb-3">{t("preGen.intro", { defaultValue: "Individualus planas bus kuriamas pagal jūsų paskyros duomenis, tikslus ir įpročius." })}</p>
+      <div className="bg-amber-50 text-amber-900 text-sm rounded-lg p-3 mb-4">{t("preGen.disclaimer", { defaultValue: "Jei turite diskomfortą, skausmą ar kitų svarbių pastabų — įrašykite žemiau, kad planas būtų pritaikytas saugiau." })}</div>
+      <label className="block text-sm font-medium mb-1" htmlFor="pre-gen-notes">{t("preGen.notesLabel", { defaultValue: "Papildoma informacija (nebūtina)" })}</label>
+      <textarea id="pre-gen-notes" value={preGenNotes} onChange={e=>setPreGenNotes(e.target.value)} className="w-full h-28 border rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder={t("preGen.placeholder", { defaultValue: "Pvz., šiandien jaučiu nugaros skausmą; venkite šuoliukų; prioritetas — laikysena ir mobilumas." })} />
+      <div className="flex justify-end gap-2">
+        <button onClick={()=>setShowPreGen(false)} className="px-4 py-2 rounded-lg border">{t("preGen.cancel", { defaultValue: "Atšaukti" })}</button>
+        <button onClick={async ()=>{ setShowPreGen(false); await handleGeneratePlan(preGenNotes); setPreGenNotes(""); }} className="px-4 py-2 rounded-lg bg-green-600 text-white disabled:opacity-60" disabled={loading}>
+          {loading ? t("generating") : t("preGen.generateNow", { defaultValue: "Kurti planą" })}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* Start mygtukas */}
       {selectedPlan?.planData?.text && (
         <div className="flex justify-center mb-6">
           <button

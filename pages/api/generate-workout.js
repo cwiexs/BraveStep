@@ -532,6 +532,7 @@ Never mention this validation step in the visible response. Only show the final,
 
 
 
+  if (req.body && req.body.userNotes) { try { promptParts.push(`ADDITIONAL USER NOTES: ${req.body.userNotes}`); } catch (_) {} }
   const aiPrompt = promptParts.join("\n\n");
 
   // 7. Siunčiam į OpenAI
