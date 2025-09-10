@@ -1,4 +1,3 @@
-
 import { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power } from "lucide-react";
@@ -119,7 +118,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   const isLastExerciseInDay = !!day && currentExerciseIndex === (day?.exercises?.length || 1) - 1;
   const isLastStepInExercise = !!exercise && currentStepIndex === (exercise?.steps?.length || 1) - 1;
-  const isTerminalRestAfter = step?.type === "rest_after" && isLastExerciseInDay && isLastStepInExercise;
+
+  // nauji aiškūs indikatoriai pabaigai
+  const isTerminal = isLastExerciseInDay && isLastStepInExercise;
+  const isRestAfter = step?.type === "rest_after";
 
   // i18n labels
   const restLabel = t("player.rest", { defaultValue: "Poilsis" });
@@ -520,6 +522,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   };
 
+  // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
     cancelRaf();
     stopAllScheduled();
@@ -531,25 +534,32 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       return;
     }
 
-    if (isTerminalRestAfter) {
-      setWaitingForUser(false);
-      setSecondsLeft(0);
-      if (!stepFinished) {
-        setStepFinished(true);
-        setTimeout(() => handlePhaseComplete(), 0);
+    const duration = getTimedSeconds(step);
+
+    // Paskutinis žingsnis yra rest_after
+    if (isTerminal && isRestAfter) {
+      if (duration > 0) {
+        // leisti suveikti poilsio laikui ir tada pereiti į summary
+        startTimedStep(duration);
+      } else {
+        // nėra trukmės – iškart į summary
+        setSecondsLeft(0);
+        setWaitingForUser(false);
+        setTimeout(() => setPhase("summary"), 0);
       }
       return;
     }
 
-    const duration = getTimedSeconds(step);
+    // Įprasta eiga: timed -> timeris; reps -> „Atlikta“
     if (duration > 0) {
       startTimedStep(duration);
     } else {
       setSecondsLeft(0);
-      setWaitingForUser(true);
+      setWaitingForUser(step?.type === "exercise");
     }
-  }, [currentExerciseIndex, currentStepIndex, phase, step, isTerminalRestAfter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase, step, currentExerciseIndex, currentStepIndex, isTerminal, isRestAfter]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // automatinė pauzė atidarius nustatymus
   useEffect(() => {
     if (showSettings) pauseTimer();
   }, [showSettings]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -565,6 +575,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       stopAllScheduled();
     };
   }, []);
+
+  // Watchdog: jei kažkas „dingo“, užbaik
+  useEffect(() => {
+    if (phase === "exercise") {
+      if (!day || !exercise || !step) setPhase("summary");
+    }
+  }, [phase, day, exercise, step]);
 
   // Navigation
   function handleManualContinue() {
@@ -765,7 +782,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // ---- Exercise / Rest ----
   if (phase === "exercise") {
-    const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !isTerminalRestAfter);
+    const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
     const seriesTotal = exercise?.steps?.filter((s) => s.type === "exercise").length || 0;
     const seriesIdx = step?.type === "exercise" ? step?.set : null;
 
