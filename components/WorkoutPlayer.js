@@ -898,6 +898,16 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               {nextExerciseInfo ? (
                 <>
                   <p className="text-base font-bold text-gray-900">{nextExerciseInfo.ex?.name}</p>
+                  {(() => {
+                    const repsText = getRepsText(nextExerciseInfo.st);
+                    const secs = getTimedSeconds(nextExerciseInfo.st);
+                    const timedText = secs > 0 ? `${secs} ${secShort}` : "";
+                    const effort = repsText || timedText;
+                    return effort ? (
+                      <p className="text-sm text-gray-900 mt-1">{effort}</p>
+                    ) : null;
+                  })()}
+
                   {nextExerciseInfo.setNo != null && (
                     <p className="text-sm text-gray-800 mt-1">
                       {setWord} {nextExerciseInfo.setNo}/{nextExerciseInfo.totalSets}
