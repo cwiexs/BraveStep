@@ -561,7 +561,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     remainMsRef.current = durationSec * 1000;
     const startAt = performance.now();
     deadlineRef.current = startAt + remainMsRef.current;
-    setSecondsLeft(Math.ceil(remainMsRef.current / 1000));
+    setSecondsLeft(Math.max(0, Math.ceil(remainMsRef.current / 1000)));
     setWaitingForUser(false);
     setPaused(false);
 
@@ -603,7 +603,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     stopAllScheduled();
     deadlineRef.current = null;
 
-    if (phase !== "exercise" || !step) {
+    
+    // Don't interfere with the one-time pre-start countdown
+    if (phase === "getready") return;
+
+if (phase !== "exercise" || !step) {
       setSecondsLeft(0);
       setWaitingForUser(false);
       return;
@@ -931,8 +935,20 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   
   // ---- Get Ready ----
   if (phase === "getready") {
-    const nextExName = step?.name || step?.title || step?.label || t("player.exercise", { defaultValue: "Pratimas" });
-    const getReadyLabel = t("player.getReady", { defaultValue: "Pasiruošk" });
+    const nextExName = upcoming.st?.name || upcoming.st?.title || upcoming.st?.label || t("player.exercise", { defaultValue: "Pratimas" });
+    
+    // Resolve the upcoming first exercise step for display
+    const upcoming = (() => {
+      let ex = exercise;
+      let st = step;
+      if (ex && (!st || st.type !== "exercise")) {
+        const list = Array.isArray(ex?.steps) ? ex.steps : [];
+        const firstEx = list.find(s => s?.type === "exercise");
+        st = firstEx || list[0] || null;
+      }
+      return { ex, st };
+    })();
+const getReadyLabel = t("player.getReady", { defaultValue: "Pasiruošk" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
     const secShort = t("player.secShort", { defaultValue: "s" });
 
@@ -959,11 +975,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               <p className="text-xl font-bold mt-1">{nextExName}</p>
               {/* Optionally show reps info if available */}
               {(() => {
-                const reps = getReps(step);
+                const reps = getReps(upcoming.st);
                 if (reps > 0) {
                   const setWord = t("player.setWord", { defaultValue: "Serija" });
                   const repsWord = t("player.reps", { defaultValue: "kartų" });
-                  const sIdx = step?.set ? (step.set) : null;
+                  const sIdx = upcoming.st?.set ? (upcoming.st.set) : null;
                   return <p className="text-lg mt-1">{reps} {repsWord}{sIdx ? ` • ${setWord} ${sIdx}` : ""}</p>;
                 }
                 return null;
