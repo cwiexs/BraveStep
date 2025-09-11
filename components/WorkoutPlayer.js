@@ -1371,14 +1371,14 @@ function startGetReadyCountdown(seconds) {
 
 
 useEffect(() => {
-  const isGetReady = getPhaseSafe() === "get-ready";
-  if (isGetReady && !isPaused) {
+  const isGetReady = getPhaseSafe() === "get_ready";
+  if (isGetReady && !paused) {
     startGetReadyCountdown(getReadySeconds);
   } else {
     cancelGetReadyTimers();
   }
   return () => cancelGetReadyTimers();
-}, [getPhaseSafe(), isPaused, getReadySecondsStr]);
+}, [getPhaseSafe(), paused, getReadySecondsStr]);
 
 
 useEffect(() => {
@@ -1388,8 +1388,8 @@ useEffect(() => {
     (typeof currentPhase !== "undefined" ? currentPhase :
     (typeof playerPhase !== "undefined" ? playerPhase : null)));
 
-  const isGetReady = pv === "get-ready";
-  if (isGetReady && !isPaused) {
+  const isGetReady = pv === "get_ready";
+  if (isGetReady && !paused) {
     const secs = (typeof getReadySeconds !== "undefined")
       ? getReadySeconds
       : (typeof getReadySecondsStr !== "undefined" ? Number(getReadySecondsStr) || 0 : 10);
@@ -1399,4 +1399,4 @@ useEffect(() => {
   }
 
   return () => cancelGetReadyTimers();
-}, [isPaused]); // deliberately minimal deps; internal function re-reads current values
+}, [paused]); // deliberately minimal deps; internal function re-reads current values
