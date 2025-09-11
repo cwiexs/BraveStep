@@ -782,24 +782,36 @@ function handleManualContinue() {
       {showSettings && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden">
-            <h3 className="text-xl font-bold mb-4">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
+            <h3 className="text-xl font-bold mb-6">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
 
             {/* Get ready seconds */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div>
-                <p className="font-medium">{t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}</p>
-                <p className="text-sm text-gray-500">{t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}</p>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div className="min-w-[220px]">
+                <p className="font-medium">
+                  {t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}
+                </p>
               </div>
-</div>
+              <input
+                type="number"
+                min="0"
+                max="120"
+                value={getReadySecondsStr}
+                onChange={(e) => { setGetReadySecondsStr(e.target.value); }}
+                onBlur={commitGetReady}
+                onKeyDown={(e) => { if (e.key === 'Enter') commitGetReady(); }}
+                className="w-24 h-9 border rounded px-2 text-sm text-right"
+              />
+            </div>
 
             {/* Vibracija */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div className="min-w-[220px]">
                 <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
                 <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
               </div>
-</div>
-
               <button
                 onClick={() => setVibrationEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
@@ -808,15 +820,15 @@ function handleManualContinue() {
               </button>
             </div>
             {!vibrationSupported && (
-              <div className="text-xs text-amber-600 mb-4">
+              <div className="text-xs text-amber-600 mb-5">
                 {t("player.vibrationNotSupported", { defaultValue: "Šiame įrenginyje naršyklė vibracijos nepalaiko." })}
               </div>
             )}
 
             {/* Perjungimo garsas */}
-            <div className="mb-4">
-              <div className="flex items-center justify-between">
-                <div>
+            <div className="mb-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-[220px]">
                   <p className="font-medium">{t("player.fx", { defaultValue: "Perjungimo garsas" })}</p>
                   <p className="text-sm text-gray-500">{t("player.fxDesc", { defaultValue: "Skambėti keičiantis pratimą / poilsį." })}</p>
                 </div>
@@ -827,25 +839,23 @@ function handleManualContinue() {
                   {fxEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
                 </button>
               </div>
-              <div className="mt-2">
+              <div className="mt-3 flex items-center flex-wrap gap-2">
                 <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Takelis:" })}</label>
                 <select value={fxTrack} onChange={(e) => setFxTrack(e.target.value)} className="border rounded px-2 py-1 text-sm">
                   <option value="beep">beep.wav</option>
                   <option value="silence">silance.mp3</option>
                 </select>
-                <button onClick={() => { ping(); }} className="ml-3 px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200">
+                <button onClick={() => { ping(); }} className="px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200">
                   {t("player.testFx", { defaultValue: "Išbandyti" })}
                 </button>
               </div>
             </div>
 
             {/* Balso skaičiavimas (5..1) */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div>
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div className="min-w-[220px]">
                 <p className="font-medium">{t("player.voice", { defaultValue: "Balso skaičiavimas" })}</p>
-                <p className="text-sm text-gray-500">
-                  {t("player.voiceDescShort", { defaultValue: "Skaičiuoti 5,4,3,2,1 paskutinėmis sekundėmis." })}
-                </p>
+                <p className="text-sm text-gray-500">{t("player.voiceDescShort", { defaultValue: "Skaičiuoti 5,4,3,2,1 paskutinėmis sekundėmis." })}</p>
               </div>
               <button
                 onClick={() => setVoiceEnabled((v) => !v)}
@@ -854,9 +864,10 @@ function handleManualContinue() {
                 {voiceEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
-                        {/* Descriptions toggle */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-              <div>
+
+            {/* Pratimų aprašymai */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <div className="min-w-[220px]">
                 <p className="font-medium">{t("player.descriptions", { defaultValue: "Pratimų aprašymai" })}</p>
                 <p className="text-sm text-gray-500">{t("player.descriptionsDescShort", { defaultValue: "Rodyti aprašymą po pavadinimu." })}</p>
               </div>
@@ -869,21 +880,17 @@ function handleManualContinue() {
             </div>
 
             <div className="flex justify-end gap-2">
-              <button onClick={() => { primeIOSAudio(); }} className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">
-                {t("player.primeAudio", { defaultValue: "Paruošti garsą" })}
-              </button>
               <button onClick={() => { commitGetReady(); setShowSettings(false); }} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
                 {t("common.close", { defaultValue: "Uždaryti" })}
               </button>
             </div>
           </div>
-  
+        </div>
       )}
-
-      {/* Confirm Exit modal */}
+{/* Confirm Exit modal */}
       {showConfirmExit && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 max-h-[85vh] overflow-y-auto">
             <h3 className="text-xl font-bold mb-3">
               {t("player.confirmExitTitle", { defaultValue: "Išeiti iš treniruotės?" })}
             </h3>
