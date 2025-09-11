@@ -999,7 +999,7 @@ function handleManualContinue() {
             {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
           </h2>
           <p className="text-6xl font-extrabold text-yellow-500 mt-6">
-            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}"}
+            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
           </p>
           {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
           {firstEx && (
@@ -1081,7 +1081,7 @@ function handleManualContinue() {
 
           {getTimedSeconds(step) > 0 && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
-              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}"}
+              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
             </p>
           )}
 
