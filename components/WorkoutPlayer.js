@@ -53,6 +53,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [fxTrack, setFxTrack] = useState("beep");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
+  const [getReadySeconds, setGetReadySeconds] = useState(10);
   const [vibrationSupported, setVibrationSupported] = useState(false);
 
   // Apsauga: kai aktyvus įvesties laukas – neleidžiam „Power“
@@ -430,6 +431,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       if (vo != null) setVoiceEnabled(vo === "true");
       const de = localStorage.getItem("bs_descriptions_enabled");
       if (de != null) setDescriptionsEnabled(de === "true");
+      const gr = localStorage.getItem("bs_getready_seconds");
+      if (gr != null) {
+        const n = parseInt(gr, 10);
+        if (Number.isFinite(n) && n >= 0 && n <= 120) setGetReadySeconds(n);
+      }
     } catch {}
   }, []);
   useEffect(() => {
@@ -457,6 +463,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       localStorage.setItem("bs_descriptions_enabled", String(descriptionsEnabled));
     } catch {}
   }, [voiceEnabled]);
+
+  useEffect(() => {
+    try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {}
+  }, [getReadySeconds]);
 
   // TIMER
   const cancelRaf = () => {
@@ -601,7 +611,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     stopAllScheduled();
     if (phase === "intro") {
       primeIOSAudio();
-      setPhase("exercise");
+      setPhase("get_ready");
+      const gr = Number(getReadySeconds) || 0;
+      if (gr > 0) { startTimedStep(gr); } else { setSecondsLeft(0); setWaitingForUser(false); setPhase("exercise"); }
     } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
@@ -611,6 +623,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function handlePhaseComplete() {
+    if (phase === "get_ready") { setPhase("exercise"); return; }
     cancelRaf();
     stopAllScheduled();
 
@@ -718,6 +731,23 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 {vibrationEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
+            {/* Get Ready time */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">{t("player.getReadyTime", { defaultValue: "Get ready (seconds)" })}</label>
+              <input
+                type="number"
+                min="0"
+                max="120"
+                value={getReadySeconds}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0);
+                }}
+                className="w-28 border rounded px-2 py-1 text-sm"
+              />
+              <p className="text-xs text-gray-500 mt-1">{t("player.getReadyHint", { defaultValue: "Countdown before the workout starts." })}</p>
+            </div>
+
             {!vibrationSupported && (
               <div className="text-xs text-amber-600 mb-4">
                 {t("player.vibrationNotSupported", { defaultValue: "Šiame įrenginyje naršyklė vibracijos nepalaiko." })}
@@ -765,6 +795,23 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 {voiceEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
+            {/* Get Ready time */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">{t("player.getReadyTime", { defaultValue: "Get ready (seconds)" })}</label>
+              <input
+                type="number"
+                min="0"
+                max="120"
+                value={getReadySeconds}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0);
+                }}
+                className="w-28 border rounded px-2 py-1 text-sm"
+              />
+              <p className="text-xs text-gray-500 mt-1">{t("player.getReadyHint", { defaultValue: "Countdown before the workout starts." })}</p>
+            </div>
+
                         {/* Descriptions toggle */}
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -778,6 +825,23 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 {descriptionsEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
+            {/* Get Ready time */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">{t("player.getReadyTime", { defaultValue: "Get ready (seconds)" })}</label>
+              <input
+                type="number"
+                min="0"
+                max="120"
+                value={getReadySeconds}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0);
+                }}
+                className="w-28 border rounded px-2 py-1 text-sm"
+              />
+              <p className="text-xs text-gray-500 mt-1">{t("player.getReadyHint", { defaultValue: "Countdown before the workout starts." })}</p>
+            </div>
+
 
             <div className="flex justify-end gap-2">
               <button onClick={() => { primeIOSAudio(); }} className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">
@@ -844,6 +908,102 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
             <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
           </div>
+        </div>
+      </Shell>
+    );
+  }
+
+
+  // ---- Get Ready ----
+  if (phase === "get_ready") {
+    const firstEx = day?.exercises?.[0] || null;
+    let firstSt = null;
+    let totalSets = 0;
+    if (firstEx?.steps && Array.isArray(firstEx.steps)) {
+      totalSets = firstEx.steps.filter((s) => s.type === "exercise").length || 0;
+      firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
+    }
+
+    const timerColorClass = "text-yellow-500";
+    const getReadyLabel = t("player.getReady", { defaultValue: "Get ready" });
+    const upNextLabel = t("player.firstExercise", { defaultValue: "First exercise" });
+
+    const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
+
+    function restartGetReady() {
+      const gr = Number(getReadySeconds) || 0;
+      startTimedStep(gr > 0 ? gr : 0);
+    }
+
+    return (
+      <Shell
+        footer={
+          <>
+            <div className="flex items-center justify-center gap-4">
+              <button onClick={() => { cancelRaf(); stopAllScheduled(); setPhase("intro"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
+                <SkipBack className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
+                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+              </button>
+              <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
+                <RotateCcw className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={() => { setStepFinished(true); handlePhaseComplete(); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+                <SkipForward className="w-6 h-6 text-gray-800" />
+              </button>
+            </div>
+
+            <div className="flex items-center justify-center mt-2">
+              <button
+                onClick={() => setShowSettings(true)}
+                aria-label={t("common.settings", { defaultValue: "Settings" })}
+                title={t("common.settings", { defaultValue: "Settings" })}
+                className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-black px-3 py-1 rounded-md hover:bg-gray-100"
+              >
+                <Settings className="w-5 h-5" />
+                <span>{t("common.settings", { defaultValue: "Settings" })}</span>
+              </button>
+            </div>
+          </>
+        }
+      >
+        <div className="text-center">
+          <div className="inline-flex items-center gap-2 bg-yellow-50 border border-yellow-200 text-yellow-700 px-3 py-1 rounded-full">
+            <Info className="w-4 h-4" />
+            <span className="text-sm font-medium">{getReadyLabel}</span>
+          </div>
+
+          <h2 className="text-2xl font-bold mt-4">{upNextLabel}</h2>
+
+          {firstEx && (
+            <div className="mt-2">
+              <p className="text-xl font-semibold text-gray-900">{firstEx.title || firstEx.name || t("player.exercise", { defaultValue: "Exercise" })}</p>
+              {firstSt && (
+                <>
+                  {(() => {
+                    const repsText = getRepsText(firstSt);
+                    if (repsText) return <p className="text-sm text-gray-900 mt-1">{repsText}</p>;
+                    const secs = getTimedSeconds(firstSt);
+                    const timedText = secs > 0 ? `${secs} ${secShort}` : "";
+                    return timedText ? <p className="text-sm text-gray-900 mt-1">{timedText}</p> : null;
+                  })()}
+                  {firstSt.set != null && totalSets > 0 && (
+                    <p className="text-sm text-gray-800 mt-1">{setWord} 1/{totalSets}</p>
+                  )}
+                  {firstEx.description && (
+                    <p className="text-sm text-gray-700 italic mt-2">{firstEx.description}</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+
+          <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
+            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
+          </p>
+
+          {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
         </div>
       </Shell>
     );
