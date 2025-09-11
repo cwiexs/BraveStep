@@ -172,8 +172,6 @@
     "alcoholAmount.light": "Nedaug (pvz., iki 4 alkoholio vienetų per savaitę – 1–2 taurės vyno)",
     "alcoholAmount.moderate": "Vidutiniškai (5–14 vienetų per savaitę – pvz., 2–6 gėrimai paskirstyti savaitėje)",
     "alcoholAmount.heavy": "Daug (daugiau nei 14 vienetų per savaitę – dažnas ar didelių kiekių vartojimas)"
-
-
   },
   "info": {
     "name": "Įrašykite tikrą vardą. Pvz.: Jonas.",
@@ -235,7 +233,6 @@
     "accessLevel": "Automatiškai priskiriamas. Nekoreguojamas rankiniu būdu.",
     "alcoholUsage": "Tai padeda mums suprasti jūsų gyvenimo būdą.",
     "alcoholAmount": "Nurodykite savo įprastą alkoholio vartojimą, kad gautumėte tikslesnes rekomendacijas."
-
   },
   "section": {
     "personal": "Asmeninė informacija",
@@ -257,7 +254,6 @@
     "mesomorph": "Mezomorfas",
     "endomorph": "Endomorfas",
     "unknown": "Nežinoma"
-
   },
   "fitnessLevel": {
     "beginner": "Pradedantysis",
@@ -302,7 +298,6 @@
       "mesomorph": "Mezomorfas",
       "endomorph": "Endomorfas",
       "unknown": "Nežinoma"
-
     },
     "fitnessLevel": {
       "beginner": "Pradedantysis",
@@ -310,7 +305,6 @@
       "advanced": "Patyręs",
       "other": "Kita"
     },
-
     "physicalActivityLevel": {
       "very_low": "Labai mažas",
       "low": "Mažas",
@@ -335,79 +329,65 @@
     }
   },
   "bodyTypeInfo": {
-  "ectomorph": "Ektomorfas: Natūraliai lieknas, sunkiai priauga svorio ir raumenų masės. Greita medžiagų apykaita.",
-  "mesomorph": "Mezomorfas: Natūraliai atletiškas, lengvai auginantis raumenis, proporcingas kūno sudėjimas.",
-  "endomorph": "Endomorfas: Lengvai kaupia riebalus, lėtesnė medžiagų apykaita, apvalesnė kūno forma, gali būti labai stiprus.",
-  "unknown": "Nežinoma: Jei nežinai savo kūno tipo, spausk „Noriu sužinoti“ ir perskaityk aprašymus."
-},
-"wantToKnow": "Noriu sužinoti",
-"bodyTypeDescriptionsTitle": "Kūno tipų aprašymai",
-
-"form.eatingHabitsTestLabel": "Mitybos įpročių testas",
-"form.takeEatingHabitsTest": "Atlikti mitybos testą",
-"form.eatingHabitsTestTitle": "Įvertinkite savo mitybos įpročius",
-"info.eatingHabitsTest": "Tai yra trumpas testas, kuris padės įsivertinti savo mitybos įpročius.",
-
-"test.introTitle": "Kaip atlikti testą?",
-"test.introText": "Atsakykite į kiekvieną klausimą pasirinkdami skaičių nuo 1 iki 5, kur 1 reiškia 'visiškai nesutinku' (niekada), o 5 reiškia 'visiškai sutinku' (visada arba labai dažnai). Šis testas padeda pamatyti, kurios jūsų mitybos įpročių sritys yra stipriausios arba silpniausios. Tai svarbu, nes objektyvus įvertinimas padeda geriau suprasti savo mitybos įpročius ir juos tobulinti.",
-"test.cat_planning": "Valgymo planavimas ir reguliarumas",
-"test.cat_choices": "Sveikų pasirinkimų darymas",
-"test.cat_emotional": "Emocinis ir socialinis valgymas",
-"test.cat_unhealthy": "Nesveiki įpročiai",
-"test.cat_attitude": "Maisto suvokimas ir nuostatos",
-"test.cat_supplements": "Papildomi klausimai apie gyvenimo būdą",
-"test.thank_you": "Ačiū, kad užpildėte testą!",
-
-"test.q_plan_meals": "Planuoju savo valgius iš anksto (pvz., savaitės meniu).",
-"test.q_eat_regularly": "Valgau reguliariai, tuo pačiu metu kiekvieną dieną.",
-"test.q_late_eating": "Dažnai valgau vėlai vakare arba naktį.",
-"test.q_overeating": "Dažnai suvalgau daugiau nei planavau, nes nejaučiu sotumo arba tiesiog norisi dar.",
-
-"test.q_eat_vegetables": "Valgau daržoves bent kartą per dieną.",
-"test.q_eat_fruits": "Valgau vaisius kaip užkandį vietoj saldumynų ar traškučių.",
-"test.q_cook_from_scratch": "Gaminu maistą namuose nuo nulio (pvz., iš šviežių ingredientų).",
-"test.q_try_healthy_recipes": "Mėgstu eksperimentuoti su naujais sveikesniais receptais (pvz., salotomis, daržovių patiekalais).",
-"test.q_read_labels": "Perku maistą, atkreipdamas dėmesį į maistingumo etiketes (pvz., cukraus, riebalų kiekį).",
-"test.q_eat_fast": "Dažnai valgau labai greitai, beveik nekramtydamas ir nejausdamas tikro skonio.",
-"test.q_drink_water": "Kasdien išgeriu bent 6–8 stiklines vandens (arbatos ar kavos neskaitant).",
-"test.q_choose_eco": "Renkantis maistą, man svarbu, kad jis būtų ekologiškas arba natūralus.",
-
-"test.q_emotional_eating": "Dažnai valgau, kai jaučiu stresą, nuobodulį ar kitas emocijas.",
-"test.q_mood_affects_eating": "Mano mityba priklauso nuo mano nuotaikos ar dienos užimtumo.",
-"test.q_social_overeat": "Dažnai valgau daugiau ar nesveikiau, kai esu draugijoje ar švenčių metu.",
-"test.q_restrict_binge": "Būna dienų, kai sąmoningai riboju maistą, o po to persivalgau.",
-"test.q_feel_guilt": "Jaučiu kaltę, jei suvalgau ką nors, ką laikau nesveiku.",
-
-"test.q_eat_fast_food": "Dažnai valgau maistą, kuris yra greitai paruošiamas (pvz., šaldyti produktai, pusgaminiai).",
-"test.q_drink_sugary": "Vartoju saldintus gazuotus gėrimus (pvz., kolą, sprite).",
-"test.q_eat_with_screens": "Dažnai valgau prie televizoriaus, kompiuterio ar telefono.",
-"test.q_eat_outside": "Dažnai valgau ne namuose (pvz., kavinėse, restoranuose ar užkandinėse).",
-
-"test.q_think_fast_food_ok": "Manau, kad greitas maistas (pvz., kebabas, pica, mėsainiai) yra pakankamai sveikas, jei valgomas saikingai.",
-"test.q_taste_over_nutrition": "Renkantis maistą, svarbiausia man yra skonis, o ne maistinė vertė.",
-"test.q_think_healthy_hard": "Manau, kad sveika mityba yra per brangi arba per sudėtinga.",
-"test.q_mindless_eating": "Dažnai valgau automatiškai, nekreipdamas dėmesio į skonį ar kiek suvalgiau.",
-"test.q_think_balanced": "Manau, kad mano mityba yra pakankamai subalansuota ir sveika.",
-
-"test.q_take_supplements": "Vartoju maisto papildus (pvz., vitaminus, baltymų miltelius).",
-
-"test.q_boredom_eating": "Dažnai valgau iš nuobodulio, net jei nesu alkanas.",
-"test.q_snacking_unplanned": "Dažnai užkandžiauju neplanuotai tarp pagrindinių valgymų.",
-"test.q_appearance_over_nutrition": "Dažnai renkuosi maistą pagal išvaizdą, ne pagal naudą.",
-"test.q_fail_diet_plans": "Dažnai bandau laikytis dietos, bet greitai grįžtu prie senų įpročių.",
-
-"test.submit": "Pateikti testą",
-"test.generating": "Analizė generuojama...",
-"test.completed": "Atlikta, ačiū!",
-"test.cancel": "Atšaukti",
-"test.submit_error": "Nepavyko pateikti atsakymų",
-"test.last_done": "Paskutinį kartą atliktas:",
-"test.not_done": "Testas dar neatliktas",
-
-"test.successMessage": "Puikiai padirbėta! Jūsų atsakymai sėkmingai išsaugoti.",
-
-
-
+    "ectomorph": "Ektomorfas: Natūraliai lieknas, sunkiai priauga svorio ir raumenų masės. Greita medžiagų apykaita.",
+    "mesomorph": "Mezomorfas: Natūraliai atletiškas, lengvai auginantis raumenis, proporcingas kūno sudėjimas.",
+    "endomorph": "Endomorfas: Lengvai kaupia riebalus, lėtesnė medžiagų apykaita, apvalesnė kūno forma, gali būti labai stiprus.",
+    "unknown": "Nežinoma: Jei nežinai savo kūno tipo, spausk „Noriu sužinoti“ ir perskaityk aprašymus."
+  },
+  "wantToKnow": "Noriu sužinoti",
+  "bodyTypeDescriptionsTitle": "Kūno tipų aprašymai",
+  "form.eatingHabitsTestLabel": "Mitybos įpročių testas",
+  "form.takeEatingHabitsTest": "Atlikti mitybos testą",
+  "form.eatingHabitsTestTitle": "Įvertinkite savo mitybos įpročius",
+  "info.eatingHabitsTest": "Tai yra trumpas testas, kuris padės įsivertinti savo mitybos įpročius.",
+  "test.introTitle": "Kaip atlikti testą?",
+  "test.introText": "Atsakykite į kiekvieną klausimą pasirinkdami skaičių nuo 1 iki 5, kur 1 reiškia 'visiškai nesutinku' (niekada), o 5 reiškia 'visiškai sutinku' (visada arba labai dažnai). Šis testas padeda pamatyti, kurios jūsų mitybos įpročių sritys yra stipriausios arba silpniausios. Tai svarbu, nes objektyvus įvertinimas padeda geriau suprasti savo mitybos įpročius ir juos tobulinti.",
+  "test.cat_planning": "Valgymo planavimas ir reguliarumas",
+  "test.cat_choices": "Sveikų pasirinkimų darymas",
+  "test.cat_emotional": "Emocinis ir socialinis valgymas",
+  "test.cat_unhealthy": "Nesveiki įpročiai",
+  "test.cat_attitude": "Maisto suvokimas ir nuostatos",
+  "test.cat_supplements": "Papildomi klausimai apie gyvenimo būdą",
+  "test.thank_you": "Ačiū, kad užpildėte testą!",
+  "test.q_plan_meals": "Planuoju savo valgius iš anksto (pvz., savaitės meniu).",
+  "test.q_eat_regularly": "Valgau reguliariai, tuo pačiu metu kiekvieną dieną.",
+  "test.q_late_eating": "Dažnai valgau vėlai vakare arba naktį.",
+  "test.q_overeating": "Dažnai suvalgau daugiau nei planavau, nes nejaučiu sotumo arba tiesiog norisi dar.",
+  "test.q_eat_vegetables": "Valgau daržoves bent kartą per dieną.",
+  "test.q_eat_fruits": "Valgau vaisius kaip užkandį vietoj saldumynų ar traškučių.",
+  "test.q_cook_from_scratch": "Gaminu maistą namuose nuo nulio (pvz., iš šviežių ingredientų).",
+  "test.q_try_healthy_recipes": "Mėgstu eksperimentuoti su naujais sveikesniais receptais (pvz., salotomis, daržovių patiekalais).",
+  "test.q_read_labels": "Perku maistą, atkreipdamas dėmesį į maistingumo etiketes (pvz., cukraus, riebalų kiekį).",
+  "test.q_eat_fast": "Dažnai valgau labai greitai, beveik nekramtydamas ir nejausdamas tikro skonio.",
+  "test.q_drink_water": "Kasdien išgeriu bent 6–8 stiklines vandens (arbatos ar kavos neskaitant).",
+  "test.q_choose_eco": "Renkantis maistą, man svarbu, kad jis būtų ekologiškas arba natūralus.",
+  "test.q_emotional_eating": "Dažnai valgau, kai jaučiu stresą, nuobodulį ar kitas emocijas.",
+  "test.q_mood_affects_eating": "Mano mityba priklauso nuo mano nuotaikos ar dienos užimtumo.",
+  "test.q_social_overeat": "Dažnai valgau daugiau ar nesveikiau, kai esu draugijoje ar švenčių metu.",
+  "test.q_restrict_binge": "Būna dienų, kai sąmoningai riboju maistą, o po to persivalgau.",
+  "test.q_feel_guilt": "Jaučiu kaltę, jei suvalgau ką nors, ką laikau nesveiku.",
+  "test.q_eat_fast_food": "Dažnai valgau maistą, kuris yra greitai paruošiamas (pvz., šaldyti produktai, pusgaminiai).",
+  "test.q_drink_sugary": "Vartoju saldintus gazuotus gėrimus (pvz., kolą, sprite).",
+  "test.q_eat_with_screens": "Dažnai valgau prie televizoriaus, kompiuterio ar telefono.",
+  "test.q_eat_outside": "Dažnai valgau ne namuose (pvz., kavinėse, restoranuose ar užkandinėse).",
+  "test.q_think_fast_food_ok": "Manau, kad greitas maistas (pvz., kebabas, pica, mėsainiai) yra pakankamai sveikas, jei valgomas saikingai.",
+  "test.q_taste_over_nutrition": "Renkantis maistą, svarbiausia man yra skonis, o ne maistinė vertė.",
+  "test.q_think_healthy_hard": "Manau, kad sveika mityba yra per brangi arba per sudėtinga.",
+  "test.q_mindless_eating": "Dažnai valgau automatiškai, nekreipdamas dėmesio į skonį ar kiek suvalgiau.",
+  "test.q_think_balanced": "Manau, kad mano mityba yra pakankamai subalansuota ir sveika.",
+  "test.q_take_supplements": "Vartoju maisto papildus (pvz., vitaminus, baltymų miltelius).",
+  "test.q_boredom_eating": "Dažnai valgau iš nuobodulio, net jei nesu alkanas.",
+  "test.q_snacking_unplanned": "Dažnai užkandžiauju neplanuotai tarp pagrindinių valgymų.",
+  "test.q_appearance_over_nutrition": "Dažnai renkuosi maistą pagal išvaizdą, ne pagal naudą.",
+  "test.q_fail_diet_plans": "Dažnai bandau laikytis dietos, bet greitai grįžtu prie senų įpročių.",
+  "test.submit": "Pateikti testą",
+  "test.generating": "Analizė generuojama...",
+  "test.completed": "Atlikta, ačiū!",
+  "test.cancel": "Atšaukti",
+  "test.submit_error": "Nepavyko pateikti atsakymų",
+  "test.last_done": "Paskutinį kartą atliktas:",
+  "test.not_done": "Testas dar neatliktas",
+  "test.successMessage": "Puikiai padirbėta! Jūsų atsakymai sėkmingai išsaugoti.",
   "test": {
     "sportIntroTitle": "Atrask savo sportavimo stilių",
     "sportIntroText": "Atsakyk į klausimus, kad padėtume suprasti tavo sportinius įpročius ir pageidavimus. Tai padės sukurti tau asmeniškai pritaikytą sporto planą.",
@@ -422,54 +402,46 @@
     "cat_muscle_balance": "Raumenų balansas",
     "cat_preferences": "Pageidavimai",
     "cat_habits": "Įpročiai",
-
-  "q_endurance_general": "Man patinka bendros ištvermės treniruotės (ilgi bėgimai, dviratis, plaukimas).",
-  "q_strength_general": "Man labiau patinka bendros jėgos treniruotės su svoriais.",
-  "q_cardio_activities": "Man patinka kardio veikla (bėgimas, aerobika, dviračio mynimas).",
-  "q_lifting_heavy_weights": "Man patinka kelti sunkius svorius.",
-  "q_high_reps_lighter_weights": "Mėgstu daryti daugiau pakartojimų su mažesniais svoriais.",
-  "q_long_runs": "Man patinka ilgi bėgimai.",
-  "q_short_sprints": "Mėgstu trumpus intensyvius bėgimus.",
-  "q_interval_training": "Patinka intervalinės treniruotės (kardio + jėga).",
-  "q_bodyweight_exercises": "Dažnai darau pratimus su savo kūno svoriu.",
-  "q_flexibility_stretching": "Skiriu daug dėmesio tempimo pratimams.",
-  "q_yoga_practice": "Man patinka joga.",
-  "q_mobility_focus": "Svarbu lavinti kūno mobilumą ir lankstumą.",
-  "q_team_sports": "Mėgstu sportuoti komandoje.",
-  "q_solo_training": "Dažniau renkuosi sportuoti vienas.",
-  "q_competitive_motivation": "Mane motyvuoja konkurencija su kitais.",
-  "q_personal_challenges": "Patinka kelti sau asmeninius sporto iššūkius.",
-  "q_upper_body_focus": "Dažniau koncentruojuosi į viršutinę kūno dalį.",
-  "q_lower_body_focus": "Labiau treniruoju apatinę kūno dalį.",
-  "q_core_strength_importance": "Man svarbus stiprus kūno centras (pilvo presas).",
-  "q_balanced_training": "Siekiu tolygiai stiprinti visas kūno dalis.",
-  "q_outdoor_training": "Man patinka sportuoti lauke.",
-  "q_gym_training": "Dažnai sportuoju sporto salėje.",
-  "q_home_training": "Sportuoju namuose.",
-  "q_equipment_free_training": "Patinka pratimai be papildomos įrangos.",
-  "q_training_variety": "Mėgstu treniruočių įvairovę.",
-  "q_structured_routine": "Laikausi aiškaus treniruočių plano.",
-  "q_consistent_training": "Reguliariai sportuoju, be didesnių pertraukų.",
-  "q_longer_less_intense_sessions": "Labiau mėgstu ilgesnes, mažiau intensyvias treniruotes.",
-  "q_short_high_intensity_sessions": "Renkuosi trumpas ir intensyvias treniruotes (HIIT).",
-  "q_daily_physical_activity": "Kiekvieną dieną stengiuosi būti fiziškai aktyvus."
-
+    "q_endurance_general": "Man patinka bendros ištvermės treniruotės (ilgi bėgimai, dviratis, plaukimas).",
+    "q_strength_general": "Man labiau patinka bendros jėgos treniruotės su svoriais.",
+    "q_cardio_activities": "Man patinka kardio veikla (bėgimas, aerobika, dviračio mynimas).",
+    "q_lifting_heavy_weights": "Man patinka kelti sunkius svorius.",
+    "q_high_reps_lighter_weights": "Mėgstu daryti daugiau pakartojimų su mažesniais svoriais.",
+    "q_long_runs": "Man patinka ilgi bėgimai.",
+    "q_short_sprints": "Mėgstu trumpus intensyvius bėgimus.",
+    "q_interval_training": "Patinka intervalinės treniruotės (kardio + jėga).",
+    "q_bodyweight_exercises": "Dažnai darau pratimus su savo kūno svoriu.",
+    "q_flexibility_stretching": "Skiriu daug dėmesio tempimo pratimams.",
+    "q_yoga_practice": "Man patinka joga.",
+    "q_mobility_focus": "Svarbu lavinti kūno mobilumą ir lankstumą.",
+    "q_team_sports": "Mėgstu sportuoti komandoje.",
+    "q_solo_training": "Dažniau renkuosi sportuoti vienas.",
+    "q_competitive_motivation": "Mane motyvuoja konkurencija su kitais.",
+    "q_personal_challenges": "Patinka kelti sau asmeninius sporto iššūkius.",
+    "q_upper_body_focus": "Dažniau koncentruojuosi į viršutinę kūno dalį.",
+    "q_lower_body_focus": "Labiau treniruoju apatinę kūno dalį.",
+    "q_core_strength_importance": "Man svarbus stiprus kūno centras (pilvo presas).",
+    "q_balanced_training": "Siekiu tolygiai stiprinti visas kūno dalis.",
+    "q_outdoor_training": "Man patinka sportuoti lauke.",
+    "q_gym_training": "Dažnai sportuoju sporto salėje.",
+    "q_home_training": "Sportuoju namuose.",
+    "q_equipment_free_training": "Patinka pratimai be papildomos įrangos.",
+    "q_training_variety": "Mėgstu treniruočių įvairovę.",
+    "q_structured_routine": "Laikausi aiškaus treniruočių plano.",
+    "q_consistent_training": "Reguliariai sportuoju, be didesnių pertraukų.",
+    "q_longer_less_intense_sessions": "Labiau mėgstu ilgesnes, mažiau intensyvias treniruotes.",
+    "q_short_high_intensity_sessions": "Renkuosi trumpas ir intensyvias treniruotes (HIIT).",
+    "q_daily_physical_activity": "Kiekvieną dieną stengiuosi būti fiziškai aktyvus."
   },
-
-  
   "form.sportsHabitsTestLabel": "Sporto įpročių testas",
   "form.takeSportsHabitsTest": "Atlikti sporto testą",
   "form.sportsHabitsTestTitle": "Sporto įpročių testas",
   "info.sportsHabitsTest": "Šis testas padeda įvertinti jūsų sportinius įpročius, stipriąsias ir silpnąsias kūno vietas bei psichologinį sporto profilį. Atsakykite į kiekvieną klausimą nuo 1 iki 5, kur 1 reiškia 'visiškai nesutinku', o 5 – 'visiškai sutinku'.",
-
   "form.invalidDateFormat": "Blogas datos formatas (pvz. 1980-07-15)",
   "form.dateInputHelper": "Įrašykite gimimo datą: YYYYMMDD arba YYYY-MM-DD",
   "form.datePlaceholder": "YYYY-MM-DD",
   "form.invalidCalendarDate": "Tokios datos kalendoriuje nėra",
   "form.dateCannotBeFuture": "Negalima įvesti datos iš ateities",
-
-
-
   "pleaseLogin": "Prisijunkite.",
   "welcomeUser": "Sveiki, {{name}}!",
   "user": "Vartotojas",
@@ -489,19 +461,13 @@
   "generateFailed": "Nepavyko sugeneruoti plano.",
   "completed": "Atlikta",
   "notCompleted": "Neatlikta",
-
-
- 
   "workoutPlan": "Treniruotės planas",
   "day": "Diena",
   "set": "Serija",
   "rest": "Poilsis",
   "rest_after": "Poilsis po pratimo",
   "close": "Uždaryti",
-
-
-
-   "player": {
+  "player": {
     "motivationTitle": "Motyvacija",
     "startWorkout": "Pradėti treniruotę",
     "exercise": "Pratimas",
@@ -533,11 +499,9 @@
     "confirmExitCta": "Išeiti",
     "descriptions": "Pratimų aprašymai",
     "descriptionsDescShort": "Rodyti aprašymą po pavadinimu.",
-
-  "common": {
-    "cancel": "Atšaukti"
-  },
-
+    "common": {
+      "cancel": "Atšaukti"
+    },
     "settings": {
       "title": "Nustatymai",
       "vibration": "Vibracija",
@@ -546,7 +510,6 @@
       "voiceDescShort": "Skaičiuoti 5,4,3,2,1 paskutinėmis sekundėmis."
     }
   },
-  
   "preGen": {
     "title": "Prieš kuriant planą",
     "intro": "Individualus planas bus kuriamas pagal jūsų paskyros duomenis, tikslus ir įpročius.",
@@ -555,12 +518,6 @@
     "placeholder": "Pvz., šiandien jaučiu nugaros skausmą; venkite šuoliukų; prioritetas — laikysena ir mobilumas.",
     "cancel": "Atšaukti",
     "generateNow": "Kurti planą"
-  }
-  
+  },
+  "getReadyTitle": "Pasiruoškite treniruotei"
 }
-
-
-  
-
-
-
