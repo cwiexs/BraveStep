@@ -779,7 +779,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
                 <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
               </div>
-            {/* Get Ready time */}
+            {/* Get ready seconds */}
             <div className="mb-4">
               <label className="block text-sm font-medium mb-1">{t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}</label>
               <input
@@ -974,8 +974,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           <h2 className={`text-2xl font-extrabold mb-2 text-yellow-500`}>
             {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
           </h2>
-          <p className="text-sm font-semibold text-gray-700 mb-1">{t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}</p>
-          <p className="text-xs uppercase tracking-wide text-yellow-600 font-semibold">{t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}</p>
           <p className="text-6xl font-extrabold text-yellow-500 mt-6">
             {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
           </p>
