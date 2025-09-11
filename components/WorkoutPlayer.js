@@ -790,6 +790,24 @@ function handleManualContinue() {
                 <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
                 <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
               </div>
+            {/* Get ready seconds */}
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="font-medium">{t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}</p>
+                <p className="text-sm text-gray-500">{t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}</p>
+              </div>
+              <input
+                type="number"
+                min="0"
+                max="120"
+                value={getReadySecondsStr}
+                onChange={(e) => { setGetReadySecondsStr(e.target.value); }}
+                onBlur={commitGetReady}
+                onKeyDown={(e) => { if (e.key === 'Enter') commitGetReady(); }}
+                className="w-20 h-9 border rounded px-2 text-sm text-right"
+              />
+            </div>
+
               <button
                 onClick={() => setVibrationEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
