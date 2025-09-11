@@ -55,6 +55,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
   const [getReadySeconds, setGetReadySeconds] = useState(10);
+  const [getReadySecondsStr, setGetReadySecondsStr] = useState("10");
   const [vibrationSupported, setVibrationSupported] = useState(false);
 
   // Apsauga: kai aktyvus įvesties laukas – neleidžiam „Power“
@@ -499,6 +500,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
+  useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
+
   // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
@@ -520,6 +523,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
 
       if (msLeft <= 0) {
+      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); setPhase("exercise"); return; }
       if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
@@ -780,20 +784,21 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
               </div>
             {/* Get ready seconds */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">{t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}</label>
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <p className="font-medium">{t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}</p>
+                <p className="text-sm text-gray-500">{t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}</p>
+              </div>
               <input
                 type="number"
                 min="0"
                 max="120"
-                value={getReadySeconds}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0);
-                }}
-                className="w-28 border rounded px-2 py-1 text-sm"
+                value={getReadySecondsStr}
+                onChange={(e) => { setGetReadySecondsStr(e.target.value); }}
+                onBlur={() => { const v = parseInt(getReadySecondsStr, 10); setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0); }}
+                onKeyDown={(e) => { if (e.key === 'Enter') { const v = parseInt(getReadySecondsStr, 10); setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0); } }}
+                className="w-20 h-9 border rounded px-2 text-sm text-right"
               />
-              <p className="text-xs text-gray-500 mt-1">{t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}</p>
             </div>
 
               <button
