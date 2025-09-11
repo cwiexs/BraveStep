@@ -9,7 +9,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
 
   // ---- iOS scroll lock while typing ----
-  const pageYRef = useRef(0);
+  const pageYRef = 
+function getPhaseSafe() {
+  return (typeof getPhaseSafe() !== "undefined" ? getPhaseSafe() :
+         (typeof currentPhase !== "undefined" ? currentPhase :
+         (typeof playerPhase !== "undefined" ? playerPhase : null)));
+}
+
+useRef(0);
   const scheduledTimeoutsRef = useRef([]);
   const lockBodyScroll = () => {
     try {
@@ -37,7 +44,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [phase, setPhase] = useState("intro"); // intro | exercise | summary
+  const [getPhaseSafe(), setPhase] = useState("intro"); // intro | exercise | summary
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -487,17 +494,17 @@ const audioRef = useRef({
 
   // After switching from get_ready to exercise, ensure timer initializes
   useEffect(() => {
-    if (phase === "exercise") {
+    if (getPhaseSafe() === "exercise") {
       // kick the timer setup effect by nudging step state if needed
       setTimeout(() => {
         try { setCurrentStepIndex((v) => v); } catch {}
       }, 0);
     }
-  }, [phase]);
+  }, [getPhaseSafe()]);
 
   // Ensure exercise timer starts when we enter exercise (after get_ready)
   useEffect(() => {
-    if (phase !== "exercise") return;
+    if (getPhaseSafe() !== "exercise") return;
     const d = getTimedSeconds(step);
     if (Number.isFinite(d) && d > 0) {
       startTimedStep(d);
@@ -505,7 +512,7 @@ const audioRef = useRef({
       setSecondsLeft(0);
       setWaitingForUser(step?.type === "exercise");
     }
-  }, [phase, currentExerciseIndex, currentStepIndex, step]);
+  }, [getPhaseSafe(), currentExerciseIndex, currentStepIndex, step]);
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
@@ -530,7 +537,7 @@ const audioRef = useRef({
       }
 
       if (msLeft <= 0) {
-      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+      if (getPhaseSafe() === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
         setStepFinished(true);
@@ -585,7 +592,7 @@ const audioRef = useRef({
 
   // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
-    if (phase !== "exercise") return;
+    if (getPhaseSafe() !== "exercise") return;
     cancelRaf();
     stopAllScheduled();
     deadlineRef.current = null;
@@ -619,7 +626,7 @@ const audioRef = useRef({
       setSecondsLeft(0);
       setWaitingForUser(step?.type === "exercise");
     }
-  }, [phase, step, currentExerciseIndex, currentStepIndex, isTerminal, isRestAfter]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [getPhaseSafe(), step, currentExerciseIndex, currentStepIndex, isTerminal, isRestAfter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // automatinė pauzė atidarius nustatymus ar išeities patvirtinimą
   useEffect(() => {
@@ -643,10 +650,10 @@ const audioRef = useRef({
 
   // Watchdog: jei kažkas „dingo“, užbaik
   useEffect(() => {
-    if (phase === "exercise") {
+    if (getPhaseSafe() === "exercise") {
       if (!day || !exercise || !step) setPhase("summary");
     }
-  }, [phase, day, exercise, step]);
+  }, [getPhaseSafe(), day, exercise, step]);
 
   // Navigation
   
@@ -660,7 +667,7 @@ const audioRef = useRef({
 function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
-    if (phase === "intro") {
+    if (getPhaseSafe() === "intro") {
       primeIOSAudio();
       // Preselect first exercise step
       try {
@@ -687,16 +694,16 @@ function handleManualContinue() {
         setWaitingForUser(false);
         setPhase("exercise");
       }
-    } else if (phase === "exercise") {
+    } else if (getPhaseSafe() === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
-    } else if (phase === "summary") {
+    } else if (getPhaseSafe() === "summary") {
       onClose?.();
     }
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+    if (getPhaseSafe() === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
     cancelRaf();
     stopAllScheduled();
 
@@ -931,7 +938,7 @@ function handleManualContinue() {
   );
 
   // ---- Intro ----
-  if (phase === "intro") {
+  if (getPhaseSafe() === "intro") {
     return (
       <Shell
         footer={
@@ -953,7 +960,7 @@ function handleManualContinue() {
   }
 
   // ---- Get Ready ----
-  if (phase === "get_ready") {
+  if (getPhaseSafe() === "get_ready") {
     const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
@@ -1025,7 +1032,7 @@ function handleManualContinue() {
   }
 
   // ---- Exercise / Rest ----
-  if (phase === "exercise") {
+  if (getPhaseSafe() === "exercise") {
     const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
     const seriesTotal = exercise?.steps?.filter((s) => s.type === "exercise").length || 0;
     const seriesIdx = step?.type === "exercise" ? step?.set : null;
@@ -1133,7 +1140,7 @@ function handleManualContinue() {
   }
 
   // ---- Summary ----
-  if (phase === "summary") {
+  if (getPhaseSafe() === "summary") {
     const options = [
       { value: 1, label: "😣", text: t("player.rateTooHard", { defaultValue: "Per sunku" }) },
       { value: 2, label: "😟", text: t("player.rateAHard", { defaultValue: "Šiek tiek sunku" }) },
@@ -1359,20 +1366,20 @@ function startGetReadyCountdown(seconds) {
 
 
 useEffect(() => {
-  const isGetReady = phase === "get-ready";
+  const isGetReady = getPhaseSafe() === "get-ready";
   if (isGetReady && !isPaused) {
     startGetReadyCountdown(getReadySeconds);
   } else {
     cancelGetReadyTimers();
   }
   return () => cancelGetReadyTimers();
-}, [phase, isPaused, getReadySecondsStr]);
+}, [getPhaseSafe(), isPaused, getReadySecondsStr]);
 
 
 useEffect(() => {
-  // Resolve phase safely (without ReferenceError on SSR)
+  // Resolve getPhaseSafe() safely (without ReferenceError on SSR)
   const pv =
-    (typeof phase !== "undefined" ? phase :
+    (typeof getPhaseSafe() !== "undefined" ? getPhaseSafe() :
     (typeof currentPhase !== "undefined" ? currentPhase :
     (typeof playerPhase !== "undefined" ? playerPhase : null)));
 
