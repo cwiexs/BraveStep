@@ -44,7 +44,7 @@ useRef(0);
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [getPhaseSafe(), setPhase] = useState("intro"); // intro | exercise | summary
+  const [phase, setPhase] = useState("intro"); // intro | exercise | summary
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
