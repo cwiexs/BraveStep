@@ -947,16 +947,13 @@ if (phase !== "exercise" || !step) {
       }
       return { ex, st };
     })();
-    const nextExName = upcoming.st?.name || upcoming.st?.title || upcoming.st?.label || tr("player.exercise", { defaultValue: "Exercise" });
+    const nextExName = (upcoming.st?.name ?? upcoming.st?.title ?? upcoming.st?.label) ?? tr("player.exercise", { defaultValue: "Exercise" });
 
     const getReadyLabel = tr("player.getReady", { defaultValue: "Get ready" });
     const upNextLabel = tr("player.upNext", { defaultValue: "Up next:" });
     const secShort = tr("player.secShort", { defaultValue: "s" });
 
     return (
-        const firstEx = list.find(s => s?.type === "exercise");
-        st = firstEx || list[0] || null;
-      }
       return { ex, st };
     })();
 const getReadyLabel = tr("player.getReady", { defaultValue: "Get ready" });
