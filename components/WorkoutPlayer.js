@@ -957,8 +957,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           <h2 className={`text-2xl font-extrabold mb-2 text-yellow-500`}>
             {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
           </h2>
-          <p className="text-sm font-semibold text-gray-700 mb-1">{t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}</p>
-          <p className="text-xs uppercase tracking-wide text-yellow-600 font-semibold">{t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}</p>
           <p className="text-6xl font-extrabold text-yellow-500 mt-6">
             {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
           </p>
