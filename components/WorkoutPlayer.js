@@ -489,6 +489,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
 
       if (msLeft <= 0) {
+        if (phase === "get_ready") { cancelRaf(); setStepFinished(true); setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
         setStepFinished(true);
@@ -975,23 +976,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               </button>
             </div>
 
-            <div className="flex items-center justify-center mt-2">
-              <button
-                onClick={() => setShowSettings(true)}
-                aria-label={t("common.settings", { defaultValue: "Settings" })}
-                title={t("common.settings", { defaultValue: "Settings" })}
-                className="inline-flex items-center gap-2 text-sm text-gray-700 hover:text-black px-3 py-1 rounded-md hover:bg-gray-100"
-              >
-                <Settings className="w-5 h-5" />
-                <span>{t("common.settings", { defaultValue: "Settings" })}</span>
-              </button>
-            </div>
           </>
         }
       >
         <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-yellow-600">{getReadyLabel}</h2>
-
           <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
             {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
           </p>
@@ -1000,8 +988,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
           {firstEx && (
             <div className="mt-8">
-              <h3 className="text-xl font-bold">{upNextLabel}</h3>
-              <p className="text-xl font-semibold text-gray-900 mt-1">{firstEx.title || firstEx.name || t("player.exercise", { defaultValue: "Exercise" })}</p>
+              <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
+              <p className="text-base font-bold text-gray-900">{firstEx.title || firstEx.name || t("player.exercise", { defaultValue: "Exercise" })}</p>
               {firstSt && (
                 <>
                   {(() => {
