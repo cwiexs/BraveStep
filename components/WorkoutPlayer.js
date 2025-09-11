@@ -434,14 +434,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const de = localStorage.getItem("bs_descriptions_enabled");
       if (de != null) setDescriptionsEnabled(de === "true");
     } catch {}
-  
+  }, []);
+
   useEffect(() => {
     try {
       const ps = localStorage.getItem("bs_prestart_seconds");
       if (ps != null && !Number.isNaN(Number(ps))) setPreStartSeconds(Math.max(0, parseInt(ps, 10)));
     } catch {}
   }, []);
-}, []);
+
   useEffect(() => {
     try {
       localStorage.setItem("bs_vibration_enabled", String(vibrationEnabled));
@@ -466,7 +467,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     try {
       localStorage.setItem("bs_descriptions_enabled", String(descriptionsEnabled));
     } catch {}
-  }, [voiceEnabled]);
+  }, [descriptionsEnabled]);
 
   
   useEffect(() => {
@@ -553,7 +554,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     stopAllScheduled();
     if (!durationSec || durationSec <= 0) {
       justFromGetReadyRef.current = true;
-      if (!maybeStartGetReady()) { setPhase("exercise"); }
+      setPhase("exercise");
       return;
     }
     // initialize countdown
@@ -665,10 +666,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
-    if (phase === "intro") {
-      primeIOSAudio();
-      setPhase("exercise");
-    } else if (phase === "exercise") {
+    if (phase === "intro") { primeIOSAudio(); if (!maybeStartGetReady()) { setPhase("exercise"); } } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
     } else if (phase === "summary") {
@@ -773,7 +771,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             {/* Pre-start countdown */}
             <div className="mb-4">
               <label className="font-medium block mb-1">{t("player.preStartSeconds", { defaultValue: "Prieš-pradžios laikmatis (s)" })}</label>
-              <p className="text-sm text-gray-500 mb-2">{t("player.preStartSecondsHint", { defaultValue: "Kiek sekundžių skaičiuoti prieš KIEKVIENĄ pratimą." })}</p>
+              <p className="text-sm text-gray-500 mb-2">{t("player.preStartSecondsHint", { defaultValue: "Kiek sekundžių skaičiuoti prieš PRADĖDANT treniruotę." })}</p>
               <input
                 type="number"
                 min="0"
