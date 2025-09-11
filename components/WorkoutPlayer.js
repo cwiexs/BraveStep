@@ -1327,76 +1327,76 @@ function handleManualContinue() {
     );
   }
 
+
+  // --- GET READY countdown ---
+  function cancelGetReadyTimers() {
+    try { if (getReadyRafRef.current) cancelAnimationFrame(getReadyRafRef.current); } catch {};
+    getReadyRafRef.current = null;
+    try { if (getReadyFallbackRef.current) clearTimeout(getReadyFallbackRef.current); } catch {};
+    getReadyFallbackRef.current = null;
+  }
+
+  function startGetReadyCountdown(seconds) {
+    cancelGetReadyTimers();
+    getReadyTransitionedRef.current = false;
+
+    const secs = Math.max(0, Number(seconds) || 0);
+    getReadyTargetMsRef.current = performance.now() + secs * 1000;
+
+    const tick = () => {
+      const leftMs = getReadyTargetMsRef.current - performance.now();
+      const left = Math.max(0, Math.ceil(leftMs / 1000));
+      setSecondsLeft(left);
+      if (left <= 0) {
+        if (!getReadyTransitionedRef.current) {
+          getReadyTransitionedRef.current = true;
+          cancelGetReadyTimers();
+          try { goToNext && goToNext("fromGetReady"); } catch {};
+        }
+        return;
+      }
+      getReadyRafRef.current = requestAnimationFrame(tick);
+    };
+    getReadyRafRef.current = requestAnimationFrame(tick);
+    getReadyFallbackRef.current = setTimeout(() => {
+      if (!getReadyTransitionedRef.current) {
+        getReadyTransitionedRef.current = true;
+        cancelGetReadyTimers();
+        try { goToNext && goToNext("fromGetReadyFallback"); } catch {};
+      }
+    }, secs * 1000 + 1500);
+  }
+
+  useEffect(() => {
+    const isGetReady = getPhaseSafe() === "get_ready";
+    if (isGetReady && !paused) {
+      startGetReadyCountdown(getReadySeconds);
+    } else {
+      cancelGetReadyTimers();
+    }
+    return () => cancelGetReadyTimers();
+  }, [getPhaseSafe(), paused, getReadySecondsStr]);
+
+  useEffect(() => {
+    const pv =
+      (typeof getPhaseSafe() !== "undefined" ? getPhaseSafe() :
+      (typeof currentPhase !== "undefined" ? currentPhase :
+      (typeof playerPhase !== "undefined" ? playerPhase : null)));
+
+    const isGetReady = pv === "get_ready";
+    if (isGetReady && !paused) {
+      const secs = (typeof getReadySeconds !== "undefined")
+        ? getReadySeconds
+        : (typeof getReadySecondsStr !== "undefined" ? Number(getReadySecondsStr) || 0 : 10);
+      startGetReadyCountdown(secs);
+    } else {
+      cancelGetReadyTimers();
+    }
+
+    return () => cancelGetReadyTimers();
+  }, [paused]);
+
   return null;
 }
 
 
-function cancelGetReadyTimers() {
-  try { if (getReadyRafRef.current) cancelAnimationFrame(getReadyRafRef.current); } catch {};
-  getReadyRafRef.current = null;
-  try { if (getReadyFallbackRef.current) clearTimeout(getReadyFallbackRef.current); } catch {};
-  getReadyFallbackRef.current = null;
-}
-
-function startGetReadyCountdown(seconds) {
-  cancelGetReadyTimers();
-  getReadyTransitionedRef.current = false;
-
-  const secs = Math.max(0, Number(seconds) || 0);
-  getReadyTargetMsRef.current = performance.now() + secs * 1000;
-
-  const tick = () => {
-    const leftMs = getReadyTargetMsRef.current - performance.now();
-    const left = Math.max(0, Math.ceil(leftMs / 1000));
-    setSecondsLeft(left);
-    if (left <= 0) {
-      if (!getReadyTransitionedRef.current) {
-        getReadyTransitionedRef.current = true;
-        cancelGetReadyTimers();
-        try { goToNext && goToNext("fromGetReady"); } catch {};
-      }
-      return;
-    }
-    getReadyRafRef.current = requestAnimationFrame(tick);
-  };
-  getReadyRafRef.current = requestAnimationFrame(tick);
-  getReadyFallbackRef.current = setTimeout(() => {
-    if (!getReadyTransitionedRef.current) {
-      getReadyTransitionedRef.current = true;
-      cancelGetReadyTimers();
-      try { goToNext && goToNext("fromGetReadyFallback"); } catch {};
-    }
-  }, secs * 1000 + 1500);
-}
-
-
-useEffect(() => {
-  const isGetReady = getPhaseSafe() === "get_ready";
-  if (isGetReady && !paused) {
-    startGetReadyCountdown(getReadySeconds);
-  } else {
-    cancelGetReadyTimers();
-  }
-  return () => cancelGetReadyTimers();
-}, [getPhaseSafe(), paused, getReadySecondsStr]);
-
-
-useEffect(() => {
-  // Resolve getPhaseSafe() safely (without ReferenceError on SSR)
-  const pv =
-    (typeof getPhaseSafe() !== "undefined" ? getPhaseSafe() :
-    (typeof currentPhase !== "undefined" ? currentPhase :
-    (typeof playerPhase !== "undefined" ? playerPhase : null)));
-
-  const isGetReady = pv === "get_ready";
-  if (isGetReady && !paused) {
-    const secs = (typeof getReadySeconds !== "undefined")
-      ? getReadySeconds
-      : (typeof getReadySecondsStr !== "undefined" ? Number(getReadySecondsStr) || 0 : 10);
-    startGetReadyCountdown(secs);
-  } else {
-    cancelGetReadyTimers();
-  }
-
-  return () => cancelGetReadyTimers();
-}, [paused]); // deliberately minimal deps; internal function re-reads current values
