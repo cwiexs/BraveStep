@@ -1367,3 +1367,25 @@ useEffect(() => {
   }
   return () => cancelGetReadyTimers();
 }, [phase, isPaused, getReadySecondsStr]);
+
+
+useEffect(() => {
+  // Resolve phase safely (without ReferenceError on SSR)
+  const pv =
+    (typeof phase !== "undefined" ? phase :
+    (typeof currentPhase !== "undefined" ? currentPhase :
+    (typeof playerPhase !== "undefined" ? playerPhase : null)));
+
+  const isGetReady = pv === "get-ready";
+  if (isGetReady && !isPaused) {
+    const secs = (typeof getReadySeconds !== "undefined")
+      ? getReadySeconds
+      : (typeof getReadySecondsStr !== "undefined" ? Number(getReadySecondsStr) || 0 : 10);
+    startGetReadyCountdown(secs);
+  } else {
+    cancelGetReadyTimers();
+  }
+
+  return () => cancelGetReadyTimers();
+}, [isPaused]); // deliberately minimal deps; internal function re-reads current values
+
