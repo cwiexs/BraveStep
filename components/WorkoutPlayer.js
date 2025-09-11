@@ -432,10 +432,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const de = localStorage.getItem("bs_descriptions_enabled");
       if (de != null) setDescriptionsEnabled(de === "true");
       const gr = localStorage.getItem("bs_getready_seconds");
-      if (gr != null) {
-        const n = parseInt(gr, 10);
-        if (Number.isFinite(n) && n >= 0 && n <= 120) setGetReadySeconds(n);
-      }
+      if (gr != null) { const n = parseInt(gr, 10); if (Number.isFinite(n)) setGetReadySeconds(Math.max(0, Math.min(120, n))); }
     } catch {}
   }, []);
   useEffect(() => {
@@ -464,9 +461,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     } catch {}
   }, [voiceEnabled]);
 
-  useEffect(() => {
-    try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {}
-  }, [getReadySeconds]);
+  useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
   // TIMER
   const cancelRaf = () => {
@@ -489,7 +484,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
 
       if (msLeft <= 0) {
-        if (phase === "get_ready") { cancelRaf(); setStepFinished(true); setPhase("exercise"); return; }
+      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
         setStepFinished(true);
@@ -544,10 +539,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
-    if (phase !== "exercise") {
-      // get_ready and other phases manage their own timers
-      return;
-    }
+    if (phase !== "exercise") return;
     cancelRaf();
     stopAllScheduled();
     deadlineRef.current = null;
@@ -729,23 +721,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
                 <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
               </div>
-            {/* Get Ready time */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">{t("player.getReadyTime", { defaultValue: "Get ready (seconds)" })}</label>
-              <input
-                type="number"
-                min="0"
-                max="120"
-                value={getReadySeconds}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0);
-                }}
-                className="w-28 border rounded px-2 py-1 text-sm"
-              />
-              <p className="text-xs text-gray-500 mt-1">{t("player.getReadyHint", { defaultValue: "Countdown before the workout starts." })}</p>
-            </div>
-
               <button
                 onClick={() => setVibrationEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
@@ -753,23 +728,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 {vibrationEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
-            {/* Get Ready time */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">{t("player.getReadyTime", { defaultValue: "Get ready (seconds)" })}</label>
-              <input
-                type="number"
-                min="0"
-                max="120"
-                value={getReadySeconds}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0);
-                }}
-                className="w-28 border rounded px-2 py-1 text-sm"
-              />
-              <p className="text-xs text-gray-500 mt-1">{t("player.getReadyHint", { defaultValue: "Countdown before the workout starts." })}</p>
-            </div>
-
             {!vibrationSupported && (
               <div className="text-xs text-amber-600 mb-4">
                 {t("player.vibrationNotSupported", { defaultValue: "Šiame įrenginyje naršyklė vibracijos nepalaiko." })}
@@ -817,23 +775,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 {voiceEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
-            {/* Get Ready time */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">{t("player.getReadyTime", { defaultValue: "Get ready (seconds)" })}</label>
-              <input
-                type="number"
-                min="0"
-                max="120"
-                value={getReadySeconds}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0);
-                }}
-                className="w-28 border rounded px-2 py-1 text-sm"
-              />
-              <p className="text-xs text-gray-500 mt-1">{t("player.getReadyHint", { defaultValue: "Countdown before the workout starts." })}</p>
-            </div>
-
                         {/* Descriptions toggle */}
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -847,23 +788,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 {descriptionsEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
-            {/* Get Ready time */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-1">{t("player.getReadyTime", { defaultValue: "Get ready (seconds)" })}</label>
-              <input
-                type="number"
-                min="0"
-                max="120"
-                value={getReadySeconds}
-                onChange={(e) => {
-                  const v = parseInt(e.target.value, 10);
-                  setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0);
-                }}
-                className="w-28 border rounded px-2 py-1 text-sm"
-              />
-              <p className="text-xs text-gray-500 mt-1">{t("player.getReadyHint", { defaultValue: "Countdown before the workout starts." })}</p>
-            </div>
-
 
             <div className="flex justify-end gap-2">
               <button onClick={() => { primeIOSAudio(); }} className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">
@@ -935,7 +859,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     );
   }
 
-
   // ---- Get Ready ----
   if (phase === "get_ready") {
     const firstEx = day?.exercises?.[0] || null;
@@ -945,17 +868,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       totalSets = firstEx.steps.filter((s) => s.type === "exercise").length || 0;
       firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
     }
-
-    const timerColorClass = "text-yellow-500";
-    const getReadyLabel = t("player.getReady", { defaultValue: "Get ready" });
-    const upNextLabel = t("player.firstExercise", { defaultValue: "First exercise" });
-
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
+    const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() {
-      const gr = Number(getReadySeconds) || 0;
-      startTimedStep(gr > 0 ? gr : 0);
-    }
+    function restartGetReady() { const gr = Number(getReadySeconds) || 0; startTimedStep(gr > 0 ? gr : 0); }
 
     return (
       <Shell
@@ -975,19 +891,16 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
-
           </>
         }
       >
         <div className="text-center">
-          <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
+          <p className="text-6xl font-extrabold text-yellow-500 mt-6">
             {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
           </p>
-
           {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
-
           {firstEx && (
-            <div className="mt-8">
+            <div className="mt-6 text-left inline-block text-start">
               <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
               <p className="text-base font-bold text-gray-900">{firstEx.title || firstEx.name || t("player.exercise", { defaultValue: "Exercise" })}</p>
               {firstSt && (
