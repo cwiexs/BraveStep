@@ -10,6 +10,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // ---- iOS scroll lock while typing ----
   const pageYRef = useRef(0);
+  const scheduledTimeoutsRef = useRef([]);
   const lockBodyScroll = () => {
     try {
       pageYRef.current = window.scrollY || window.pageYOffset || 0;
@@ -383,6 +384,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
+  function stopAllScheduled() {
+    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
+    scheduledTimeoutsRef.current = [];
+  }
+
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
     try {
@@ -480,6 +486,18 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }, 0);
     }
   }, [phase]);
+
+  // Ensure exercise timer starts when we enter exercise (after get_ready)
+  useEffect(() => {
+    if (phase !== "exercise") return;
+    const d = getTimedSeconds(step);
+    if (Number.isFinite(d) && d > 0) {
+      startTimedStep(d);
+    } else {
+      setSecondsLeft(0);
+      setWaitingForUser(step?.type === "exercise");
+    }
+  }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
   // TIMER
   const cancelRaf = () => {
@@ -640,7 +658,17 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       } catch {}
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
-      if (gr > 0) { startTimedStep(gr); } else { setSecondsLeft(0); setWaitingForUser(false); setPhase("exercise"); }
+      if (gr > 0) {
+        startTimedStep(gr);
+        try {
+          const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60));
+          scheduledTimeoutsRef.current.push(id);
+        } catch {}
+      } else {
+        setSecondsLeft(0);
+        setWaitingForUser(false);
+        setPhase("exercise");
+      }
     } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
@@ -901,7 +929,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() { const gr = Number(getReadySeconds) || 0; startTimedStep(gr > 0 ? gr : 0); }
+    function restartGetReady() { const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
 
     return (
       <Shell
