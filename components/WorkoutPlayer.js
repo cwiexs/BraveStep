@@ -5,7 +5,7 @@ import { useTranslation } from "next-i18next";
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
-  const router = (typeof window !== "undefined" ? useRouter() : null);
+  const router = useRouter();  // FIX: hooks must be called unconditionally; using conditional caused React error #321
   const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
 
   // ---- iOS scroll lock while typing ----
