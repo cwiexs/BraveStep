@@ -599,12 +599,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
-    cancelRaf();
-    stopAllScheduled();
-    deadlineRef.current = null;
-
-    
-    // Don't interfere with the one-time pre-start countdown
+      // Don't interfere with one-time pre-start countdown
+  if (phase === "getready") return;
+  cancelRaf();
+  stopAllScheduled();
+  deadlineRef.current = null;
+// Don't interfere with the one-time pre-start countdown
     if (phase === "getready") return;
 
 if (phase !== "exercise" || !step) {
@@ -938,7 +938,7 @@ if (phase !== "exercise" || !step) {
   if (phase === "getready") {
   // Resolve the upcoming first exercise step for display
   const upcoming = (() => {
-    let ex = exercise;
+    let ex = exercise || (day?.exercises?.[0] || null);
     let st = step;
     if (ex && (!st || st.type !== "exercise")) {
       const list = Array.isArray(ex?.steps) ? ex.steps : [];
