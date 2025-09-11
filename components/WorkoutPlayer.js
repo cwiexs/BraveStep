@@ -4,7 +4,7 @@ import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } 
 import { useTranslation } from "next-i18next";
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
-  const { t: tr, i18n } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
   const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
 
@@ -129,26 +129,26 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const isRestAfter = step?.type === "rest_after";
 
   // i18n labels
-  const restLabel = tr("player.rest", { defaultValue: "Rest" });
-  const upNextLabel = tr("player.upNext", { defaultValue: "Up next:" });
-  const setWord = tr("player.setWord", { defaultValue: "Set" });
-  const secShort = tr("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
-  const startWorkoutLabel = tr("player.startWorkout", { defaultValue: "Start workout" });
-  const doneLabel = tr("player.done", { defaultValue: "Done" });
-  const prevLabel = tr("player.prev", { defaultValue: "Previous" });
-  const nextLabel = tr("player.next", { defaultValue: "Next" });
-  const pausePlayLabel = tr("player.pausePlay", { defaultValue: "Pause / Play" });
-  const restartStepLabel = tr("player.restartStep", { defaultValue: "Restart step" });
-  const endSessionLabel = tr("player.endSession", { defaultValue: "End session" });
-  const pausedLabel = tr("player.paused", { defaultValue: "Paused" });
-  const workoutCompletedLabel = tr("player.workoutCompleted", { defaultValue: "Workout complete!" });
-  const thanksForWorkingOut = tr("player.thanksForWorkingOut", { defaultValue: "Thanks for working out!" });
-  const howWasDifficulty = tr("player.howWasDifficulty", { defaultValue: "How was the difficulty?" });
-  const commentPlaceholder = tr("player.commentPlaceholder", { defaultValue: "Comment (optional)..." });
-  const finishWorkout = tr("player.finishWorkout", { defaultValue: "Finish and send feedback" });
-  const thanksForFeedback = tr("player.thanksForFeedback", { defaultValue: "Thanks for the feedback!" });
-  const exerciseLabel = tr("player.exercise", { defaultValue: "Exercise" });
-  const motivationTitle = tr("player.motivationTitle", { defaultValue: "Motivation" });
+  const restLabel = t("player.rest", { defaultValue: "Poilsis" });
+  const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
+  const setWord = t("player.setWord", { defaultValue: "Serija" });
+  const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
+  const startWorkoutLabel = t("player.startWorkout", { defaultValue: "Pradėti treniruotę" });
+  const doneLabel = t("player.done", { defaultValue: "Atlikta" });
+  const prevLabel = t("player.prev", { defaultValue: "Atgal" });
+  const nextLabel = t("player.next", { defaultValue: "Toliau" });
+  const pausePlayLabel = t("player.pausePlay", { defaultValue: "Pauzė / Tęsti" });
+  const restartStepLabel = t("player.restartStep", { defaultValue: "Perkrauti žingsnį" });
+  const endSessionLabel = t("player.endSession", { defaultValue: "Baigti sesiją" });
+  const pausedLabel = t("player.paused", { defaultValue: "Pauzė" });
+  const workoutCompletedLabel = t("player.workoutCompleted", { defaultValue: "Treniruotė užbaigta!" });
+  const thanksForWorkingOut = t("player.thanksForWorkingOut", { defaultValue: "Ačiū už treniruotę!" });
+  const howWasDifficulty = t("player.howWasDifficulty", { defaultValue: "Kaip vertini sunkumą?" });
+  const commentPlaceholder = t("player.commentPlaceholder", { defaultValue: "Komentaras (nebūtina)..." });
+  const finishWorkout = t("player.finishWorkout", { defaultValue: "Užbaigti ir išsiųsti įvertinimą" });
+  const thanksForFeedback = t("player.thanksForFeedback", { defaultValue: "Ačiū už grįžtamąjį ryšį!" });
+  const exerciseLabel = t("player.exercise", { defaultValue: "Pratimas" });
+  const motivationTitle = t("player.motivationTitle", { defaultValue: "Motyvacija" });
 
   // ---- Utils ----
   function getTimedSeconds(st) {
@@ -434,15 +434,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const de = localStorage.getItem("bs_descriptions_enabled");
       if (de != null) setDescriptionsEnabled(de === "true");
     } catch {}
-  }, []);
-
+  
   useEffect(() => {
     try {
       const ps = localStorage.getItem("bs_prestart_seconds");
       if (ps != null && !Number.isNaN(Number(ps))) setPreStartSeconds(Math.max(0, parseInt(ps, 10)));
     } catch {}
   }, []);
-
+}, []);
   useEffect(() => {
     try {
       localStorage.setItem("bs_vibration_enabled", String(vibrationEnabled));
@@ -467,7 +466,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     try {
       localStorage.setItem("bs_descriptions_enabled", String(descriptionsEnabled));
     } catch {}
-  }, [descriptionsEnabled]);
+  }, [voiceEnabled]);
 
   
   useEffect(() => {
@@ -554,14 +553,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     stopAllScheduled();
     if (!durationSec || durationSec <= 0) {
       justFromGetReadyRef.current = true;
-      setPhase("exercise");
+      if (!maybeStartGetReady()) { setPhase("exercise"); }
       return;
     }
     // initialize countdown
     remainMsRef.current = durationSec * 1000;
     const startAt = performance.now();
     deadlineRef.current = startAt + remainMsRef.current;
-    setSecondsLeft(Math.max(0, Math.ceil(remainMsRef.current / 1000)));
+    setSecondsLeft(Math.ceil(remainMsRef.current / 1000));
     setWaitingForUser(false);
     setPaused(false);
 
@@ -599,15 +598,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
-      // Don't interfere with one-time pre-start countdown
-  if (phase === "getready") return;
-  cancelRaf();
-  stopAllScheduled();
-  deadlineRef.current = null;
-// Don't interfere with the one-time pre-start countdown
-    if (phase === "getready") return;
+    cancelRaf();
+    stopAllScheduled();
+    deadlineRef.current = null;
 
-if (phase !== "exercise" || !step) {
+    if (phase !== "exercise" || !step) {
       setSecondsLeft(0);
       setWaitingForUser(false);
       return;
@@ -670,7 +665,10 @@ if (phase !== "exercise" || !step) {
   function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
-    if (phase === "intro") { primeIOSAudio(); if (!maybeStartGetReady()) { setPhase("exercise"); } } else if (phase === "exercise") {
+    if (phase === "intro") {
+      primeIOSAudio();
+      setPhase("exercise");
+    } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
     } else if (phase === "summary") {
@@ -734,8 +732,8 @@ if (phase !== "exercise" || !step) {
       <button
         onClick={() => setShowSettings(true)}
         className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow"
-        aria-label={tr("common.settings", { defaultValue: "Settings" })}
-        title={tr("common.settings", { defaultValue: "Settings" })}
+        aria-label={t("common.settings", { defaultValue: "Nustatymai" })}
+        title={t("common.settings", { defaultValue: "Nustatymai" })}
       >
         <Settings className="w-5 h-5" />
       </button>
@@ -744,8 +742,8 @@ if (phase !== "exercise" || !step) {
           if (!inputActive) setShowConfirmExit(true);
         }}
         className={`p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow ${inputActive ? "pointer-events-none opacity-50" : ""}`}
-        aria-label={tr("common.close", { defaultValue: "Close" })}
-        title={tr("common.close", { defaultValue: "Close" })}
+        aria-label={t("common.close", { defaultValue: "Uždaryti" })}
+        title={t("common.close", { defaultValue: "Uždaryti" })}
       >
         <Power className="w-5 h-5" />
       </button>
@@ -771,11 +769,11 @@ if (phase !== "exercise" || !step) {
       {showSettings && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5">
-            <h3 className="text-xl font-bold mb-4">{tr("common.settings", { defaultValue: "Settings" })}</h3>
+            <h3 className="text-xl font-bold mb-4">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
             {/* Pre-start countdown */}
             <div className="mb-4">
-              <label className="font-medium block mb-1">{tr("player.preStartSeconds", { defaultValue: "Pre-start countdown (s)" })}</label>
-              <p className="text-sm text-gray-500 mb-2">{tr("player.preStartSecondsHint", { defaultValue: "How many seconds to count down before STARTING the workout." })}</p>
+              <label className="font-medium block mb-1">{t("player.preStartSeconds", { defaultValue: "Prieš-pradžios laikmatis (s)" })}</label>
+              <p className="text-sm text-gray-500 mb-2">{t("player.preStartSecondsHint", { defaultValue: "Kiek sekundžių skaičiuoti prieš KIEKVIENĄ pratimą." })}</p>
               <input
                 type="number"
                 min="0"
@@ -783,7 +781,7 @@ if (phase !== "exercise" || !step) {
                 value={preStartSeconds}
                 onChange={(e) => setPreStartSeconds(Math.max(0, parseInt(e.target.value || "0", 10)))}
                 className="w-28 px-3 py-2 border rounded-lg"
-                aria-label={tr("player.preStartSeconds", { defaultValue: "Pre-start countdown (s)" })}
+                aria-label={t("player.preStartSeconds", { defaultValue: "Prieš-pradžios laikmatis (s)" })}
               />
             </div>
 
@@ -791,19 +789,19 @@ if (phase !== "exercise" || !step) {
             {/* Vibracija */}
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="font-medium">{tr("player.vibration", { defaultValue: "Vibration" })}</p>
-                <p className="text-sm text-gray-500">{tr("player.vibrationDesc", { defaultValue: "Vibrate when switching exercise/rest." })}</p>
+                <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
+                <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
               </div>
               <button
                 onClick={() => setVibrationEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
-                {vibrationEnabled ? tr("common.on", { defaultValue: "On" }) : tr("common.off", { defaultValue: "Off" })}
+                {vibrationEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
             {!vibrationSupported && (
               <div className="text-xs text-amber-600 mb-4">
-                {tr("player.vibrationNotSupported", { defaultValue: "Vibration isn't supported on this device." })}
+                {t("player.vibrationNotSupported", { defaultValue: "Šiame įrenginyje naršyklė vibracijos nepalaiko." })}
               </div>
             )}
 
@@ -811,24 +809,24 @@ if (phase !== "exercise" || !step) {
             <div className="mb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="font-medium">{tr("player.fx", { defaultValue: "Switch sound" })}</p>
-                  <p className="text-sm text-gray-500">{tr("player.fxDesc", { defaultValue: "Play when switching exercise/rest." })}</p>
+                  <p className="font-medium">{t("player.fx", { defaultValue: "Perjungimo garsas" })}</p>
+                  <p className="text-sm text-gray-500">{t("player.fxDesc", { defaultValue: "Skambėti keičiantis pratimą / poilsį." })}</p>
                 </div>
                 <button
                   onClick={() => setFxEnabled((v) => !v)}
                   className={`px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
                 >
-                  {fxEnabled ? tr("common.on", { defaultValue: "On" }) : tr("common.off", { defaultValue: "Off" })}
+                  {fxEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
                 </button>
               </div>
               <div className="mt-2">
-                <label className="text-sm mr-2">{tr("player.fxTrack", { defaultValue: "Track:" })}</label>
+                <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Takelis:" })}</label>
                 <select value={fxTrack} onChange={(e) => setFxTrack(e.target.value)} className="border rounded px-2 py-1 text-sm">
                   <option value="beep">beep.wav</option>
                   <option value="silence">silance.mp3</option>
                 </select>
                 <button onClick={() => { ping(); }} className="ml-3 px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200">
-                  {tr("player.testFx", { defaultValue: "Test" })}
+                  {t("player.testFx", { defaultValue: "Išbandyti" })}
                 </button>
               </div>
             </div>
@@ -836,38 +834,38 @@ if (phase !== "exercise" || !step) {
             {/* Balso skaičiavimas (5..1) */}
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="font-medium">{tr("player.voice", { defaultValue: "Voice countdown" })}</p>
+                <p className="font-medium">{t("player.voice", { defaultValue: "Balso skaičiavimas" })}</p>
                 <p className="text-sm text-gray-500">
-                  {tr("player.voiceDescShort", { defaultValue: "Count 5,4,3,2,1 in the final seconds." })}
+                  {t("player.voiceDescShort", { defaultValue: "Skaičiuoti 5,4,3,2,1 paskutinėmis sekundėmis." })}
                 </p>
               </div>
               <button
                 onClick={() => setVoiceEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${voiceEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
-                {voiceEnabled ? tr("common.on", { defaultValue: "On" }) : tr("common.off", { defaultValue: "Off" })}
+                {voiceEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
                         {/* Descriptions toggle */}
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="font-medium">{tr("player.descriptions", { defaultValue: "Exercise descriptions" })}</p>
-                <p className="text-sm text-gray-500">{tr("player.descriptionsDescShort", { defaultValue: "Show description under the title." })}</p>
+                <p className="font-medium">{t("player.descriptions", { defaultValue: "Pratimų aprašymai" })}</p>
+                <p className="text-sm text-gray-500">{t("player.descriptionsDescShort", { defaultValue: "Rodyti aprašymą po pavadinimu." })}</p>
               </div>
               <button
                 onClick={() => setDescriptionsEnabled(v => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${descriptionsEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
-                {descriptionsEnabled ? tr("common.on", { defaultValue: "On" }) : tr("common.off", { defaultValue: "Off" })}
+                {descriptionsEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
             </div>
 
             <div className="flex justify-end gap-2">
               <button onClick={() => { primeIOSAudio(); }} className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">
-                {tr("player.primeAudio", { defaultValue: "Prime audio" })}
+                {t("player.primeAudio", { defaultValue: "Paruošti garsą" })}
               </button>
               <button onClick={() => setShowSettings(false)} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
-                {tr("common.close", { defaultValue: "Close" })}
+                {t("common.close", { defaultValue: "Uždaryti" })}
               </button>
             </div>
           </div>
@@ -879,11 +877,11 @@ if (phase !== "exercise" || !step) {
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5">
             <h3 className="text-xl font-bold mb-3">
-              {tr("player.confirmExitTitle", { defaultValue: "Exit the workout?" })}
+              {t("player.confirmExitTitle", { defaultValue: "Išeiti iš treniruotės?" })}
             </h3>
             <p className="text-sm text-gray-700 mb-5">
-              {tr("player.confirmExitBody", {
-                defaultValue: "If you exit now, this session will not be counted as completed."
+              {t("player.confirmExitBody", {
+                defaultValue: "Jei išeisite dabar, ši sesija nebus užskaityta kaip atlikta."
               })}
             </p>
             <div className="flex items-center justify-end gap-2">
@@ -891,7 +889,7 @@ if (phase !== "exercise" || !step) {
                 onClick={() => setShowConfirmExit(false)}
                 className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"
               >
-                {tr("common.cancel", { defaultValue: "Cancel" })}
+                {t("common.cancel", { defaultValue: "Atšaukti" })}
               </button>
               <button
                 onClick={() => {
@@ -901,7 +899,7 @@ if (phase !== "exercise" || !step) {
                 }}
                 className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
               >
-                {tr("player.confirmExitCta", { defaultValue: "Exit" })}
+                {t("player.confirmExitCta", { defaultValue: "Išeiti" })}
               </button>
             </div>
           </div>
@@ -922,7 +920,7 @@ if (phase !== "exercise" || !step) {
           </div>
         }
       >
-        <div className="w-full min-h_[60vh] grid place-items-center">
+        <div className="w-full min-h-[60vh] grid place-items-center">
           <div className="max-w-2xl text-center">
             <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
             <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
@@ -934,74 +932,82 @@ if (phase !== "exercise" || !step) {
 
   
   // ---- Get Ready ----
-  // ---- Get Ready ----
   if (phase === "getready") {
-  // Resolve the upcoming first exercise step for display
   const upcoming = (() => {
-    let ex = exercise || (day?.exercises?.[0] || null);
-    let st = step;
-    if (ex && (!st || st.type !== "exercise")) {
-      const list = Array.isArray(ex?.steps) ? ex.steps : [];
-      const firstEx = list.find(s => s?.type === "exercise");
-      st = firstEx || list[0] || null;
-    }
-    return { ex, st };
+    const firstEx = day?.exercises?.[0] || exercise || null;
+    if (!firstEx) return { ex: null, st: null, totalSets: 0, setNo: null };
+    const list = Array.isArray(firstEx.steps) ? firstEx.steps : [];
+    const st = list.find(s => s?.type === "exercise") || null;
+    const totalSets = list.filter(s => s?.type === "exercise").length || 0;
+    const setNo = st?.set ?? null;
+    return { ex: firstEx, st, totalSets, setNo };
   })();
 
-  const nextExName =
-    (upcoming.st?.name ?? upcoming.st?.title ?? upcoming.st?.label) ??
-    tr("player.exercise", { defaultValue: "Exercise" });
+  const nextExName = (
+    upcoming.st?.name ?? upcoming.st?.title ?? upcoming.st?.label ??
+    upcoming.ex?.title ?? upcoming.ex?.name ??
+    tr("player.exercise", { defaultValue: "Pratimas" })
+  );
 
-  const getReadyLabel = tr("player.getReady", { defaultValue: "Get ready" });
-  const upNextLabel   = tr("player.upNext",   { defaultValue: "Up next:" });
+  const getReadyLabel = tr("player.getReady", { defaultValue: "Pasiruošk" });
+  const upNextLabel   = tr("player.upNext",   { defaultValue: "Kitas:" });
   const secShort      = tr("player.secShort", { defaultValue: "s" });
+  const setWord       = tr("player.setWord",  { defaultValue: "Serija" });
+
+  const onPrev = () => { /* no-op during getready */ };
+  const onPausePlay = () => (paused ? resumeTimer() : pauseTimer());
+  const onRestartStep = () => { cancelRaf(); startGetReadyCountdown(); };
+  const onNext = () => { cancelRaf(); justFromGetReadyRef.current = true; setPhase("exercise"); };
 
   return (
     <Shell
       footer={
         <div className="flex items-center justify-center gap-4">
-          <button
-            onClick={() => (paused ? resumeTimer() : pauseTimer())}
-            className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm"
-            aria-label={tr("player.pausePlay", { defaultValue: "Pause / Play" })}
-          >
+          <button onClick={onPrev} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
+            <SkipBack className="w-6 h-6 text-gray-800" />
+          </button>
+          <button onClick={onPausePlay} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
             {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
           </button>
-          <button
-            onClick={() => { cancelRaf(); justFromGetReadyRef.current = true; setPhase("exercise"); }}
-            className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm"
-          >
+          <button onClick={onRestartStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
+            <RotateCcw className="w-6 h-6 text-gray-800" />
+          </button>
+          <button onClick={onNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
             <SkipForward className="w-6 h-6 text-gray-800" />
           </button>
         </div>
       }
     >
-      <div className="w-full min-h_[60vh] grid place-items-center">
-        <div className="max-w-2xl text-center px-4">
-          <p className="text-2xl font-semibold text-gray-700 mb-2">{getReadyLabel}</p>
-          <p className="text-6xl font-extrabold text-blue-700 tracking-tight">
-            {secondsLeft}
-            {secShort ? <span className="text-2xl align-super ml-1">{secShort}</span> : null}
-          </p>
+      <div className="max-w-2xl mx-auto text-center mt-6">
+        <h2 className="text-2xl font-extrabold mb-2 text-gray-900">{getReadyLabel}</h2>
+        <p className="text-6xl font-extrabold text-blue-700 tracking-tight">
+          {secondsLeft}{secShort ? <span className="text-2xl align-super ml-1">{secShort}</span> : null}
+        </p>
 
-          <div className="mt-6 text-gray-700">
-            <p className="uppercase text-xs tracking-wide text-gray-500">{upNextLabel}</p>
-            <p className="text-xl font-bold mt-1">{nextExName}</p>
-            {(() => {
-              const reps = getReps(upcoming.st);
-              if (reps > 0) {
-                const setWord  = tr("player.setWord", { defaultValue: "Set" });
-                const repsWord = tr("player.reps",    { defaultValue: "reps" });
-                const sIdx = upcoming.st?.set ? (upcoming.st.set) : null;
-                return <p className="text-lg mt-1">{reps} {repsWord}{sIdx ? ` • ${setWord} ${sIdx}` : ""}</p>;
-              }
-              return null;
-            })()}
-          </div>
+        <div className="mt-6 text-left inline-block text-start">
+          <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
+          <p className="text-base font-bold text-gray-900">{nextExName}</p>
+          {upcoming.st ? (
+            <p className="text-sm text-gray-900 mt-1">
+              {getRepsText(upcoming.st) || (() => {
+                const secs = getTimedSeconds(upcoming.st);
+                return secs > 0 ? `${secs} ${secShort}` : "";
+              })()}
+            </p>
+          ) : null}
+          {upcoming.totalSets > 0 && upcoming.setNo ? (
+            <p className="text-sm text-gray-900 mt-1">
+              {setWord} {upcoming.setNo}/{upcoming.totalSets}
+            </p>
+          ) : null}
+          {upcoming.ex?.description && (
+            <p className="text-sm text-gray-700 italic mt-2">{upcoming.ex.description}</p>
+          )}
         </div>
       </div>
     </Shell>
   );
+}
 // ---- Exercise / Rest ----
   if (phase === "exercise") {
     const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
@@ -1100,7 +1106,7 @@ if (phase !== "exercise" || !step) {
                 </>
               ) : (
                 <p className="text-sm text-gray-600 italic">
-                  {tr("player.almostFinished", { defaultValue: i18n.language?.startsWith("lt") ? "Netoli pabaigos..." : "Almost finished..." })}
+                  {t("player.almostFinished", { defaultValue: i18n.language?.startsWith("lt") ? "Netoli pabaigos..." : "Almost finished..." })}
                 </p>
               )}
             </div>
@@ -1113,11 +1119,11 @@ if (phase !== "exercise" || !step) {
   // ---- Summary ----
   if (phase === "summary") {
     const options = [
-      { value: 1, label: "😣", text: tr("player.rateTooHard", { defaultValue: "Too hard" }) },
-      { value: 2, label: "😟", text: tr("player.rateAHard", { defaultValue: "A bit hard" }) },
-      { value: 3, label: "😌", text: tr("player.ratePerfect", { defaultValue: "Perfect" }) },
-      { value: 4, label: "🙂", text: tr("player.rateAEasy", { defaultValue: "A bit easy" }) },
-      { value: 5, label: "😄", text: tr("player.rateTooEasy", { defaultValue: "Too easy" }) },
+      { value: 1, label: "😣", text: t("player.rateTooHard", { defaultValue: "Per sunku" }) },
+      { value: 2, label: "😟", text: t("player.rateAHard", { defaultValue: "Šiek tiek sunku" }) },
+      { value: 3, label: "😌", text: t("player.ratePerfect", { defaultValue: "Tobulai" }) },
+      { value: 4, label: "🙂", text: t("player.rateAEasy", { defaultValue: "Šiek tiek lengva" }) },
+      { value: 5, label: "😄", text: t("player.rateTooEasy", { defaultValue: "Per lengva" }) },
     ];
 
     return (
@@ -1294,5 +1300,4 @@ if (phase !== "exercise" || !step) {
   }
 
   return null;
-}
 }
