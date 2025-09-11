@@ -10,12 +10,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // ---- iOS scroll lock while typing ----
   const pageYRef = 
-function getPhaseSafe() {
-  return (typeof phase !== "undefined" ? phase :
-         (typeof currentPhase !== "undefined" ? currentPhase :
-         (typeof playerPhase !== "undefined" ? playerPhase : null)));
-}
-
 useRef(0);
   const scheduledTimeoutsRef = useRef([]);
   const lockBodyScroll = () => {
@@ -44,7 +38,18 @@ useRef(0);
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [phase, setPhase] = useState("intro"); // intro | exercise | summary
+  const [phase, setPhase] = useState("intro");
+  // Safe phase getter for SSR (avoids ReferenceError when tree-shaken on server)
+  function getPhaseSafe() {
+    try {
+      // Prefer local state if it exists
+      if (typeof getPhaseSafe() !== "undefined") return phase;
+    } catch {}
+    try { if (typeof currentPhase !== "undefined") return currentPhase; } catch {}
+    try { if (typeof playerPhase !== "undefined") return playerPhase; } catch {}
+    return null;
+  }
+ // intro | exercise | summary
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
