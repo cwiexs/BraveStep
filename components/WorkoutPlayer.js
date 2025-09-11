@@ -386,9 +386,16 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function stopAllScheduled() {
-    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
-    scheduledTimeoutsRef.current = [];
-  }
+  // Stop scheduled WebAudio sources
+  try {
+    const arr = (audioRef.current?.wa?.scheduled) || [];
+    arr.forEach((s) => { try { s.source.stop(0); } catch {} });
+    audioRef.current.wa.scheduled = [];
+  } catch {}
+  // Clear JS timeouts
+  try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
+  scheduledTimeoutsRef.current = [];
+}
 
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
@@ -889,9 +896,7 @@ function handleManualContinue() {
             </div>
 
             <div className="flex justify-end gap-2">
-              <button onClick={() => { primeIOSAudio(); }} className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">
-                {t("player.primeAudio", { defaultValue: "Paruošti garsą" })}
-              </button>
+
               <button onClick={() => { commitGetReady(); setShowSettings(false); }} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
                 {t("common.close", { defaultValue: "Uždaryti" })}
               </button>
@@ -999,7 +1004,7 @@ function handleManualContinue() {
             {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
           </h2>
           <p className="text-6xl font-extrabold text-yellow-500 mt-6">
-            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}"}
+            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
           </p>
           {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
           {firstEx && (
@@ -1080,8 +1085,8 @@ function handleManualContinue() {
           
 
           {getTimedSeconds(step) > 0 && (
-            <p className="text-6xl font-extrabold ${timerColorClass} mt-6">
-              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}"}
+            <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
+              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
             </p>
           )}
 
