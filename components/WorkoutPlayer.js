@@ -1295,3 +1295,4 @@ if (phase !== "exercise" || !step) {
 
   return null;
 }
+}
