@@ -781,44 +781,24 @@ function handleManualContinue() {
       {/* Settings modal */}
       {showSettings && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 max-h-[85vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden">
             <h3 className="text-xl font-bold mb-4">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
 
             {/* Get ready seconds */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <p className="font-medium">{t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}</p>
                 <p className="text-sm text-gray-500">{t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}</p>
               </div>
-              <input
-                type="number"
-                min="0"
-                max="120"
-                value={getReadySecondsStr}
-                onChange={(e) => { setGetReadySecondsStr(e.target.value); }}
-                onBlur={commitGetReady}
-                onKeyDown={(e) => { if (e.key === 'Enter') commitGetReady(); }}
-                className="w-24 h-9 border rounded px-2 text-sm text-right"
-              />
-            </div>
+</div>
 
             {/* Vibracija */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
                 <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
               </div>
-<input
-                type="number"
-                min="0"
-                max="120"
-                value={getReadySecondsStr}
-                onChange={(e) => { setGetReadySecondsStr(e.target.value); }}
-                onBlur={commitGetReady}
-                onKeyDown={(e) => { if (e.key === 'Enter') commitGetReady(); }}
-                className="w-20 h-9 border rounded px-2 text-sm text-right"
-              />
-            </div>
+</div>
 
               <button
                 onClick={() => setVibrationEnabled((v) => !v)}
@@ -860,7 +840,7 @@ function handleManualContinue() {
             </div>
 
             {/* Balso skaičiavimas (5..1) */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <p className="font-medium">{t("player.voice", { defaultValue: "Balso skaičiavimas" })}</p>
                 <p className="text-sm text-gray-500">
@@ -875,7 +855,7 @@ function handleManualContinue() {
               </button>
             </div>
                         {/* Descriptions toggle */}
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
               <div>
                 <p className="font-medium">{t("player.descriptions", { defaultValue: "Pratimų aprašymai" })}</p>
                 <p className="text-sm text-gray-500">{t("player.descriptionsDescShort", { defaultValue: "Rodyti aprašymą po pavadinimu." })}</p>
@@ -903,7 +883,7 @@ function handleManualContinue() {
       {/* Confirm Exit modal */}
       {showConfirmExit && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 max-h-[85vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden">
             <h3 className="text-xl font-bold mb-3">
               {t("player.confirmExitTitle", { defaultValue: "Išeiti iš treniruotės?" })}
             </h3>
