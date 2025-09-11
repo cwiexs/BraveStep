@@ -2,6 +2,17 @@ import { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
+// ---- Safe phase getter at module scope (SSR-proof) ----
+if (typeof globalThis.__BS_getPhaseSafe__ === "undefined") {
+  globalThis.__BS_getPhaseSafe__ = function getPhaseSafe() {
+    try { if (typeof phase !== "undefined") return phase; } catch {}
+    try { if (typeof currentPhase !== "undefined") return currentPhase; } catch {}
+    try { if (typeof playerPhase !== "undefined") return playerPhase; } catch {}
+    return null;
+  };
+}
+const getPhaseSafe = globalThis.__BS_getPhaseSafe__;
+// -------------------------------------------------------
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
@@ -38,18 +49,7 @@ useRef(0);
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [phase, setPhase] = useState("intro");
-  // Safe phase getter for SSR (avoids ReferenceError when tree-shaken on server)
-  function getPhaseSafe() {
-    try {
-      // Prefer local state if it exists
-      if (typeof getPhaseSafe() !== "undefined") return phase;
-    } catch {}
-    try { if (typeof currentPhase !== "undefined") return currentPhase; } catch {}
-    try { if (typeof playerPhase !== "undefined") return playerPhase; } catch {}
-    return null;
-  }
- // intro | exercise | summary
+  const [phase, setPhase] = useState("intro"); // intro | exercise | summary
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -1400,4 +1400,3 @@ useEffect(() => {
 
   return () => cancelGetReadyTimers();
 }, [isPaused]); // deliberately minimal deps; internal function re-reads current values
-
