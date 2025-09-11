@@ -897,7 +897,7 @@ function handleManualContinue() {
               </button>
             </div>
           </div>
-        </div>
+  
       )}
 
       {/* Confirm Exit modal */}
