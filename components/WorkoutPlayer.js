@@ -933,8 +933,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   
   // ---- Get Ready ----
   if (phase === "getready") {
+  // Compute upcoming first real exercise
   const upcoming = (() => {
-    const firstEx = day?.exercises?.[0] || exercise || null;
+    const firstEx = exercise || (day?.exercises?.[0] || null);
     if (!firstEx) return { ex: null, st: null, totalSets: 0, setNo: null };
     const list = Array.isArray(firstEx.steps) ? firstEx.steps : [];
     const st = list.find(s => s?.type === "exercise") || null;
@@ -943,17 +944,23 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return { ex: firstEx, st, totalSets, setNo };
   })();
 
+  // English fallbacks
+  const getReadyLabel = tr("player.getReady", { defaultValue: "Get ready" });
+  const upNextLabel   = tr("player.upNext",   { defaultValue: "Up next:" });
+  const secShort      = tr("player.secShort", { defaultValue: "s" });
+  const setWord       = tr("player.setWord",  { defaultValue: "Set" });
+  const prevLabel         = tr("player.prev",         { defaultValue: "Previous" });
+  const nextLabel         = tr("player.next",         { defaultValue: "Next" });
+  const pausePlayLabel    = tr("player.pausePlay",    { defaultValue: "Pause / Play" });
+  const restartStepLabel  = tr("player.restartStep",  { defaultValue: "Restart step" });
+
   const nextExName = (
     upcoming.st?.name ?? upcoming.st?.title ?? upcoming.st?.label ??
     upcoming.ex?.title ?? upcoming.ex?.name ??
-    tr("player.exercise", { defaultValue: "Pratimas" })
+    tr("player.exercise", { defaultValue: "Exercise" })
   );
 
-  const getReadyLabel = tr("player.getReady", { defaultValue: "Pasiruošk" });
-  const upNextLabel   = tr("player.upNext",   { defaultValue: "Kitas:" });
-  const secShort      = tr("player.secShort", { defaultValue: "s" });
-  const setWord       = tr("player.setWord",  { defaultValue: "Serija" });
-
+  // Handlers
   const onPrev = () => { /* no-op during getready */ };
   const onPausePlay = () => (paused ? resumeTimer() : pauseTimer());
   const onRestartStep = () => { cancelRaf(); startGetReadyCountdown(); };
