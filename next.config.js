@@ -12,6 +12,6 @@ const i18n = {
 
 module.exports = {
   reactStrictMode: true,
-  swcMinify: true,
+  swcMinify: false,
   i18n,
 };
