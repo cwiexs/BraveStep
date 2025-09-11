@@ -149,6 +149,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const motivationTitle = t("player.motivationTitle", { defaultValue: "Motyvacija" });
 
   // ---- Utils ----
+  function findFirstExerciseIndex(ex) {
+    if (!ex || !Array.isArray(ex.steps)) return 0;
+    for (let i = 0; i < ex.steps.length; i++) {
+      if (ex.steps[i]?.type === "exercise") return i;
+    }
+    return 0;
+  }
+
   function getTimedSeconds(st) {
     const n1 = Number(st?.durationTime);
     if (Number.isFinite(n1) && n1 > 0) return Math.round(n1);
@@ -463,6 +471,16 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
+  // After switching from get_ready to exercise, ensure timer initializes
+  useEffect(() => {
+    if (phase === "exercise") {
+      // kick the timer setup effect by nudging step state if needed
+      setTimeout(() => {
+        try { setCurrentStepIndex((v) => v); } catch {}
+      }, 0);
+    }
+  }, [phase]);
+
   // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
@@ -484,7 +502,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
 
       if (msLeft <= 0) {
-      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); setPhase("exercise"); return; }
+      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
         setStepFinished(true);
@@ -608,6 +626,18 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     stopAllScheduled();
     if (phase === "intro") {
       primeIOSAudio();
+      // Preselect first exercise step
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        } else {
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(0);
+        }
+      } catch {}
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) { startTimedStep(gr); } else { setSecondsLeft(0); setWaitingForUser(false); setPhase("exercise"); }
@@ -620,7 +650,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") { setPhase("exercise"); return; }
+    if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
     cancelRaf();
     stopAllScheduled();
 
@@ -887,7 +917,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
                 <RotateCcw className="w-6 h-6 text-gray-800" />
               </button>
-              <button onClick={() => { setStepFinished(true); handlePhaseComplete(); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
