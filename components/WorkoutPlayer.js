@@ -754,7 +754,7 @@ function handleManualContinue() {
         onClick={() => {
           if (!inputActive) setShowConfirmExit(true);
         }}
-        className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow ${inputActive ? "pointer-events-none opacity-50" : ""}"
+        className={`p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow ${inputActive ? "pointer-events-none opacity-50" : ""}`}
         aria-label={t("common.close", { defaultValue: "Uždaryti" })}
         title={t("common.close", { defaultValue: "Uždaryti" })}
       >
@@ -771,7 +771,7 @@ function handleManualContinue() {
         onScroll={(e) => {
           lastYRef.current = e.currentTarget.scrollTop;
         }}
-        className="flex-1 overscroll-contain p-6 pt-8 ${isIOS && inputActive ? "overflow-hidden" : "overflow-auto"}"
+        className={`flex-1 overscroll-contain p-6 pt-8 ${isIOS && inputActive ? "overflow-hidden" : "overflow-auto"}`}
         style={isIOS && inputActive ? { WebkitOverflowScrolling: "auto" } : { WebkitOverflowScrolling: "touch" }}
       >
         {children}
@@ -999,7 +999,7 @@ function handleManualContinue() {
             {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
           </h2>
           <p className="text-6xl font-extrabold text-yellow-500 mt-6">
-            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}"}
+            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
           </p>
           {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
           {firstEx && (
@@ -1080,8 +1080,8 @@ function handleManualContinue() {
           
 
           {getTimedSeconds(step) > 0 && (
-            <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
-              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}"}
+            <p className= {`text-6xl font-extrabold ${timerColorClass} mt-6`}>
+              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
             </p>
           )}
 
