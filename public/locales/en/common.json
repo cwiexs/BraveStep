@@ -233,7 +233,6 @@
     "accessLevel": "Automatically assigned. Cannot be edited manually.",
     "alcoholUsage": "This helps us understand lifestyle factors.",
     "alcoholAmount": "Let us know your usual alcohol consumption for better recommendations."
-
   },
   "section": {
     "personal": "Personal information",
@@ -306,7 +305,6 @@
       "advanced": "Advanced",
       "other": "Other"
     },
-    
     "physicalActivityLevel": {
       "very_low": "Very low",
       "low": "Low",
@@ -331,79 +329,65 @@
     }
   },
   "bodyTypeInfo": {
-  "ectomorph": "Ectomorph: Naturally slim, has difficulty gaining weight and muscle mass. Fast metabolism.",
-  "mesomorph": "Mesomorph: Naturally athletic, easily gains muscle mass, proportionate body structure.",
-  "endomorph": "Endomorph: Tends to store fat easily, slower metabolism, rounder body shape, but can be strong.",
-  "unknown": "Unknown: Not sure about your body type? Click 'Want to know' to read descriptions."
-},
-"wantToKnow": "Want to know",
-"bodyTypeDescriptionsTitle": "Body Type Descriptions",
-
-"form.eatingHabitsTestLabel": "Eating Habits Test",
-"form.takeEatingHabitsTest": "Take Eating Habits Test",
-"form.eatingHabitsTestTitle": "Test your eating habits",
-"info.eatingHabitsTest": "This is a short test that will help you assess your eating habits.",
-
-"test.introTitle": "How to take the test?",
-"test.introText": "Answer each question by choosing a number from 1 to 5, where 1 means 'strongly disagree' (never) and 5 means 'strongly agree' (always or very often). This test helps you see which areas of your eating habits are the strongest or weakest. This is important because an objective assessment helps you better understand your eating patterns and improve them.",
-"test.cat_planning": "Meal planning and regularity",
-"test.cat_choices": "Healthy choices",
-"test.cat_emotional": "Emotional and social eating",
-"test.cat_unhealthy": "Unhealthy habits",
-"test.cat_attitude": "Food awareness and attitudes",
-"test.cat_supplements": "Additional lifestyle questions",
-"test.thank_you": "Thank you for completing the test!",
-
-"test.q_plan_meals": "I plan my meals in advance (e.g., weekly menu).",
-"test.q_eat_regularly": "I eat regularly at the same time every day.",
-"test.q_late_eating": "I often eat late in the evening or at night.",
-"test.q_overeating": "I often eat more than I planned because I don't feel full or just want more.",
-
-"test.q_eat_vegetables": "I eat vegetables at least once a day.",
-"test.q_eat_fruits": "I snack on fruits instead of sweets or chips.",
-"test.q_cook_from_scratch": "I cook food at home from scratch (e.g., from fresh ingredients).",
-"test.q_try_healthy_recipes": "I like to experiment with new, healthier recipes (e.g., salads, vegetable dishes).",
-"test.q_read_labels": "I buy food paying attention to nutritional labels (e.g., sugar, fat content).",
-"test.q_eat_fast": "I often eat very quickly, hardly chewing and not really tasting the food.",
-"test.q_drink_water": "I drink at least 6–8 glasses of water daily (not including tea or coffee).",
-"test.q_choose_eco": "When choosing food, it is important to me that it is organic or natural.",
-
-"test.q_emotional_eating": "I often eat when I feel stressed, bored, or emotional.",
-"test.q_mood_affects_eating": "My eating depends on my mood or how busy I am.",
-"test.q_social_overeat": "I tend to eat more or less healthy food when I'm with others or during celebrations.",
-"test.q_restrict_binge": "Some days I consciously restrict my food, and then overeat later.",
-"test.q_feel_guilt": "I feel guilty if I eat something I consider unhealthy.",
-
-"test.q_eat_fast_food": "I often eat food that is quick to prepare (e.g., frozen products, ready meals).",
-"test.q_drink_sugary": "I consume sugary soft drinks (e.g., cola, sprite).",
-"test.q_eat_with_screens": "I often eat while watching TV, using a computer, or phone.",
-"test.q_eat_outside": "I often eat out (e.g., in cafes, restaurants, or fast-food places).",
-
-"test.q_think_fast_food_ok": "I think fast food (e.g., kebab, pizza, burgers) is healthy enough if eaten in moderation.",
-"test.q_taste_over_nutrition": "When choosing food, taste is more important to me than nutritional value.",
-"test.q_think_healthy_hard": "I think healthy eating is too expensive or too complicated.",
-"test.q_mindless_eating": "I often eat automatically, without noticing the taste or how much I've eaten.",
-"test.q_think_balanced": "I think my diet is sufficiently balanced and healthy.",
-
-"test.q_take_supplements": "I take food supplements (e.g., vitamins, protein powders).",
-
-"test.q_boredom_eating": "I often eat out of boredom, even when I'm not hungry.",
-"test.q_snacking_unplanned": "I often snack unplanned between main meals.",
-"test.q_appearance_over_nutrition": "I often choose food based on appearance rather than nutrition.",
-"test.q_fail_diet_plans": "I often try to follow a diet but quickly return to old habits.",
-
-"test.submit": "Submit test",
-"test.generating": "Generating analysis...",
-"test.completed": "Completed, thank you!",
-"test.cancel": "Cancel",
-"test.submit_error": "Failed to submit answers",
-"test.last_done": "Last completed:",
-"test.not_done": "Test not completed yet",
-
-"test.successMessage": "Well done! Your answers were successfully saved.",
-
-
-
+    "ectomorph": "Ectomorph: Naturally slim, has difficulty gaining weight and muscle mass. Fast metabolism.",
+    "mesomorph": "Mesomorph: Naturally athletic, easily gains muscle mass, proportionate body structure.",
+    "endomorph": "Endomorph: Tends to store fat easily, slower metabolism, rounder body shape, but can be strong.",
+    "unknown": "Unknown: Not sure about your body type? Click 'Want to know' to read descriptions."
+  },
+  "wantToKnow": "Want to know",
+  "bodyTypeDescriptionsTitle": "Body Type Descriptions",
+  "form.eatingHabitsTestLabel": "Eating Habits Test",
+  "form.takeEatingHabitsTest": "Take Eating Habits Test",
+  "form.eatingHabitsTestTitle": "Test your eating habits",
+  "info.eatingHabitsTest": "This is a short test that will help you assess your eating habits.",
+  "test.introTitle": "How to take the test?",
+  "test.introText": "Answer each question by choosing a number from 1 to 5, where 1 means 'strongly disagree' (never) and 5 means 'strongly agree' (always or very often). This test helps you see which areas of your eating habits are the strongest or weakest. This is important because an objective assessment helps you better understand your eating patterns and improve them.",
+  "test.cat_planning": "Meal planning and regularity",
+  "test.cat_choices": "Healthy choices",
+  "test.cat_emotional": "Emotional and social eating",
+  "test.cat_unhealthy": "Unhealthy habits",
+  "test.cat_attitude": "Food awareness and attitudes",
+  "test.cat_supplements": "Additional lifestyle questions",
+  "test.thank_you": "Thank you for completing the test!",
+  "test.q_plan_meals": "I plan my meals in advance (e.g., weekly menu).",
+  "test.q_eat_regularly": "I eat regularly at the same time every day.",
+  "test.q_late_eating": "I often eat late in the evening or at night.",
+  "test.q_overeating": "I often eat more than I planned because I don't feel full or just want more.",
+  "test.q_eat_vegetables": "I eat vegetables at least once a day.",
+  "test.q_eat_fruits": "I snack on fruits instead of sweets or chips.",
+  "test.q_cook_from_scratch": "I cook food at home from scratch (e.g., from fresh ingredients).",
+  "test.q_try_healthy_recipes": "I like to experiment with new, healthier recipes (e.g., salads, vegetable dishes).",
+  "test.q_read_labels": "I buy food paying attention to nutritional labels (e.g., sugar, fat content).",
+  "test.q_eat_fast": "I often eat very quickly, hardly chewing and not really tasting the food.",
+  "test.q_drink_water": "I drink at least 6–8 glasses of water daily (not including tea or coffee).",
+  "test.q_choose_eco": "When choosing food, it is important to me that it is organic or natural.",
+  "test.q_emotional_eating": "I often eat when I feel stressed, bored, or emotional.",
+  "test.q_mood_affects_eating": "My eating depends on my mood or how busy I am.",
+  "test.q_social_overeat": "I tend to eat more or less healthy food when I'm with others or during celebrations.",
+  "test.q_restrict_binge": "Some days I consciously restrict my food, and then overeat later.",
+  "test.q_feel_guilt": "I feel guilty if I eat something I consider unhealthy.",
+  "test.q_eat_fast_food": "I often eat food that is quick to prepare (e.g., frozen products, ready meals).",
+  "test.q_drink_sugary": "I consume sugary soft drinks (e.g., cola, sprite).",
+  "test.q_eat_with_screens": "I often eat while watching TV, using a computer, or phone.",
+  "test.q_eat_outside": "I often eat out (e.g., in cafes, restaurants, or fast-food places).",
+  "test.q_think_fast_food_ok": "I think fast food (e.g., kebab, pizza, burgers) is healthy enough if eaten in moderation.",
+  "test.q_taste_over_nutrition": "When choosing food, taste is more important to me than nutritional value.",
+  "test.q_think_healthy_hard": "I think healthy eating is too expensive or too complicated.",
+  "test.q_mindless_eating": "I often eat automatically, without noticing the taste or how much I've eaten.",
+  "test.q_think_balanced": "I think my diet is sufficiently balanced and healthy.",
+  "test.q_take_supplements": "I take food supplements (e.g., vitamins, protein powders).",
+  "test.q_boredom_eating": "I often eat out of boredom, even when I'm not hungry.",
+  "test.q_snacking_unplanned": "I often snack unplanned between main meals.",
+  "test.q_appearance_over_nutrition": "I often choose food based on appearance rather than nutrition.",
+  "test.q_fail_diet_plans": "I often try to follow a diet but quickly return to old habits.",
+  "test.submit": "Submit test",
+  "test.generating": "Generating analysis...",
+  "test.completed": "Completed, thank you!",
+  "test.cancel": "Cancel",
+  "test.submit_error": "Failed to submit answers",
+  "test.last_done": "Last completed:",
+  "test.not_done": "Test not completed yet",
+  "test.successMessage": "Well done! Your answers were successfully saved.",
   "test": {
     "sportIntroTitle": "Discover your training personality",
     "sportIntroText": "Answer the questions to help us understand your exercise style and preferences. This helps create the best plan for you.",
@@ -418,56 +402,46 @@
     "cat_muscle_balance": "Muscle Focus",
     "cat_preferences": "Preferences",
     "cat_habits": "Habits",
-
- "q_endurance_general": "I enjoy general endurance training (e.g., long runs, cycling, swimming).",
-  "q_strength_general": "I prefer general strength training with weights.",
-  "q_cardio_activities": "I enjoy cardio activities (running, aerobics, cycling).",
-  "q_lifting_heavy_weights": "I like lifting heavy weights.",
-  "q_high_reps_lighter_weights": "I prefer doing higher repetitions with lighter weights.",
-  "q_long_runs": "I enjoy long-distance running.",
-  "q_short_sprints": "I prefer short, intense sprint workouts.",
-  "q_interval_training": "I enjoy interval training (combining cardio and strength).",
-  "q_bodyweight_exercises": "I often do bodyweight exercises.",
-  "q_flexibility_stretching": "I dedicate significant time to stretching exercises.",
-  "q_yoga_practice": "I enjoy practicing yoga.",
-  "q_mobility_focus": "Improving my body's mobility and flexibility is important to me.",
-  "q_team_sports": "I enjoy participating in team sports.",
-  "q_solo_training": "I usually prefer to train alone.",
-  "q_competitive_motivation": "Competition with others motivates me.",
-  "q_personal_challenges": "I enjoy setting personal fitness challenges.",
-  "q_upper_body_focus": "I often focus on upper body training.",
-  "q_lower_body_focus": "I focus more on training my lower body.",
-  "q_core_strength_importance": "Having a strong core (abdominal area) is important to me.",
-  "q_balanced_training": "I aim for balanced training of all body parts.",
-  "q_outdoor_training": "I enjoy working out outdoors.",
-  "q_gym_training": "I frequently train in a gym.",
-  "q_home_training": "I regularly work out at home.",
-  "q_equipment_free_training": "I enjoy equipment-free workouts.",
-  "q_training_variety": "I like having variety in my workouts.",
-  "q_structured_routine": "I follow a clear and structured workout plan.",
-  "q_consistent_training": "I train regularly, without long breaks.",
-  "q_longer_less_intense_sessions": "I prefer longer, less intense workout sessions.",
-  "q_short_high_intensity_sessions": "I prefer short, high-intensity workouts (HIIT).",
-  "q_daily_physical_activity": "I try to be physically active every day."
-
+    "q_endurance_general": "I enjoy general endurance training (e.g., long runs, cycling, swimming).",
+    "q_strength_general": "I prefer general strength training with weights.",
+    "q_cardio_activities": "I enjoy cardio activities (running, aerobics, cycling).",
+    "q_lifting_heavy_weights": "I like lifting heavy weights.",
+    "q_high_reps_lighter_weights": "I prefer doing higher repetitions with lighter weights.",
+    "q_long_runs": "I enjoy long-distance running.",
+    "q_short_sprints": "I prefer short, intense sprint workouts.",
+    "q_interval_training": "I enjoy interval training (combining cardio and strength).",
+    "q_bodyweight_exercises": "I often do bodyweight exercises.",
+    "q_flexibility_stretching": "I dedicate significant time to stretching exercises.",
+    "q_yoga_practice": "I enjoy practicing yoga.",
+    "q_mobility_focus": "Improving my body's mobility and flexibility is important to me.",
+    "q_team_sports": "I enjoy participating in team sports.",
+    "q_solo_training": "I usually prefer to train alone.",
+    "q_competitive_motivation": "Competition with others motivates me.",
+    "q_personal_challenges": "I enjoy setting personal fitness challenges.",
+    "q_upper_body_focus": "I often focus on upper body training.",
+    "q_lower_body_focus": "I focus more on training my lower body.",
+    "q_core_strength_importance": "Having a strong core (abdominal area) is important to me.",
+    "q_balanced_training": "I aim for balanced training of all body parts.",
+    "q_outdoor_training": "I enjoy working out outdoors.",
+    "q_gym_training": "I frequently train in a gym.",
+    "q_home_training": "I regularly work out at home.",
+    "q_equipment_free_training": "I enjoy equipment-free workouts.",
+    "q_training_variety": "I like having variety in my workouts.",
+    "q_structured_routine": "I follow a clear and structured workout plan.",
+    "q_consistent_training": "I train regularly, without long breaks.",
+    "q_longer_less_intense_sessions": "I prefer longer, less intense workout sessions.",
+    "q_short_high_intensity_sessions": "I prefer short, high-intensity workouts (HIIT).",
+    "q_daily_physical_activity": "I try to be physically active every day."
   },
-
-
-
- "form.sportsHabitsTestLabel": "Sports Habits Test",
+  "form.sportsHabitsTestLabel": "Sports Habits Test",
   "form.takeSportsHabitsTest": "Take Sports Test",
   "form.sportsHabitsTestTitle": "Sports Habits Test",
   "info.sportsHabitsTest": "This test helps assess your workout preferences, physical strengths and weaknesses, and your psychological profile for training. Answer each question from 1 to 5, where 1 means 'strongly disagree' and 5 means 'strongly agree'.",
-
   "form.invalidDateFormat": "Invalid date format (e.g. 1980-07-15)",
   "form.dateInputHelper": "Enter your date of birth: YYYYMMDD or YYYY-MM-DD",
   "form.datePlaceholder": "YYYY-MM-DD",
   "form.invalidCalendarDate": "Such date does not exist in the calendar",
   "form.dateCannotBeFuture": "Date cannot be in the future",
-
-
-
-
   "pleaseLogin": "Please log in.",
   "welcomeUser": "Welcome, {{name}}!",
   "user": "User",
@@ -487,16 +461,12 @@
   "generateFailed": "Failed to generate the plan.",
   "completed": "Completed",
   "notCompleted": "Not completed",
-
-
   "workoutPlan": "Workout Plan",
   "day": "Day",
   "set": "Set",
   "rest": "Rest",
   "rest_after": "Rest after exercise",
   "close": "Close",
-
-
   "player": {
     "motivationTitle": "Motivation",
     "startWorkout": "Start workout",
@@ -529,21 +499,22 @@
     "confirmExitCta": "Exit",
     "descriptions": "Exercise descriptions",
     "descriptionsDescShort": "Show the text description under the title.",
-
-  "common": {
-    "cancel": "Cancel"
-  },
-
-
+    "common": {
+      "cancel": "Cancel"
+    },
     "settings": {
       "title": "Settings",
       "vibration": "Vibration",
       "soundFx": "Sound FX",
       "voiceCountdown": "Voice countdown (5–1)",
       "voiceDescShort": "Count down 5,4,3,2,1 in the final seconds."
-  }
-},
-
+    },
+    "getReady": "Get ready",
+    "preStartSeconds": "Pre-start countdown (s)",
+    "preStartSecondsHint": "How many seconds to count down before EACH exercise.",
+    "secShort": "s",
+    "reps": "reps"
+  },
   "preGen": {
     "title": "Before generating",
     "intro": "Your plan will be created based on your profile data, goals, and habits.",
@@ -553,7 +524,4 @@
     "cancel": "Cancel",
     "generateNow": "Generate plan"
   }
-
-
-
 }
