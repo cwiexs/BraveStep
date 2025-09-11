@@ -5,7 +5,7 @@ import { useTranslation } from "next-i18next";
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
-  const router = useRouter();  // FIX: hooks must be called unconditionally; using conditional caused React error #321
+  const router = (typeof window !== "undefined" ? useRouter() : null);
   const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
 
   // ---- iOS scroll lock while typing ----
@@ -435,18 +435,19 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       if (de != null) setDescriptionsEnabled(de === "true");
     } catch {}
   
-  useEffect(() => {
-    try {
-      const ps = localStorage.getItem("bs_prestart_seconds");
-      if (ps != null && !Number.isNaN(Number(ps))) setPreStartSeconds(Math.max(0, parseInt(ps, 10)));
-    } catch {}
-  }, []);
 }, []);
   useEffect(() => {
     try {
       localStorage.setItem("bs_vibration_enabled", String(vibrationEnabled));
     } catch {}
   }, [vibrationEnabled]);
+
+useEffect(() => {
+  try {
+    const ps = localStorage.getItem("bs_prestart_seconds");
+    if (ps != null && !Number.isNaN(Number(ps))) setPreStartSeconds(Math.max(0, parseInt(ps, 10)));
+  } catch {}
+}, []);
   useEffect(() => {
     try {
       localStorage.setItem("bs_fx_enabled", String(fxEnabled));
