@@ -936,26 +936,73 @@ if (phase !== "exercise" || !step) {
   // ---- Get Ready ----
   // ---- Get Ready ----
   if (phase === "getready") {
-    // Resolve the upcoming first exercise step for display
-    const upcoming = (() => {
-      let ex = exercise;
-      let st = step;
-      if (ex && (!st || st.type !== "exercise")) {
-        const list = Array.isArray(ex?.steps) ? ex.steps : [];
-        const firstEx = list.find(s => s?.type === "exercise");
-        st = firstEx || list[0] || null;
+  // Resolve the upcoming first exercise step for display
+  const upcoming = (() => {
+    let ex = exercise;
+    let st = step;
+    if (ex && (!st || st.type !== "exercise")) {
+      const list = Array.isArray(ex?.steps) ? ex.steps : [];
+      const firstEx = list.find(s => s?.type === "exercise");
+      st = firstEx || list[0] || null;
+    }
+    return { ex, st };
+  })();
+
+  const nextExName =
+    (upcoming.st?.name ?? upcoming.st?.title ?? upcoming.st?.label) ??
+    tr("player.exercise", { defaultValue: "Exercise" });
+
+  const getReadyLabel = tr("player.getReady", { defaultValue: "Get ready" });
+  const upNextLabel   = tr("player.upNext",   { defaultValue: "Up next:" });
+  const secShort      = tr("player.secShort", { defaultValue: "s" });
+
+  return (
+    <Shell
+      footer={
+        <div className="flex items-center justify-center gap-4">
+          <button
+            onClick={() => (paused ? resumeTimer() : pauseTimer())}
+            className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm"
+            aria-label={tr("player.pausePlay", { defaultValue: "Pause / Play" })}
+          >
+            {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+          </button>
+          <button
+            onClick={() => { cancelRaf(); justFromGetReadyRef.current = true; setPhase("exercise"); }}
+            className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm"
+          >
+            <SkipForward className="w-6 h-6 text-gray-800" />
+          </button>
+        </div>
       }
-      return { ex, st };
-    })();
-    const nextExName = (upcoming.st?.name ?? upcoming.st?.title ?? upcoming.st?.label) ?? tr("player.exercise", { defaultValue: "Exercise" });
+    >
+      <div className="w-full min-h_[60vh] grid place-items-center">
+        <div className="max-w-2xl text-center px-4">
+          <p className="text-2xl font-semibold text-gray-700 mb-2">{getReadyLabel}</p>
+          <p className="text-6xl font-extrabold text-blue-700 tracking-tight">
+            {secondsLeft}
+            {secShort ? <span className="text-2xl align-super ml-1">{secShort}</span> : null}
+          </p>
 
-    const getReadyLabel = tr("player.getReady", { defaultValue: "Get ready" });
-    const upNextLabel = tr("player.upNext", { defaultValue: "Up next:" });
-    const secShort = tr("player.secShort", { defaultValue: "s" });
-
-    return (
-      return { ex, st };
-    })();
+          <div className="mt-6 text-gray-700">
+            <p className="uppercase text-xs tracking-wide text-gray-500">{upNextLabel}</p>
+            <p className="text-xl font-bold mt-1">{nextExName}</p>
+            {(() => {
+              const reps = getReps(upcoming.st);
+              if (reps > 0) {
+                const setWord  = tr("player.setWord", { defaultValue: "Set" });
+                const repsWord = tr("player.reps",    { defaultValue: "reps" });
+                const sIdx = upcoming.st?.set ? (upcoming.st.set) : null;
+                return <p className="text-lg mt-1">{reps} {repsWord}{sIdx ? ` • ${setWord} ${sIdx}` : ""}</p>;
+              }
+              return null;
+            })()}
+          </div>
+        </div>
+      </div>
+    </Shell>
+  );
+})();
 const getReadyLabel = tr("player.getReady", { defaultValue: "Get ready" });
     const upNextLabel = tr("player.upNext", { defaultValue: "Up next:" });
     const secShort = tr("player.secShort", { defaultValue: "s" });
