@@ -822,7 +822,7 @@ function handleManualContinue() {
 
               <button
                 onClick={() => setVibrationEnabled((v) => !v)}
-                className="px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}"
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
                 {vibrationEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
@@ -842,7 +842,7 @@ function handleManualContinue() {
                 </div>
                 <button
                   onClick={() => setFxEnabled((v) => !v)}
-                  className="px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text-white" : "bg-gray-200"}"
+                  className={`px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
                 >
                   {fxEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
                 </button>
@@ -869,7 +869,7 @@ function handleManualContinue() {
               </div>
               <button
                 onClick={() => setVoiceEnabled((v) => !v)}
-                className="px-3 py-1 rounded-full text-sm font-semibold ${voiceEnabled ? "bg-green-600 text-white" : "bg-gray-200"}"
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${voiceEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
                 {voiceEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
@@ -882,7 +882,7 @@ function handleManualContinue() {
               </div>
               <button
                 onClick={() => setDescriptionsEnabled(v => !v)}
-                className="px-3 py-1 rounded-full text-sm font-semibold ${descriptionsEnabled ? "bg-green-600 text-white" : "bg-gray-200"}"
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${descriptionsEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
                 {descriptionsEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
               </button>
@@ -999,7 +999,7 @@ function handleManualContinue() {
             {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
           </h2>
           <p className="text-6xl font-extrabold text-yellow-500 mt-6">
-            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
+            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}"}
           </p>
           {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
           {firstEx && (
@@ -1061,7 +1061,7 @@ function handleManualContinue() {
         }
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
-          <h2 className="text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}">
+          <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
             {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
 
           {/* Description under title (toggleable) */}
@@ -1080,8 +1080,8 @@ function handleManualContinue() {
           
 
           {getTimedSeconds(step) > 0 && (
-            <p className= {`text-6xl font-extrabold ${timerColorClass} mt-6`}>
-              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
+            <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
+              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}"}
             </p>
           )}
 
@@ -1161,7 +1161,7 @@ function handleManualContinue() {
                   e.preventDefault();
                   e.stopPropagation();
                 }}
-                className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold ${submitting ? "opacity-70 cursor-wait" : "hover:bg-green-700"}"
+                className={`bg-green-600 text-white px-6 py-3 rounded-lg font-semibold ${submitting ? "opacity-70 cursor-wait" : "hover:bg-green-700"}`}
                 onClick={async () => {
                   if (submitting) return;
                   const y = lastYRef.current;
@@ -1238,9 +1238,9 @@ function handleManualContinue() {
                   setRating(opt.value);
                   requestAnimationFrame(() => restoreScroll(y));
                 }}
-                className="text-3xl p-1 rounded-full border-2 ${ 
+                className={`text-3xl p-1 rounded-full border-2 ${ 
                   rating === opt.value ? "border-green-600 bg-green-50" : "border-transparent"
-                } hover:border-green-400"
+                } hover:border-green-400`}
                 type="button"
                 title={opt.text}
                 aria-label={opt.text}
@@ -1252,7 +1252,7 @@ function handleManualContinue() {
 
           <div className="flex flex-wrap gap-2 mb-4 justify-center">
             {options.map((opt) => (
-              <span key={opt.value} className="text-xs ${rating === opt.value ? "font-bold text-green-700" : "text-gray-400"}">
+              <span key={opt.value} className={`text-xs ${rating === opt.value ? "font-bold text-green-700" : "text-gray-400"}`}>
                 {opt.text}
               </span>
             ))}
