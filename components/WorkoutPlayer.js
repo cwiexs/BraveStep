@@ -115,9 +115,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // Derived
   const day = workoutData?.days?.[currentDay];
-  const [preStartSeconds, setPreStartSeconds] = useState(10);
-  const justFromGetReadyRef = useRef(false);
-
   const exercise = day?.exercises?.[currentExerciseIndex];
   const step = exercise?.steps?.[currentStepIndex];
 
@@ -434,23 +431,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const de = localStorage.getItem("bs_descriptions_enabled");
       if (de != null) setDescriptionsEnabled(de === "true");
     } catch {}
-  
-}, []);
+  }, []);
   useEffect(() => {
     try {
       localStorage.setItem("bs_vibration_enabled", String(vibrationEnabled));
     } catch {}
   }, [vibrationEnabled]);
-
-useEffect(() => {
-  try {
-    const raw = localStorage.getItem("bs_prestart_seconds");
-    if (raw == null) return;
-    const n = Number(raw);
-    if (Number.isFinite(n) && n > 0) setPreStartSeconds(Math.round(n));
-  } catch {}
-}, []);
-useEffect(() => {
+  useEffect(() => {
     try {
       localStorage.setItem("bs_fx_enabled", String(fxEnabled));
     } catch {}
@@ -471,13 +458,7 @@ useEffect(() => {
     } catch {}
   }, [voiceEnabled]);
 
-  
-  useEffect(() => {
-    try {
-      localStorage.setItem("bs_prestart_seconds", String(preStartSeconds));
-    } catch {}
-  }, [preStartSeconds]);
-// TIMER
+  // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
@@ -550,58 +531,6 @@ useEffect(() => {
     }
   };
 
-  // --- GET READY COUNTDOWN ---
-  function startGetReadyCountdown(durationSec) {
-    cancelRaf();
-    stopAllScheduled();
-    if (!durationSec || durationSec <= 0) {
-      justFromGetReadyRef.current = true;
-      if (!maybeStartGetReady()) { setPhase("exercise"); }
-      return;
-    }
-    // initialize countdown
-    remainMsRef.current = durationSec * 1000;
-    const startAt = performance.now();
-    deadlineRef.current = startAt + remainMsRef.current;
-    setSecondsLeft(Math.ceil(remainMsRef.current / 1000));
-    setWaitingForUser(false);
-    setPaused(false);
-
-    const tick = (now) => {
-      if (paused) {
-        tickRafRef.current = requestAnimationFrame(tick);
-        return;
-      }
-      const remain = Math.max(0, deadlineRef.current - now);
-      remainMsRef.current = remain;
-      const secs = Math.ceil(remain / 1000);
-      setSecondsLeft(secs);
-      if (remain <= 0) {
-        cancelRaf();
-        justFromGetReadyRef.current = true;
-        setPhase("exercise");
-        return;
-      }
-      tickRafRef.current = requestAnimationFrame(tick);
-    };
-    tickRafRef.current = requestAnimationFrame(tick);
-  }
-
-  function maybeStartGetReady() {
-  try {
-    // Use state value if valid; otherwise fall back to sane default (10s)
-    const raw = Number(preStartSeconds);
-    const sec = Number.isFinite(raw) && raw > 0 ? Math.round(raw) : 10;
-    if (sec <= 0) return false;
-    startGetReadyCountdown(Math.max(1, sec));
-    setPhase("getready");
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-
   // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
     cancelRaf();
@@ -639,7 +568,6 @@ useEffect(() => {
     }
   }, [phase, step, currentExerciseIndex, currentStepIndex, isTerminal, isRestAfter]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  
   // automatinė pauzė atidarius nustatymus ar išeities patvirtinimą
   useEffect(() => {
     if (showSettings) pauseTimer();
@@ -669,23 +597,18 @@ useEffect(() => {
 
   // Navigation
   function handleManualContinue() {
-  cancelRaf();
-  stopAllScheduled();
-  if (phase === "intro") {
-    primeIOSAudio();
-    // Always try to start Get Ready; fallback to 10s if setting is 0/invalid
-    const raw = Number(preStartSeconds);
-    const sec = Number.isFinite(raw) && raw > 0 ? Math.round(raw) : 10;
-    startGetReadyCountdown(sec);
-    setPreStartSeconds(sec);
-    setPhase("getready");
-  } else if (phase === "exercise") {
-    setStepFinished(true);
-    handlePhaseComplete();
-  } else if (phase === "summary") {
-    onClose?.();
+    cancelRaf();
+    stopAllScheduled();
+    if (phase === "intro") {
+      primeIOSAudio();
+      setPhase("exercise");
+    } else if (phase === "exercise") {
+      setStepFinished(true);
+      handlePhaseComplete();
+    } else if (phase === "summary") {
+      onClose?.();
+    }
   }
-}
 
   function handlePhaseComplete() {
     cancelRaf();
@@ -781,21 +704,6 @@ useEffect(() => {
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5">
             <h3 className="text-xl font-bold mb-4">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
-            {/* Pre-start countdown */}
-            <div className="mb-4">
-              <label className="font-medium block mb-1">{t("player.preStartSeconds", { defaultValue: "Prieš-pradžios laikmatis (s)" })}</label>
-              <p className="text-sm text-gray-500 mb-2">{t("player.preStartSecondsHint", { defaultValue: "Kiek sekundžių skaičiuoti prieš KIEKVIENĄ pratimą." })}</p>
-              <input
-                type="number"
-                min="0"
-                step="1"
-                value={preStartSeconds}
-                onChange={(e) => setPreStartSeconds(Math.max(0, parseInt(e.target.value || "0", 10)))}
-                className="w-28 px-3 py-2 border rounded-lg"
-                aria-label={t("player.preStartSeconds", { defaultValue: "Prieš-pradžios laikmatis (s)" })}
-              />
-            </div>
-
 
             {/* Vibracija */}
             <div className="flex items-center justify-between mb-4">
@@ -931,7 +839,7 @@ useEffect(() => {
           </div>
         }
       >
-        <div className="w-full min-h-[60vh] grid place-items-center">
+        <div className="w-full min-h_[60vh] grid place-items-center">
           <div className="max-w-2xl text-center">
             <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
             <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
@@ -941,92 +849,7 @@ useEffect(() => {
     );
   }
 
-  
-  // ---- Get Ready ----
-  if (phase === "getready") {
-  // Compute upcoming first real exercise
-  const upcoming = (() => {
-    const firstEx = exercise || (day?.exercises?.[0] || null);
-    if (!firstEx) return { ex: null, st: null, totalSets: 0, setNo: null };
-    const list = Array.isArray(firstEx.steps) ? firstEx.steps : [];
-    const st = list.find(s => s?.type === "exercise") || null;
-    const totalSets = list.filter(s => s?.type === "exercise").length || 0;
-    const setNo = st?.set ?? null;
-    return { ex: firstEx, st, totalSets, setNo };
-  })();
-
-  // English fallbacks
-  const getReadyLabel = tr("player.getReady", { defaultValue: "Get ready" });
-  const upNextLabel   = tr("player.upNext",   { defaultValue: "Up next:" });
-  const secShort      = tr("player.secShort", { defaultValue: "s" });
-  const setWord       = tr("player.setWord",  { defaultValue: "Set" });
-  const prevLabel         = tr("player.prev",         { defaultValue: "Previous" });
-  const nextLabel         = tr("player.next",         { defaultValue: "Next" });
-  const pausePlayLabel    = tr("player.pausePlay",    { defaultValue: "Pause / Play" });
-  const restartStepLabel  = tr("player.restartStep",  { defaultValue: "Restart step" });
-
-  const nextExName = (
-    upcoming.st?.name ?? upcoming.st?.title ?? upcoming.st?.label ??
-    upcoming.ex?.title ?? upcoming.ex?.name ??
-    tr("player.exercise", { defaultValue: "Exercise" })
-  );
-
-  // Handlers
-  const onPrev = () => { /* no-op during getready */ };
-  const onPausePlay = () => (paused ? resumeTimer() : pauseTimer());
-  const onRestartStep = () => { cancelRaf(); startGetReadyCountdown(); };
-  const onNext = () => { cancelRaf(); justFromGetReadyRef.current = true; setPhase("exercise"); };
-
-  return (
-    <Shell
-      footer={
-        <div className="flex items-center justify-center gap-4">
-          <button onClick={onPrev} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
-            <SkipBack className="w-6 h-6 text-gray-800" />
-          </button>
-          <button onClick={onPausePlay} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
-            {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-          </button>
-          <button onClick={onRestartStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
-            <RotateCcw className="w-6 h-6 text-gray-800" />
-          </button>
-          <button onClick={onNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
-            <SkipForward className="w-6 h-6 text-gray-800" />
-          </button>
-        </div>
-      }
-    >
-      <div className="max-w-2xl mx-auto text-center mt-6">
-        <h2 className="text-2xl font-extrabold mb-2 text-gray-900">{getReadyLabel}</h2>
-        <p className="text-6xl font-extrabold text-blue-700 tracking-tight">
-          {secondsLeft}{secShort ? <span className="text-2xl align-super ml-1">{secShort}</span> : null}
-        </p>
-
-        <div className="mt-6 text-left inline-block text-start">
-          <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
-          <p className="text-base font-bold text-gray-900">{nextExName}</p>
-          {upcoming.st ? (
-            <p className="text-sm text-gray-900 mt-1">
-              {getRepsText(upcoming.st) || (() => {
-                const secs = getTimedSeconds(upcoming.st);
-                return secs > 0 ? `${secs} ${secShort}` : "";
-              })()}
-            </p>
-          ) : null}
-          {upcoming.totalSets > 0 && upcoming.setNo ? (
-            <p className="text-sm text-gray-900 mt-1">
-              {setWord} {upcoming.setNo}/{upcoming.totalSets}
-            </p>
-          ) : null}
-          {upcoming.ex?.description && (
-            <p className="text-sm text-gray-700 italic mt-2">{upcoming.ex.description}</p>
-          )}
-        </div>
-      </div>
-    </Shell>
-  );
-}
-// ---- Exercise / Rest ----
+  // ---- Exercise / Rest ----
   if (phase === "exercise") {
     const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
     const seriesTotal = exercise?.steps?.filter((s) => s.type === "exercise").length || 0;

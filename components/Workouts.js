@@ -39,7 +39,7 @@ function isPlanCompleted(p) {
 
 export default function Workouts() {
   const { data: session, status } = useSession();
-  const { t: tr } = useTranslation("common");
+  const { t } = useTranslation("common");
 
   const [plans, setPlans] = useState([]);
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -169,7 +169,7 @@ export default function Workouts() {
       }
     } catch (error) {
       lastGenerateOkRef.current = false;
-      alert(tr("generateFailed"));
+      alert(t("generateFailed"));
     } finally {
       setLoading(false); // 👈 tai „išjungia“ animaciją; useEffect suveiks ir padarys refresh jei sėkmė
     }
@@ -195,41 +195,41 @@ export default function Workouts() {
     setActivePlanId(null);
   };
 
-  if (status === "loading") return <div>{tr("loading")}</div>;
-  if (!session) return <div>{tr("pleaseLogin")}</div>;
+  if (status === "loading") return <div>{t("loading")}</div>;
+  if (!session) return <div>{t("pleaseLogin")}</div>;
 
   const newestPlan = plans[0];
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-8 bg-white shadow-xl rounded-2xl">
       <h1 className="text-3xl font-bold text-blue-900 text-center mb-2">
-        {tr("welcomeUser", { name: session.user.name || tr("user") })}
+        {t("welcomeUser", { name: session.user.name || t("user") })}
       </h1>
 
       <p className="text-center text-gray-500 mb-4 flex items-center justify-center gap-1">
         <CalendarDays className="w-5 h-5" />
-        {tr("lastGenerated")}: {" "}
-        {newestPlan?.createdAt ? formatYMD(newestPlan.createdAt) : tr("noPlans")}
+        {t("lastGenerated")}: {" "}
+        {newestPlan?.createdAt ? formatYMD(newestPlan.createdAt) : t("noPlans")}
       </p>
 
       {/* Stat kortelės */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <StatCard
           value={stats?.totalWorkouts || 0}
-          label={tr("workouts")}
-          tooltip={tr("workoutsInfo")}
+          label={t("workouts")}
+          tooltip={t("workoutsInfo")}
           color="bg-blue-50"
         />
         <StatCard
           value={`${stats?.totalTime || 0} min`}
-          label={tr("totalTime")}
-          tooltip={tr("totalTimeInfo")}
+          label={t("totalTime")}
+          tooltip={t("totalTimeInfo")}
           color="bg-green-50"
         />
         <StatCard
           value={`${stats?.calories || 0} kcal`}
-          label={tr("caloriesBurned")}
-          tooltip={tr("caloriesInfo")}
+          label={t("caloriesBurned")}
+          tooltip={t("caloriesInfo")}
           color="bg-yellow-50"
         />
       </div>
@@ -246,8 +246,8 @@ export default function Workouts() {
         >
           {plans.map((plan) => {
           const completed = isPlanCompleted(plan);
-          const statusText = completed ? tr("completed") : tr("notCompleted");
-          const dateText = plan.createdAt ? formatYMD(plan.createdAt) : tr("noDate");
+          const statusText = completed ? t("completed") : t("notCompleted");
+          const dateText = plan.createdAt ? formatYMD(plan.createdAt) : t("noDate");
           return (
             <option key={String(plan.id)} value={String(plan.id)}>
               {dateText} — {statusText}
@@ -261,7 +261,7 @@ export default function Workouts() {
           onClick={handleViewPlan}
           disabled={!selectedPlan?.planData?.text || loading}
         >
-          {tr("viewPlan")}
+          {t("viewPlan")}
         </button>
 
         <button
@@ -271,10 +271,10 @@ export default function Workouts() {
         >
           {loading ? (
             <>
-              {tr("generating")} <DotsAnimation />
+              {t("generating")} <DotsAnimation />
             </>
           ) : (
-            tr("generatePlan")
+            t("generatePlan")
           )}
         </button>
       </div>
@@ -283,15 +283,15 @@ export default function Workouts() {
 {showPreGen && (
   <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/40">
     <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-6">
-      <h3 className="text-xl font-semibold mb-2">{tr("preGen.title", { defaultValue: "Prieš kuriant planą" })}</h3>
-      <p className="text-sm text-gray-600 mb-3">{tr("preGen.intro", { defaultValue: "Individualus planas bus kuriamas pagal jūsų paskyros duomenis, tikslus ir įpročius." })}</p>
-      <div className="bg-amber-50 text-amber-900 text-sm rounded-lg p-3 mb-4">{tr("preGen.disclaimer", { defaultValue: "Jei turite diskomfortą, skausmą ar kitų svarbių pastabų — įrašykite žemiau, kad planas būtų pritaikytas saugiau." })}</div>
-      <label className="block text-sm font-medium mb-1" htmlFor="pre-gen-notes">{tr("preGen.notesLabel", { defaultValue: "Papildoma informacija (nebūtina)" })}</label>
-      <textarea id="pre-gen-notes" value={preGenNotes} onChange={e=>setPreGenNotes(e.target.value)} className="w-full h-28 border rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder={tr("preGen.placeholder", { defaultValue: "Pvz., šiandien jaučiu nugaros skausmą; venkite šuoliukų; prioritetas — laikysena ir mobilumas." })} />
+      <h3 className="text-xl font-semibold mb-2">{t("preGen.title", { defaultValue: "Prieš kuriant planą" })}</h3>
+      <p className="text-sm text-gray-600 mb-3">{t("preGen.intro", { defaultValue: "Individualus planas bus kuriamas pagal jūsų paskyros duomenis, tikslus ir įpročius." })}</p>
+      <div className="bg-amber-50 text-amber-900 text-sm rounded-lg p-3 mb-4">{t("preGen.disclaimer", { defaultValue: "Jei turite diskomfortą, skausmą ar kitų svarbių pastabų — įrašykite žemiau, kad planas būtų pritaikytas saugiau." })}</div>
+      <label className="block text-sm font-medium mb-1" htmlFor="pre-gen-notes">{t("preGen.notesLabel", { defaultValue: "Papildoma informacija (nebūtina)" })}</label>
+      <textarea id="pre-gen-notes" value={preGenNotes} onChange={e=>setPreGenNotes(e.target.value)} className="w-full h-28 border rounded-lg p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder={t("preGen.placeholder", { defaultValue: "Pvz., šiandien jaučiu nugaros skausmą; venkite šuoliukų; prioritetas — laikysena ir mobilumas." })} />
       <div className="flex justify-end gap-2">
-        <button onClick={()=>setShowPreGen(false)} className="px-4 py-2 rounded-lg border">{tr("preGen.cancel", { defaultValue: "Atšaukti" })}</button>
+        <button onClick={()=>setShowPreGen(false)} className="px-4 py-2 rounded-lg border">{t("preGen.cancel", { defaultValue: "Atšaukti" })}</button>
         <button onClick={async ()=>{ setShowPreGen(false); await handleGeneratePlan(preGenNotes); setPreGenNotes(""); }} className="px-4 py-2 rounded-lg bg-green-600 text-white disabled:opacity-60" disabled={loading}>
-          {loading ? tr("generating") : tr("preGen.generateNow", { defaultValue: "Kurti planą" })}
+          {loading ? t("generating") : t("preGen.generateNow", { defaultValue: "Kurti planą" })}
         </button>
       </div>
     </div>
@@ -306,7 +306,7 @@ export default function Workouts() {
             onClick={handleStartWorkout}
             disabled={loading}
           >
-            {tr("startWorkout")}
+            {t("startWorkout")}
           </button>
         </div>
       )}
