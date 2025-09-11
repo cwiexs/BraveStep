@@ -957,8 +957,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
 
     return (
-      
-  return (
       <Shell
         footer={
           <>
