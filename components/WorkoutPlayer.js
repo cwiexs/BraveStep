@@ -110,7 +110,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }, [inputActive]);
 
   // AUDIO
-  const audioRef = useRef({
+  
+// --- Get Ready timing guards ---
+const getReadyRafRef = useRef(null);
+const getReadyFallbackRef = useRef(null);
+const getReadyTargetMsRef = useRef(0);
+const getReadyTransitionedRef = useRef(false);
+
+const audioRef = useRef({
     html: { loaded: false, beep: null, silence: null, nums: {} },
     wa: { ctx: null, ready: false, buffers: new Map(), scheduled: [] },
   });
@@ -890,7 +897,7 @@ function handleManualContinue() {
 {/* Confirm Exit modal */}
       {showConfirmExit && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 max-h-[85vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden">
             <h3 className="text-xl font-bold mb-3">
               {t("player.confirmExitTitle", { defaultValue: "Išeiti iš treniruotės?" })}
             </h3>
@@ -1310,3 +1317,53 @@ function handleManualContinue() {
 
   return null;
 }
+
+
+function cancelGetReadyTimers() {
+  try { if (getReadyRafRef.current) cancelAnimationFrame(getReadyRafRef.current); } catch {};
+  getReadyRafRef.current = null;
+  try { if (getReadyFallbackRef.current) clearTimeout(getReadyFallbackRef.current); } catch {};
+  getReadyFallbackRef.current = null;
+}
+
+function startGetReadyCountdown(seconds) {
+  cancelGetReadyTimers();
+  getReadyTransitionedRef.current = false;
+
+  const secs = Math.max(0, Number(seconds) || 0);
+  getReadyTargetMsRef.current = performance.now() + secs * 1000;
+
+  const tick = () => {
+    const leftMs = getReadyTargetMsRef.current - performance.now();
+    const left = Math.max(0, Math.ceil(leftMs / 1000));
+    setSecondsLeft(left);
+    if (left <= 0) {
+      if (!getReadyTransitionedRef.current) {
+        getReadyTransitionedRef.current = true;
+        cancelGetReadyTimers();
+        try { goToNext && goToNext("fromGetReady"); } catch {};
+      }
+      return;
+    }
+    getReadyRafRef.current = requestAnimationFrame(tick);
+  };
+  getReadyRafRef.current = requestAnimationFrame(tick);
+  getReadyFallbackRef.current = setTimeout(() => {
+    if (!getReadyTransitionedRef.current) {
+      getReadyTransitionedRef.current = true;
+      cancelGetReadyTimers();
+      try { goToNext && goToNext("fromGetReadyFallback"); } catch {};
+    }
+  }, secs * 1000 + 1500);
+}
+
+
+useEffect(() => {
+  const isGetReady = phase === "get-ready";
+  if (isGetReady && !isPaused) {
+    startGetReadyCountdown(getReadySeconds);
+  } else {
+    cancelGetReadyTimers();
+  }
+  return () => cancelGetReadyTimers();
+}, [phase, isPaused, getReadySecondsStr]);
