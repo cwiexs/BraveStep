@@ -519,5 +519,7 @@
     "cancel": "Cancel",
     "generateNow": "Generate plan"
   },
-  "getReadyTitle": "Get ready"
+  "getReadyTitle": "Get ready",
+  "getReadyTime": "Get ready (seconds)",
+  "getReadyHint": "Countdown before workout starts."
 }

@@ -779,6 +779,23 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
                 <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
               </div>
+            {/* Get Ready time */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1">{t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}</label>
+              <input
+                type="number"
+                min="0"
+                max="120"
+                value={getReadySeconds}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                  setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0);
+                }}
+                className="w-28 border rounded px-2 py-1 text-sm"
+              />
+              <p className="text-xs text-gray-500 mt-1">{t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}</p>
+            </div>
+
               <button
                 onClick={() => setVibrationEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
@@ -957,6 +974,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           <h2 className={`text-2xl font-extrabold mb-2 text-yellow-500`}>
             {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
           </h2>
+          <p className="text-sm font-semibold text-gray-700 mb-1">{t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}</p>
+          <p className="text-xs uppercase tracking-wide text-yellow-600 font-semibold">{t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}</p>
           <p className="text-6xl font-extrabold text-yellow-500 mt-6">
             {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
           </p>

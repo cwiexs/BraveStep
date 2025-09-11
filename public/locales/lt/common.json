@@ -519,5 +519,7 @@
     "cancel": "Atšaukti",
     "generateNow": "Kurti planą"
   },
-  "getReadyTitle": "Pasiruoškite treniruotei"
+  "getReadyTitle": "Pasiruoškite treniruotei",
+  "getReadyTime": "Pasiruošimo laikas (sekundėmis)",
+  "getReadyHint": "Atgalinis skaičiavimas prieš treniruotės pradžią."
 }
