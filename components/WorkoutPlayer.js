@@ -523,7 +523,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
 
       if (msLeft <= 0) {
-      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); setPhase("exercise"); return; }
       if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
@@ -643,7 +642,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }, [phase, day, exercise, step]);
 
   // Navigation
-  function handleManualContinue() {
+  
+  function commitGetReady() {
+    const raw = (getReadySecondsStr ?? "").toString().trim();
+    const v = parseInt(raw, 10);
+    const clamped = Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : getReadySeconds;
+    if (clamped !== getReadySeconds) setGetReadySeconds(clamped);
+    setGetReadySecondsStr(String(clamped));
+  }
+function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
@@ -783,24 +790,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
                 <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
                 <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
               </div>
-            {/* Get ready seconds */}
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <p className="font-medium">{t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}</p>
-                <p className="text-sm text-gray-500">{t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}</p>
-              </div>
-              <input
-                type="number"
-                min="0"
-                max="120"
-                value={getReadySecondsStr}
-                onChange={(e) => { setGetReadySecondsStr(e.target.value); }}
-                onBlur={() => { const v = parseInt(getReadySecondsStr, 10); setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0); }}
-                onKeyDown={(e) => { if (e.key === 'Enter') { const v = parseInt(getReadySecondsStr, 10); setGetReadySeconds(Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : 0); } }}
-                className="w-20 h-9 border rounded px-2 text-sm text-right"
-              />
-            </div>
-
               <button
                 onClick={() => setVibrationEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
@@ -873,7 +862,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               <button onClick={() => { primeIOSAudio(); }} className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200">
                 {t("player.primeAudio", { defaultValue: "Paruošti garsą" })}
               </button>
-              <button onClick={() => setShowSettings(false)} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+              <button onClick={() => { commitGetReady(); setShowSettings(false); }} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
                 {t("common.close", { defaultValue: "Uždaryti" })}
               </button>
             </div>
