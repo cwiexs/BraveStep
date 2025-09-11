@@ -444,11 +444,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
 useEffect(() => {
   try {
-    const ps = localStorage.getItem("bs_prestart_seconds");
-    if (ps != null && !Number.isNaN(Number(ps))) setPreStartSeconds(Math.max(0, parseInt(ps, 10)));
+    const raw = localStorage.getItem("bs_prestart_seconds");
+    if (raw == null) return;
+    const n = Number(raw);
+    if (Number.isFinite(n) && n > 0) setPreStartSeconds(Math.round(n));
   } catch {}
 }, []);
-  useEffect(() => {
+useEffect(() => {
     try {
       localStorage.setItem("bs_fx_enabled", String(fxEnabled));
     } catch {}
@@ -586,16 +588,19 @@ useEffect(() => {
   }
 
   function maybeStartGetReady() {
-    try {
-      const sec = Number(preStartSeconds);
-      if (!Number.isFinite(sec) || sec <= 0) return false;
-      startGetReadyCountdown(Math.max(0, Math.round(sec)));
-      setPhase("getready");
-      return true;
-    } catch {
-      return false;
-    }
+  try {
+    // Use state value if valid; otherwise fall back to sane default (10s)
+    const raw = Number(preStartSeconds);
+    const sec = Number.isFinite(raw) && raw > 0 ? Math.round(raw) : 10;
+    if (sec <= 0) return false;
+    startGetReadyCountdown(Math.max(1, sec));
+    setPhase("getready");
+    return true;
+  } catch {
+    return false;
   }
+}
+
 
   // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
@@ -664,18 +669,23 @@ useEffect(() => {
 
   // Navigation
   function handleManualContinue() {
-    cancelRaf();
-    stopAllScheduled();
-    if (phase === "intro") {
-      primeIOSAudio();
-      setPhase("exercise");
-    } else if (phase === "exercise") {
-      setStepFinished(true);
-      handlePhaseComplete();
-    } else if (phase === "summary") {
-      onClose?.();
-    }
+  cancelRaf();
+  stopAllScheduled();
+  if (phase === "intro") {
+    primeIOSAudio();
+    // Always try to start Get Ready; fallback to 10s if setting is 0/invalid
+    const raw = Number(preStartSeconds);
+    const sec = Number.isFinite(raw) && raw > 0 ? Math.round(raw) : 10;
+    startGetReadyCountdown(sec);
+    setPreStartSeconds(sec);
+    setPhase("getready");
+  } else if (phase === "exercise") {
+    setStepFinished(true);
+    handlePhaseComplete();
+  } else if (phase === "summary") {
+    onClose?.();
   }
+}
 
   function handlePhaseComplete() {
     cancelRaf();
