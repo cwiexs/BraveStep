@@ -11,7 +11,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   // ---- iOS scroll lock while typing ----
   const pageYRef = 
 function getPhaseSafe() {
-  return (typeof getPhaseSafe() !== "undefined" ? getPhaseSafe() :
+  return (typeof phase !== "undefined" ? phase :
          (typeof currentPhase !== "undefined" ? currentPhase :
          (typeof playerPhase !== "undefined" ? playerPhase : null)));
 }
