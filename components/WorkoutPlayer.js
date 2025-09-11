@@ -754,7 +754,7 @@ function handleManualContinue() {
         onClick={() => {
           if (!inputActive) setShowConfirmExit(true);
         }}
-        className={`p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow ${inputActive ? "pointer-events-none opacity-50" : ""}`}
+        className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow ${inputActive ? "pointer-events-none opacity-50" : ""}"
         aria-label={t("common.close", { defaultValue: "Uždaryti" })}
         title={t("common.close", { defaultValue: "Uždaryti" })}
       >
