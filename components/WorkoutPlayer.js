@@ -1002,49 +1002,6 @@ if (phase !== "exercise" || !step) {
       </div>
     </Shell>
   );
-})();
-const getReadyLabel = tr("player.getReady", { defaultValue: "Get ready" });
-    const upNextLabel = tr("player.upNext", { defaultValue: "Up next:" });
-    const secShort = tr("player.secShort", { defaultValue: "s" });
-
-    return (
-      <Shell
-        footer={
-          <div className="flex items-center justify-center gap-4">
-            <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={tr("player.pausePlay", { defaultValue: "Pause / Play" })}>
-              {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-            </button>
-            <button onClick={() => { cancelRaf(); justFromGetReadyRef.current = true; setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-              <SkipForward className="w-6 h-6 text-gray-800" />
-            </button>
-          </div>
-        }
-      >
-        <div className="w-full min-h_[60vh] grid place-items-center">
-          <div className="max-w-2xl text-center px-4">
-            <p className="text-2xl font-semibold text-gray-700 mb-2">{getReadyLabel}</p>
-            <p className="text-6xl font-extrabold text-blue-700 tracking-tight">{secondsLeft}{secShort ? <span className="text-2xl align-super ml-1">{secShort}</span> : null}</p>
-
-            <div className="mt-6 text-gray-700">
-              <p className="uppercase text-xs tracking-wide text-gray-500">{upNextLabel}</p>
-              <p className="text-xl font-bold mt-1">{nextExName}</p>
-              {/* Optionally show reps info if available */}
-              {(() => {
-                const reps = getReps(upcoming.st);
-                if (reps > 0) {
-                  const setWord = tr("player.setWord", { defaultValue: "Set" });
-                  const repsWord = tr("player.reps", { defaultValue: "reps" });
-                  const sIdx = upcoming.st?.set ? (upcoming.st.set) : null;
-                  return <p className="text-lg mt-1">{reps} {repsWord}{sIdx ? ` • ${setWord} ${sIdx}` : ""}</p>;
-                }
-                return null;
-              })()}
-            </div>
-          </div>
-        </div>
-      </Shell>
-    );
-  }
 // ---- Exercise / Rest ----
   if (phase === "exercise") {
     const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
