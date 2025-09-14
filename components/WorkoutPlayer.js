@@ -74,6 +74,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
+  const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
 
@@ -508,13 +509,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
   };
-  const forceComplete = () => {
-    if (transitionLockRef.current) return;
-    transitionLockRef.current = true;
-    try { cancelRaf(); } catch {}
-    try { handlePhaseComplete(); } catch {}
-  };
-
 
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
@@ -545,7 +539,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   const startTimedStep = (durationSec) => {
     transitionLockRef.current = false;
-cancelRaf();
+    stepTokenRef.current = (stepTokenRef.current || 0) + 1;
+    const __token = stepTokenRef.current;
+    cancelRaf();
     stopAllScheduled();
     lastSpokenRef.current = null;
 
@@ -562,7 +558,25 @@ cancelRaf();
     setSecondsLeft(durationSec);
 
     
-    try { const wd = setTimeout(() => { forceComplete(); }, Math.max(0, durationSec * 1000 + 250)); scheduledTimeoutsRef.current.push(wd); } catch {};
+    try {
+      if (durationSec > 0) {
+        const wd = setTimeout(() => {
+          try {
+            if (__token !== stepTokenRef.current) return;
+            const dl = deadlineRef.current;
+            if (!dl) return;
+            const now = performance.now ? performance.now() : Date.now();
+            if (now < dl - 10) return; // dar ne laikas
+            if (transitionLockRef.current) return;
+            transitionLockRef.current = true;
+            cancelRaf();
+            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
+            try { handlePhaseComplete(); } catch {}
+          } catch {}
+        }, Math.max(0, Math.round(durationSec * 1000) + 350));
+        scheduledTimeoutsRef.current.push(wd);
+      }
+    } catch {}
 vibe([40, 40]);
     ping();
 
