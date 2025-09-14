@@ -37,7 +37,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [phase, setPhase] = useState("intro"); // intro | exercise | summary
+  const [phase, setPhase] = useState("get_ready"); // get_ready | exercise | summary
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -73,6 +73,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const lastTickRef = useRef(0);
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
+  const transitionLockRef = useRef(false);
 
   const timeoutsRef = useRef([]);
 
@@ -523,6 +524,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
 
       if (msLeft <= 0) {
+      if (transitionLockRef.current) { cancelRaf(); return; }
+      transitionLockRef.current = true /*PY_TO_JS*/;
       if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
@@ -576,7 +579,25 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   };
 
-  // --- TIMER SETUP / STEP SWITCH ---
+  
+  // --- AUTO START GET_READY ---
+  useEffect(() => {
+    if (phase !== "get_ready") return;
+    cancelRaf();
+    stopAllScheduled();
+    transitionLockRef.current = false;
+    const gr = Number(getReadySeconds);
+    const secs = Number.isFinite(gr) ? Math.max(0, Math.min(300, Math.round(gr))) : 0;
+    if (secs > 0) {
+      setSecondsLeft(secs);
+      lastSpokenRef.current = null;
+      deadlineRef.current = performance.now() + secs * 1000;
+      tickRafRef.current = requestAnimationFrame(tick);
+    } else {
+      handlePhaseComplete();
+    }
+  }, [phase, getReadySeconds]);
+// --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
     if (phase !== "exercise") return;
     cancelRaf();
@@ -688,8 +709,40 @@ function handleManualContinue() {
     }
   }
 
-  function handlePhaseComplete() {
-    if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+  
+function handlePhaseComplete() {
+    // Complete current phase/step safely once
+    cancelRaf();
+    stopAllScheduled();
+
+    if (phase === "get_ready") {
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        } else {
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(0);
+        }
+      } catch {}
+      setPhase("exercise");
+      return;
+    }
+
+    if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
+      setCurrentStepIndex((prev) => prev + 1);
+      return;
+    }
+    if (day && currentExerciseIndex + 1 < day.exercises.length) {
+      setCurrentExerciseIndex((prev) => prev + 1);
+      setCurrentStepIndex(0);
+      return;
+    }
+    setPhase("summary");
+  }
+
     cancelRaf();
     stopAllScheduled();
 
@@ -957,7 +1010,7 @@ function handleManualContinue() {
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() { const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
+    function restartGetReady() { cancelRaf(); stopAllScheduled(); setPhase("get_ready"); } { const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
 
     return (
       <Shell
