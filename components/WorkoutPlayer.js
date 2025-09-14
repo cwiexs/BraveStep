@@ -508,6 +508,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
   };
+  const forceComplete = () => {
+    if (transitionLockRef.current) return;
+    transitionLockRef.current = true;
+    try { cancelRaf(); } catch {}
+    try { handlePhaseComplete(); } catch {}
+  };
+
 
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
@@ -538,7 +545,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   const startTimedStep = (durationSec) => {
     transitionLockRef.current = false;
-    cancelRaf();
+cancelRaf();
     stopAllScheduled();
     lastSpokenRef.current = null;
 
@@ -554,7 +561,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-    vibe([40, 40]);
+    
+    try { const wd = setTimeout(() => { forceComplete(); }, Math.max(0, durationSec * 1000 + 250)); scheduledTimeoutsRef.current.push(wd); } catch {};
+vibe([40, 40]);
     ping();
 
     tickRafRef.current = requestAnimationFrame(tick);
