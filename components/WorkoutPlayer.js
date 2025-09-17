@@ -75,46 +75,20 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
   const stepTokenRef = useRef(0);
+const timeoutsRef = useRef([]);
+// Extra watchdogs / hardening for mobile timers
+const realDeadlineRef = useRef(null); // Date.now() deadline
+const watchdogIntRef = useRef(null);  // setInterval fallback
+const zeroStallTimeoutRef = useRef(null); // guard if UI shows 0s but no switch
+const hardCutoverTimeoutRef = useRef(null); // fires slightly after deadline to force transition
+
+// iOS audio unlock
+const audioCtxRef = useRef(null);
+const audioUnlockedRef = useRef(false);
+const primeAudioOnceRef = useRef(false);
+
 
   const timeoutsRef = useRef([]);
-
-  // Extra watchdogs / hardening for mobile timers
-  const realDeadlineRef = useRef(null); // Date.now()-based deadline (not throttled)
-  const watchdogIntRef = useRef(null);  // setInterval fallback when rAF/setTimeout are throttled
-  const zeroStallTimeoutRef = useRef(null); // last-resort guard when UI shows 0s but no switch
-  const hardCutoverTimeoutRef = useRef(null); // fires ~100ms after deadline to force transition
-
-  // --- iOS audio unlock ---
-  const audioCtxRef = useRef(null);
-  const audioUnlockedRef = useRef(false);
-  const primeAudioOnceRef = useRef(false);
-
-  function ensureAudioContext() {
-    try {
-      if (!audioCtxRef.current) {
-        const Ctx = window.AudioContext || window.webkitAudioContext;
-        if (Ctx) audioCtxRef.current = new Ctx();
-      }
-    } catch {}
-    return audioCtxRef.current;
-  }
-
-  function primeAudio() {
-    if (audioUnlockedRef.current) return;
-    const ctx = ensureAudioContext();
-    if (!ctx) { audioUnlockedRef.current = true; return; }
-    try {
-      if (ctx.state === "suspended") ctx.resume();
-      // create a 1-sample silent buffer and play it very shortly
-      const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
-      const src = ctx.createBufferSource();
-      src.buffer = buf;
-      src.connect(ctx.destination);
-      src.start(0);
-      src.stop(0);
-      audioUnlockedRef.current = true;
-    } catch { audioUnlockedRef.current = true; }
-  }
 
   // Scroll
   const scrollRef = useRef(null);
@@ -129,6 +103,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (inputActive) lockBodyScroll();
     else unlockBodyScroll();
     return () => {
+  try { clearWatchdogs(); } catch {}
       if (isIOS) unlockBodyScroll();
     };
   }, [isIOS, inputActive]);
@@ -268,24 +243,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   function clearAllTimeouts() {
     timeoutsRef.current.forEach((id) => clearTimeout(id));
     timeoutsRef.current = [];
-  }
-
-  function clearWatchdogs() {
-    try { if (watchdogIntRef.current) { clearInterval(watchdogIntRef.current); watchdogIntRef.current = null; } } catch {}
-    try { if (zeroStallTimeoutRef.current) { clearTimeout(zeroStallTimeoutRef.current); zeroStallTimeoutRef.current = null; } } catch {}
-    try { if (hardCutoverTimeoutRef.current) { clearTimeout(hardCutoverTimeoutRef.current); hardCutoverTimeoutRef.current = null; } } catch {}
-  }
-
-  function forceTransitionFromGetReady() {
-    try {
-      const firstEx = day?.exercises?.[0];
-      if (firstEx) {
-        const idx = findFirstExerciseIndex(firstEx);
-        setCurrentExerciseIndex(0);
-        setCurrentStepIndex(idx);
-      }
-    } catch {}
-    setPhase("exercise");
   }
 
   // --------- AUDIO (WebAudio + fallback) ----------
@@ -560,78 +517,116 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
+  
+function clearWatchdogs() {
+  try { if (watchdogIntRef) { clearInterval(watchdogIntRef.current); watchdogIntRef.current = null; } } catch {}
+  try { if (zeroStallTimeoutRef) { clearTimeout(zeroStallTimeoutRef.current); zeroStallTimeoutRef.current = null; } } catch {}
+  try { if (hardCutoverTimeoutRef) { clearTimeout(hardCutoverTimeoutRef.current); hardCutoverTimeoutRef.current = null; } } catch {}
+}
 
-  // Re-sync timers when returning to foreground (iOS may pause rAF and delay setTimeout)
-  useEffect(() => {
-    const onVis = () => {
-      if (document.visibilityState === "visible") {
-        try {
-          if (!paused && realDeadlineRef.current) {
-            const remain = Math.max(0, realDeadlineRef.current - Date.now());
-            if (remain <= 0) {
-              if (!transitionLockRef.current) {
-                transitionLockRef.current = true;
-                cancelRaf();
-                stopAllScheduled();
-                setStepFinished(true);
-                if (phase === "get_ready") forceTransitionFromGetReady();
-                else handlePhaseComplete();
-              }
+function ensureAudioContext() {
+  try {
+    if (!audioCtxRef.current) {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (Ctx) audioCtxRef.current = new Ctx();
+    }
+  } catch {}
+  return audioCtxRef.current;
+}
+function primeAudio() {
+  if (audioUnlockedRef.current) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) { audioUnlockedRef.current = true; return; }
+  try {
+    if (ctx.state === "suspended") ctx.resume();
+    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const s = ctx.createBufferSource();
+    s.buffer = buf; s.connect(ctx.destination); s.start(0); s.stop(0);
+    audioUnlockedRef.current = true;
+  } catch { audioUnlockedRef.current = true; }
+}
+
+function safeVibe(pattern){ try{ if (navigator && navigator.vibrate) navigator.vibrate(pattern); } catch {} }
+
+
+useEffect(() => {
+  const onVis = () => {
+    if (document.visibilityState !== "visible") return;
+    try {
+      if (!paused && realDeadlineRef.current) {
+        const remain = Math.max(0, realDeadlineRef.current - Date.now());
+        if (remain <= 0) {
+          // Force complete
+          if (!transitionLockRef.current) {
+            transitionLockRef.current = true;
+            cancelRaf && cancelRaf();
+            stopAllScheduled && stopAllScheduled();
+            setStepFinished && setStepFinished(true);
+            if (phase === "get_ready") {
+              try {
+                const firstEx = day?.exercises?.[0];
+                if (firstEx && typeof findFirstExerciseIndex === "function") {
+                  const idx = findFirstExerciseIndex(firstEx);
+                  setCurrentExerciseIndex && setCurrentExerciseIndex(0);
+                  setCurrentStepIndex && setCurrentStepIndex(idx);
+                }
+              } catch {}
+              setPhase && setPhase("exercise");
             } else {
-              // re-arm perf clock
-              deadlineRef.current = performance.now() + remain;
-              if (!tickRafRef.current) tickRafRef.current = requestAnimationFrame(tick);
+              handlePhaseComplete && handlePhaseComplete();
             }
           }
-        } catch {}
+        } else {
+          if (typeof performance !== "undefined") {
+            deadlineRef.current = performance.now() + remain;
+            if (!tickRafRef.current && typeof requestAnimationFrame !== "undefined") {
+              tickRafRef.current = requestAnimationFrame(tick);
+            }
+          }
+        }
       }
-    };
-    document.addEventListener("visibilitychange", onVis);
-    return () => document.removeEventListener("visibilitychange", onVis);
-  }, [paused, phase]);
+    } catch {}
+  };
+  document.addEventListener("visibilitychange", onVis);
+  return () => document.removeEventListener("visibilitychange", onVis);
+}, [paused, phase]);
 
-  function safeVibe(pattern) { try { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(pattern); } catch {} }
-  function safeSpeak(text) { try { if (window && window.speechSynthesis) { const u = new SpeechSynthesisUtterance(text); window.speechSynthesis.speak(u); } } catch {} }
 
-  // Prime audio on first user gesture (iOS requires a gesture to unlock AudioContext)
-  useEffect(() => {
+// Prime audio on first user gesture
+useEffect(() => {
+  if (primeAudioOnceRef.current) return;
+  const onFirstInteract = () => {
     if (primeAudioOnceRef.current) return;
-    const onFirstInteract = () => {
-      if (primeAudioOnceRef.current) return;
-      primeAudioOnceRef.current = true;
-      try { primeAudio(); } catch {}
-      // Also nudge speechSynthesis by querying voices (without speaking)
-      try { if (window && window.speechSynthesis) { window.speechSynthesis.getVoices(); } } catch {}
-      window.removeEventListener("pointerdown", onFirstInteract);
-      window.removeEventListener("touchstart", onFirstInteract, { passive: true });
-      window.removeEventListener("keydown", onFirstInteract);
-      document.removeEventListener("click", onFirstInteract);
-    };
-    window.addEventListener("pointerdown", onFirstInteract);
-    window.addEventListener("touchstart", onFirstInteract, { passive: true });
-    window.addEventListener("keydown", onFirstInteract);
-    document.addEventListener("click", onFirstInteract);
-    return () => {
-      window.removeEventListener("pointerdown", onFirstInteract);
-      window.removeEventListener("touchstart", onFirstInteract);
-      window.removeEventListener("keydown", onFirstInteract);
-      document.removeEventListener("click", onFirstInteract);
-    };
-  }, []);
+    primeAudioOnceRef.current = true;
+    try { primeAudio(); } catch {}
+    try { if (window && window.speechSynthesis) window.speechSynthesis.getVoices(); } catch {}
+    window.removeEventListener("pointerdown", onFirstInteract);
+    window.removeEventListener("touchstart", onFirstInteract);
+    window.removeEventListener("keydown", onFirstInteract);
+    document.removeEventListener("click", onFirstInteract);
+  };
+  window.addEventListener("pointerdown", onFirstInteract);
+  window.addEventListener("touchstart", onFirstInteract, { passive: true });
+  window.addEventListener("keydown", onFirstInteract);
+  document.addEventListener("click", onFirstInteract);
+  return () => {
+    window.removeEventListener("pointerdown", onFirstInteract);
+    window.removeEventListener("touchstart", onFirstInteract);
+    window.removeEventListener("keydown", onFirstInteract);
+    document.removeEventListener("click", onFirstInteract);
+  };
+}, []);
 
-  // TIMER
+// TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
-    clearWatchdogs();
   };
 
   const tick = (nowMs) => {
-    if (!deadlineRef.current && !realDeadlineRef.current) return;
-    const wallMsLeft = realDeadlineRef.current != null ? Math.max(0, realDeadlineRef.current - Date.now()) : Infinity;
+    if (!deadlineRef.current) return;
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
-      const perfMsLeft = deadlineRef.current != null ? Math.max(0, deadlineRef.current - nowMs) : Infinity;
-      const msLeft = Math.min(perfMsLeft, wallMsLeft);
+      const msLeft = Math.max(0, deadlineRef.current - nowMs);
       const secs = Math.ceil(msLeft / 1000);
       setSecondsLeft((prev) => (prev !== secs ? secs : prev));
 
@@ -642,13 +637,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }
       }
 
-      if (msLeft <= 0) {
-        if (transitionLockRef.current) { cancelRaf(); return; }
-        transitionLockRef.current = true;
+      if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
+      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
         cancelRaf();
-        setStepFinished(true);
         lastSpokenRef.current = null;
-        if (phase === "get_ready") { forceTransitionFromGetReady(); return; }
+        setStepFinished(true);
         handlePhaseComplete();
         return;
       }
@@ -664,11 +657,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     cancelRaf();
     stopAllScheduled();
     lastSpokenRef.current = null;
-    clearWatchdogs();
-
-    // Set both performance-based and wall-clock deadlines
-    const startWall = Date.now();
-    realDeadlineRef.current = startWall + (Math.max(0, durationSec || 0) * 1000);
 
     if (!durationSec || durationSec <= 0) {
       setSecondsLeft(0);
@@ -680,25 +668,67 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
     const nowMs = performance.now();
     deadlineRef.current = nowMs + durationSec * 1000;
-    setSecondsLeft(durationSec);
+// wall-clock deadline
+const startWall = Date.now();
+realDeadlineRef.current = startWall + Math.max(0, (durationSec || 0) * 1000);
 
-    // Watchdog interval: if timers are throttled, force completion when wall clock hits
-    try {
-      watchdogIntRef.current = setInterval(() => {
-        if (paused) return;
-        if (!realDeadlineRef.current) return;
-        if (transitionLockRef.current) return;
-        const left = realDeadlineRef.current - Date.now();
-        if (left <= 0) {
-          transitionLockRef.current = true;
-          cancelRaf();
-          stopAllScheduled();
-          setStepFinished(true);
-          if (phase === "get_ready") { forceTransitionFromGetReady(); }
-          else { try { handlePhaseComplete(); } catch {} }
-        }
-      }, 220);
-    } catch {}
+// watchdog interval
+try {
+  if (watchdogIntRef.current) { clearInterval(watchdogIntRef.current); watchdogIntRef.current = null; }
+  watchdogIntRef.current = setInterval(() => {
+    if (paused) return;
+    if (!realDeadlineRef.current) return;
+    if (transitionLockRef.current) return;
+    const left = realDeadlineRef.current - Date.now();
+    if (left <= 0) {
+      transitionLockRef.current = true;
+      cancelRaf && cancelRaf();
+      stopAllScheduled && stopAllScheduled();
+      setStepFinished && setStepFinished(true);
+      if (phase === "get_ready") {
+        try {
+          const firstEx = day?.exercises?.[0];
+          if (firstEx && typeof findFirstExerciseIndex === "function") {
+            const idx = findFirstExerciseIndex(firstEx);
+            setCurrentExerciseIndex && setCurrentExerciseIndex(0);
+            setCurrentStepIndex && setCurrentStepIndex(idx);
+          }
+        } catch {}
+        setPhase && setPhase("exercise");
+      } else {
+        handlePhaseComplete && handlePhaseComplete();
+      }
+    }
+  }, 220);
+} catch {}
+
+// Hard cutover slightly after planned deadline (GET READY only)
+try {
+  if (phase === "get_ready") {
+    if (hardCutoverTimeoutRef.current) { clearTimeout(hardCutoverTimeoutRef.current); hardCutoverTimeoutRef.current = null; }
+    const ms = Math.max(0, Math.round((durationSec || 0) * 1000) + 150);
+    hardCutoverTimeoutRef.current = setTimeout(() => {
+      if (transitionLockRef.current) return;
+      if (phase === "get_ready") {
+        transitionLockRef.current = true;
+        cancelRaf && cancelRaf();
+        stopAllScheduled && stopAllScheduled();
+        setStepFinished && setStepFinished(true);
+        try {
+          const firstEx = day?.exercises?.[0];
+          if (firstEx && typeof findFirstExerciseIndex === "function") {
+            const idx = findFirstExerciseIndex(firstEx);
+            setCurrentExerciseIndex && setCurrentExerciseIndex(0);
+            setCurrentStepIndex && setCurrentStepIndex(idx);
+          }
+        } catch {}
+        setPhase && setPhase("exercise");
+      }
+    }, ms);
+  }
+} catch {}
+
+    setSecondsLeft(durationSec);
 
     
     try {
@@ -718,21 +748,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
         scheduledTimeoutsRef.current.push(wd);
-      }
-    } catch {}
-
-    // Last-resort: if UI shows 0s after expected end and nothing moved, push it over the line
-    try {
-      if (phase === "get_ready") {
-        zeroStallTimeoutRef.current = setTimeout(() => {
-          if (!transitionLockRef.current && secondsLeft === 0) {
-            transitionLockRef.current = true;
-            cancelRaf();
-            stopAllScheduled();
-            setStepFinished(true);
-            forceTransitionFromGetReady();
-          }
-        }, Math.max(0, Math.round(durationSec * 1000) + 900));
       }
     } catch {}
 setTimeout(() => { try { safeVibe([40, 40]); } catch {} }, 150);
@@ -814,8 +829,6 @@ setTimeout(() => { try { safeVibe([40, 40]); } catch {} }, 150);
       timeoutsRef.current.forEach((id) => clearTimeout(id));
       cancelRaf();
       stopAllScheduled();
-      clearWatchdogs();
-      try { if (hardCutoverTimeoutRef.current) { clearTimeout(hardCutoverTimeoutRef.current); hardCutoverTimeoutRef.current = null; } } catch {}
     };
   }, []);
 
@@ -1082,26 +1095,7 @@ function handleManualContinue() {
             <p className="text-sm text-gray-700 mb-5">
               {t("player.confirmExitBody", {
                 defaultValue: "Jei išeisite dabar, ši sesija nebus užskaityta kaip atlikta."
-              })
-    // Hard cutover ~120ms after the real deadline (helps iOS when it freezes at 0s on first run)
-    try {
-      if (phase === "get_ready") {
-        if (hardCutoverTimeoutRef.current) { clearTimeout(hardCutoverTimeoutRef.current); hardCutoverTimeoutRef.current = null; }
-        const ms = Math.max(0, Math.round(durationSec * 1000) + 120);
-        hardCutoverTimeoutRef.current = setTimeout(() => {
-          if (transitionLockRef.current) return;
-          // If still in get_ready and not switched, force it now.
-          if (phase === "get_ready") {
-            transitionLockRef.current = true;
-            cancelRaf();
-            stopAllScheduled();
-            setStepFinished(true);
-            forceTransitionFromGetReady();
-          }
-        }, ms);
-      }
-    } catch {}
-    }
+              })}
             </p>
             <div className="flex items-center justify-end gap-2">
               <button
