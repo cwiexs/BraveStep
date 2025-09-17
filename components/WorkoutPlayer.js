@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useLayoutEffect, useState, useRef, useMemo  } from "react";
 import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
@@ -37,7 +37,135 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [phase, setPhase] = useState("intro"); // intro | exercise | summary
+  const [phase, setPhase] = useState("intro");
+const phaseRef = useRef(phase);
+
+// === Mobile-safe Get Ready Timer Helpers (injected) =========================
+const deadlineRef = useRef(null);        // performance.now() deadline
+const remainMsRef = useRef(null);        // remaining ms when paused
+const tickRafRef = useRef(null);         // rAF id
+const lastTickRef = useRef(0);           // last rAF tick time
+const transitionLockRef = useRef(false); // guard to avoid double-finish
+const watchdogIdRef = useRef(null);      // setTimeout fallback
+
+function cancelRaf() {
+  if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
+  tickRafRef.current = null;
+}
+function clearWatchdog() {
+  if (watchdogIdRef.current) clearTimeout(watchdogIdRef.current);
+  watchdogIdRef.current = null;
+}
+
+function startGetReadyTimer(durationSec) {
+  transitionLockRef.current = false;
+  cancelRaf();
+  clearWatchdog();
+  setPaused && setPaused(false);
+
+  setPhase && setPhase("get_ready");
+  setSecondsLeft && setSecondsLeft(Math.max(0, Math.ceil(durationSec)));
+
+  const now = performance.now();
+  deadlineRef.current = now + durationSec * 1000;
+  lastTickRef.current = now;
+
+  tickRafRef.current = requestAnimationFrame(tick);
+
+  watchdogIdRef.current = setTimeout(() => {
+    finishIfDue();
+  }, Math.round(durationSec * 1000) + 400);
+}
+
+function tick(nowMs) {
+  if (!deadlineRef.current) return;
+
+  if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
+    const msLeft = Math.max(0, deadlineRef.current - nowMs);
+    const secs = Math.ceil(msLeft / 1000);
+
+    if (typeof setSecondsLeft === "function") {
+      setSecondsLeft(prev => (prev !== secs ? secs : prev));
+    }
+
+    if (msLeft <= 0) {
+      finishIfDue();
+      return;
+    }
+    lastTickRef.current = nowMs;
+  }
+  tickRafRef.current = requestAnimationFrame(tick);
+}
+
+function finishIfDue() {
+  if (transitionLockRef.current) return;
+  transitionLockRef.current = true;
+
+  cancelRaf();
+  clearWatchdog();
+  deadlineRef.current = null;
+  remainMsRef.current = null;
+
+  if (typeof setPhase === "function") {
+    // Switch to exercise only if we were in get_ready
+    if (phaseRef?.current === "get_ready" || phase === "get_ready") {
+      setSecondsLeft && setSecondsLeft(0);
+      setPhase("exercise");
+      if (typeof onGetReadyComplete === "function") {
+        try { onGetReadyComplete(); } catch {}
+      }
+    }
+  }
+}
+
+function pauseTimer() {
+  if (typeof setPaused !== "function") return;
+  setPaused(true);
+  if (deadlineRef.current) {
+    remainMsRef.current = Math.max(0, deadlineRef.current - performance.now());
+  }
+  cancelRaf();
+  clearWatchdog();
+}
+
+function resumeTimer() {
+  if (typeof setPaused !== "function") return;
+  setPaused(false);
+  transitionLockRef.current = false;
+
+  const now = performance.now();
+  const remain = Math.max(0, remainMsRef.current ?? 0);
+  deadlineRef.current = now + remain;
+  lastTickRef.current = now;
+
+  tickRafRef.current = requestAnimationFrame(tick);
+  watchdogIdRef.current = setTimeout(() => finishIfDue(), Math.round(remain) + 400);
+}
+
+// Visibility recovery (critical on mobile)
+useEffect(() => {
+  const onVis = () => {
+    if (document.visibilityState !== "visible") return;
+    if (!deadlineRef.current) return;
+
+    const now = performance.now();
+    const msLeft = Math.max(0, deadlineRef.current - now);
+
+    if (msLeft <= 0) {
+      finishIfDue();
+    } else {
+      cancelRaf();
+      clearWatchdog();
+      lastTickRef.current = now;
+      tickRafRef.current = requestAnimationFrame(tick);
+      watchdogIdRef.current = setTimeout(() => finishIfDue(), Math.round(msLeft) + 400);
+    }
+  };
+  document.addEventListener("visibilitychange", onVis, { passive: true });
+  return () => document.removeEventListener("visibilitychange", onVis);
+}, []);
+
+useEffect(() => { phaseRef.current = phase; }, [phase]); // intro | exercise | summary
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
