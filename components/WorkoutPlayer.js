@@ -504,11 +504,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
+  const forcedGetReadyRef = useRef(false);
   // Fallback: if pre-workout (get_ready) reaches 0s but something prevented the usual transition,
   // force a safe phase change identical to exercise/rest logic.
   useEffect(() => {
-    if (phase === "get_ready" && secondsLeft === 0) {
-      if (transitionLockRef.current) return;
+    if (phase === "get_ready" && secondsLeft === 0 && !forcedGetReadyRef.current) {
+      forcedGetReadyRef.current = true;
       transitionLockRef.current = true;
       try { cancelRaf(); } catch {}
       try { stopAllScheduled(); } catch {}
@@ -574,6 +575,7 @@ return true; }
   };
 
   const startTimedStep = (durationSec) => {
+    transitionLockRef.current = false;
     transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
@@ -747,6 +749,7 @@ function handleManualContinue() {
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
+        transitionLockRef.current = false;
         startTimedStep(gr);
       } else {
         setSecondsLeft(0);
