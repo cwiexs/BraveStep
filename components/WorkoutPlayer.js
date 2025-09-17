@@ -3,398 +3,7 @@ import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
 
-export default function WorkoutPlayer({ workoutData, planId, onClose 
-
-  function renderContent() {
-// ---- Intro ----
-  if (phase === "intro") {
-    return (
-      <Shell
-        footer={
-          <div className="flex flex-col items-center gap-3">
-            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold" onClick={handleManualContinue}>
-              {startWorkoutLabel}
-            </button>
-          </div>
-        }
-      >
-        <div className="w-full min-h_[60vh] grid place-items-center">
-          <div className="max-w-2xl text-center">
-            <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
-            <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
-          </div>
-        </div>
-      </Shell>
-    );
-  }
-
-  // ---- Get Ready ----
-  if (phase === "get_ready") {
-    const firstEx = day?.exercises?.[0] || null;
-    let firstSt = null;
-    let totalSets = 0;
-    if (firstEx?.steps && Array.isArray(firstEx.steps)) {
-      totalSets = firstEx.steps.filter((s) => s.type === "exercise").length || 0;
-      firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
-    }
-    const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
-    const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
-
-    function restartGetReady() { transitionLockRef.current = false;
-    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
-
-    return (
-      <Shell
-        footer={
-          <>
-            <div className="flex items-center justify-center gap-4">
-              <button onClick={() => { cancelRaf(); stopAllScheduled(); setPhase("intro"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
-                <SkipBack className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
-                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-              </button>
-              <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
-                <RotateCcw className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
-                <SkipForward className="w-6 h-6 text-gray-800" />
-              </button>
-            </div>
-          </>
-        }
-      >
-        <div className="max-w-2xl mx-auto text-center mt-6">
-          {/* GET_READY_HEADING */}
-          <h2 className="text-2xl font-extrabold mb-2 text-yellow-500">
-            {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
-          </h2>
-          <p className="text-6xl font-extrabold text-yellow-500 mt-6">
-            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
-          </p>
-          {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
-          {firstEx && (
-            <div className="mt-6 text-left inline-block text-start">
-              <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
-              <p className="text-base font-bold text-gray-900">{firstEx.title || firstEx.name || t("player.exercise", { defaultValue: "Exercise" })}</p>
-              {firstSt && (
-                <>
-                  {(() => {
-                    const repsText = getRepsText(firstSt);
-                    if (repsText) return <p className="text-sm text-gray-900 mt-1">{repsText}</p>;
-                    const secs = getTimedSeconds(firstSt);
-                    const timedText = secs > 0 ? `${secs} ${secShort}` : "";
-                    return timedText ? <p className="text-sm text-gray-900 mt-1">{timedText}</p> : null;
-                  })()}
-                  {firstSt.set != null && totalSets > 0 && (
-                    <p className="text-sm text-gray-800 mt-1">{setWord} 1/{totalSets}</p>
-                  )}
-                  {firstEx.description && (
-                    <p className="text-sm text-gray-700 italic mt-2">{firstEx.description}</p>
-                  )}
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      </Shell>
-    );
-  }
-
-  // ---- Exercise / Rest ----
-  if (phase === "exercise") {
-    const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
-    const seriesTotal = exercise?.steps?.filter((s) => s.type === "exercise").length || 0;
-    const seriesIdx = step?.type === "exercise" ? step?.set : null;
-
-    const timerColorClass = isRestPhase ? "text-yellow-500" : "text-green-600";
-    const restLabelClass = "text-yellow-500";
-
-    return (
-      <Shell
-        footer={
-          <>
-            <div className="flex items-center justify-center gap-4">
-              <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
-                <SkipBack className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
-                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-              </button>
-              <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
-                <RotateCcw className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
-                <SkipForward className="w-6 h-6 text-gray-800" />
-              </button>
-            </div>
-</>
-        }
-      >
-        <div className="max-w-2xl mx-auto text-center mt-6">
-          <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
-            {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
-
-          {/* Description under title (toggleable) */}
-          {!isRestPhase && descriptionsEnabled && exercise?.description && (
-            <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2"><Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" /><span className="font-normal">{exercise.description}</span></div>
-          )}
-
-          </h2>
-
-          {!isRestPhase && step?.type === "exercise" && (
-            <p className="text-lg font-semibold text-gray-900 mb-2">
-              {setWord} {seriesIdx}/{seriesTotal}
-            </p>
-          )}
-
-          
-
-          {getTimedSeconds(step) > 0 && (
-            <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
-              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
-            </p>
-          )}
-
-          {!isRestPhase && getReps(step) != null && (
-            <p className="text-5xl font-extrabold text-green-700 mt-6">
-              {getRepsText(step)}
-            </p>
-          )}
-
-          {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
-
-          {waitingForUser && step?.type === "exercise" && (
-            <div className="mt-6">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold" onClick={handleManualContinue}>
-                {doneLabel}
-              </button>
-            </div>
-          )}
-
-          {isRestPhase && (
-            <div className="mt-6 text-left inline-block text-start">
-              <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
-              {nextExerciseInfo ? (
-                <>
-                  <p className="text-base font-bold text-gray-900">{nextExerciseInfo.ex?.name}</p>
-                  {(() => {
-                    const repsText = getRepsText(nextExerciseInfo.st);
-                    const secs = getTimedSeconds(nextExerciseInfo.st);
-                    const timedText = secs > 0 ? `${secs} ${secShort}` : "";
-                    const effort = repsText || timedText;
-                    return effort ? (
-                      <p className="text-sm text-gray-900 mt-1">{effort}</p>
-                    ) : null;
-                  })()}
-
-                  {nextExerciseInfo.setNo != null && (
-                    <p className="text-sm text-gray-800 mt-1">
-                      {setWord} {nextExerciseInfo.setNo}/{nextExerciseInfo.totalSets}
-                    </p>
-                  )}
-                  {nextExerciseInfo.ex?.description && (
-                    <p className="text-sm text-gray-700 italic mt-2">{nextExerciseInfo.ex.description}</p>
-                  )}
-                </>
-              ) : (
-                <p className="text-sm text-gray-600 italic">
-                  {t("player.almostFinished", { defaultValue: i18n.language?.startsWith("lt") ? "Netoli pabaigos..." : "Almost finished..." })}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      </Shell>
-    );
-  }
-
-  // ---- Summary ----
-  if (phase === "summary") {
-    const options = [
-      { value: 1, label: "😣", text: t("player.rateTooHard", { defaultValue: "Per sunku" }) },
-      { value: 2, label: "😟", text: t("player.rateAHard", { defaultValue: "Šiek tiek sunku" }) },
-      { value: 3, label: "😌", text: t("player.ratePerfect", { defaultValue: "Tobulai" }) },
-      { value: 4, label: "🙂", text: t("player.rateAEasy", { defaultValue: "Šiek tiek lengva" }) },
-      { value: 5, label: "😄", text: t("player.rateTooEasy", { defaultValue: "Per lengva" }) },
-    ];
-
-    return (
-      <Shell
-        footer={
-          <div className="flex flex-col items-center justify-center gap-3">
-            {!submitted ? (
-              <button
-                type="button"
-                data-finish-btn="1"
-                tabIndex={-1}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                className={`bg-green-600 text-white px-6 py-3 rounded-lg font-semibold ${submitting ? "opacity-70 cursor-wait" : "hover:bg-green-700"}`}
-                onClick={async () => {
-                  if (submitting) return;
-                  const y = lastYRef.current;
-                  setSubmitting(true);
-                  try {
-                    setInputActive(false);
-                    if (isIOS) {
-                      try {
-                        unlockBodyScroll();
-                      } catch {}
-                    }
-                    const rsp = await fetch("/api/complete-plan", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ planId, difficultyRating: rating, userComment: commentRef.current }),
-                    });
-                    if (!rsp.ok) throw new Error(`HTTP ${rsp.status}`);
-                    setSubmitted(true);
-                    requestAnimationFrame(() => restoreScroll(y));
-                    setTimeout(() => {
-                      try {
-                        onClose?.();
-                      } catch {}
-                      try {
-                        if (!onClose && router) router.push("/workouts");
-                      } catch {}
-                    }, 3000);
-                  } catch (e) {
-                    // optionally show toast
-                  } finally {
-                    setSubmitting(false);
-                  }
-                }}
-                disabled={submitting}
-              >
-                <span className="inline-flex items-center gap-2">
-                  {submitting && (
-                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
-                      <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" opacity="0.75" />
-                    </svg>
-                  )}
-                  {finishWorkout}
-                </span>
-              </button>
-            ) : (
-              <span className="text-green-600">{thanksForFeedback}</span>
-            )}
-          </div>
-        }
-      >
-        <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-2xl font-bold mb-2 text-center">🎉 {workoutCompletedLabel}</h2>
-          <p className="mb-4 text-gray-800 whitespace-pre-wrap text-center">
-            {workoutData?.days?.[0]?.motivationEnd || thanksForWorkingOut}
-          </p>
-
-          {workoutData?.days?.[0]?.waterRecommendation && (
-            <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900 mb-3">💧 {workoutData.days[0].waterRecommendation}</div>
-          )}
-          {workoutData?.days?.[0]?.outdoorSuggestion && (
-            <div className="p-3 bg-green-50 rounded-lg text-sm text-green-900 mb-3">🌿 {workoutData.days[0].outdoorSuggestion}</div>
-          )}
-
-          <p className="text-sm text-gray-700 mb-2 font-semibold">{howWasDifficulty}</p>
-
-          <div className="flex justify-center gap-2 mb-2">
-            {options.map((opt) => (
-              <button
-                key={opt.value}
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  const y = saveScroll();
-                  setRating(opt.value);
-                  requestAnimationFrame(() => restoreScroll(y));
-                }}
-                className={`text-3xl p-1 rounded-full border-2 ${ 
-                  rating === opt.value ? "border-green-600 bg-green-50" : "border-transparent"
-                } hover:border-green-400`}
-                type="button"
-                title={opt.text}
-                aria-label={opt.text}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-2 mb-4 justify-center">
-            {options.map((opt) => (
-              <span key={opt.value} className={`text-xs ${rating === opt.value ? "font-bold text-green-700" : "text-gray-400"}`}>
-                {opt.text}
-              </span>
-            ))}
-          </div>
-
-          <textarea
-            ref={textareaRef}
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              const y = lastYRef.current;
-              requestAnimationFrame(() => restoreScroll(y));
-            }}
-            placeholder={commentPlaceholder}
-            defaultValue={commentRef.current}
-            onChange={(e) => {
-              const el = e.target;
-              caretRef.current = { start: el.selectionStart, end: el.selectionEnd };
-              commentRef.current = el.value;
-              const y = lastYRef.current;
-              requestAnimationFrame(() => {
-                if (!isIOS) {
-                  try {
-                    const ta = textareaRef.current;
-                    if (ta) {
-                      ta.focus({ preventScroll: true });
-                      const c = caretRef.current || {};
-                      if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end);
-                    }
-                  } catch {}
-                }
-                restoreScroll(y);
-              });
-            }}
-            onFocus={() => setInputActive(true)}
-            onBlur={(e) => {
-              if (isIOS) return;
-              try {
-                const to = e.relatedTarget;
-                if (to && to.getAttribute && to.getAttribute("data-finish-btn") === "1") return;
-              } catch {}
-              setInputActive(false);
-            }}
-            onKeyDown={(e) => e.stopPropagation()}
-            className="w-full p-3 border rounded mb-24 outline-none focus:ring-2 focus:ring-black/10"
-            onInput={() => {
-              const y = lastYRef.current;
-              requestAnimationFrame(() => {
-                if (!isIOS) {
-                  try {
-                    const ta = textareaRef.current;
-                    if (ta) {
-                      ta.focus({ preventScroll: true });
-                      const c = caretRef.current || {};
-                      if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end);
-                    }
-                  } catch {}
-                }
-                restoreScroll(y);
-              });
-            }}
-            rows={4}
-          />
-        </div>
-      </Shell>
-    );
-  }
-
-  return null;
-}
-}) {
+export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
   const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
@@ -925,36 +534,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose
       }
     }
 
-    
     if (msLeft <= 0) {
-      if (transitionLockRef.current) { cancelRaf(); return true; }
-      transitionLockRef.current = true;
-      cancelRaf();
-      try { stopAllScheduled(); } catch {}
-      lastSpokenRef.current = null;
-      setStepFinished(true);
-
-      if (phase === "get_ready") {
-        try {
-          const firstEx = day?.exercises?.[0];
-          if (firstEx) {
-            const idx = findFirstExerciseIndex(firstEx);
-            setCurrentExerciseIndex(0);
-            setCurrentStepIndex(idx);
-          } else {
-            setCurrentExerciseIndex(0);
-            setCurrentStepIndex(0);
-          }
-        } catch {}
-        setPhase("exercise");
-        return true;
-      }
-
-      try { handlePhaseComplete(); } catch {}
-      return true;
-    }
-
-if (transitionLockRef.current) { cancelRaf(); return true; }
+if (transitionLockRef.current) { cancelRaf();   try { stopAllScheduled(); } catch {}
+return true; }
       transitionLockRef.current = true;
       cancelRaf();
       lastSpokenRef.current = null;
@@ -1004,7 +586,26 @@ if (transitionLockRef.current) { cancelRaf(); return true; }
       }, 250);
     } catch {}
 
-    vibe([40, 40]);
+    try {
+      if (durationSec > 0) {
+        const wd = setTimeout(() => {
+          try {
+            if (__token !== stepTokenRef.current) return;
+            const dl = deadlineRef.current;
+            if (!dl) return;
+            const now = performance.now ? performance.now() : Date.now();
+            if (now < dl - 10) return; // dar ne laikas
+            if (transitionLockRef.current) return;
+            transitionLockRef.current = true;
+            cancelRaf();
+            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
+            try { handlePhaseComplete(); } catch {}
+          } catch {}
+        }, Math.max(0, Math.round(durationSec * 1000) + 350));
+        scheduledTimeoutsRef.current.push(wd);
+      }
+    } catch {}
+vibe([40, 40]);
     try { ping(); } catch {}
 
     tickRafRef.current = requestAnimationFrame(tick);
@@ -1376,9 +977,394 @@ function handleManualContinue() {
           </div>
         </div>
       )}
-  {renderContent()}
     </div>
   );
 
-  
+  // ---- Intro ----
+  if (phase === "intro") {
+    return (
+      <Shell
+        footer={
+          <div className="flex flex-col items-center gap-3">
+            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold" onClick={handleManualContinue}>
+              {startWorkoutLabel}
+            </button>
+          </div>
+        }
+      >
+        <div className="w-full min-h_[60vh] grid place-items-center">
+          <div className="max-w-2xl text-center">
+            <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
+            <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
+          </div>
+        </div>
+      </Shell>
+    );
+  }
 
+  // ---- Get Ready ----
+  if (phase === "get_ready") {
+    const firstEx = day?.exercises?.[0] || null;
+    let firstSt = null;
+    let totalSets = 0;
+    if (firstEx?.steps && Array.isArray(firstEx.steps)) {
+      totalSets = firstEx.steps.filter((s) => s.type === "exercise").length || 0;
+      firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
+    }
+    const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
+    const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
+
+    function restartGetReady() { transitionLockRef.current = false;
+    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
+
+    return (
+      <Shell
+        footer={
+          <>
+            <div className="flex items-center justify-center gap-4">
+              <button onClick={() => { cancelRaf(); stopAllScheduled(); setPhase("intro"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
+                <SkipBack className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
+                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+              </button>
+              <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
+                <RotateCcw className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+                <SkipForward className="w-6 h-6 text-gray-800" />
+              </button>
+            </div>
+          </>
+        }
+      >
+        <div className="max-w-2xl mx-auto text-center mt-6">
+          {/* GET_READY_HEADING */}
+          <h2 className="text-2xl font-extrabold mb-2 text-yellow-500">
+            {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
+          </h2>
+          <p className="text-6xl font-extrabold text-yellow-500 mt-6">
+            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
+          </p>
+          {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
+          {firstEx && (
+            <div className="mt-6 text-left inline-block text-start">
+              <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
+              <p className="text-base font-bold text-gray-900">{firstEx.title || firstEx.name || t("player.exercise", { defaultValue: "Exercise" })}</p>
+              {firstSt && (
+                <>
+                  {(() => {
+                    const repsText = getRepsText(firstSt);
+                    if (repsText) return <p className="text-sm text-gray-900 mt-1">{repsText}</p>;
+                    const secs = getTimedSeconds(firstSt);
+                    const timedText = secs > 0 ? `${secs} ${secShort}` : "";
+                    return timedText ? <p className="text-sm text-gray-900 mt-1">{timedText}</p> : null;
+                  })()}
+                  {firstSt.set != null && totalSets > 0 && (
+                    <p className="text-sm text-gray-800 mt-1">{setWord} 1/{totalSets}</p>
+                  )}
+                  {firstEx.description && (
+                    <p className="text-sm text-gray-700 italic mt-2">{firstEx.description}</p>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </Shell>
+    );
+  }
+
+  // ---- Exercise / Rest ----
+  if (phase === "exercise") {
+    const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
+    const seriesTotal = exercise?.steps?.filter((s) => s.type === "exercise").length || 0;
+    const seriesIdx = step?.type === "exercise" ? step?.set : null;
+
+    const timerColorClass = isRestPhase ? "text-yellow-500" : "text-green-600";
+    const restLabelClass = "text-yellow-500";
+
+    return (
+      <Shell
+        footer={
+          <>
+            <div className="flex items-center justify-center gap-4">
+              <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
+                <SkipBack className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
+                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+              </button>
+              <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
+                <RotateCcw className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+                <SkipForward className="w-6 h-6 text-gray-800" />
+              </button>
+            </div>
+</>
+        }
+      >
+        <div className="max-w-2xl mx-auto text-center mt-6">
+          <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
+            {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
+
+          {/* Description under title (toggleable) */}
+          {!isRestPhase && descriptionsEnabled && exercise?.description && (
+            <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2"><Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" /><span className="font-normal">{exercise.description}</span></div>
+          )}
+
+          </h2>
+
+          {!isRestPhase && step?.type === "exercise" && (
+            <p className="text-lg font-semibold text-gray-900 mb-2">
+              {setWord} {seriesIdx}/{seriesTotal}
+            </p>
+          )}
+
+          
+
+          {getTimedSeconds(step) > 0 && (
+            <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
+              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
+            </p>
+          )}
+
+          {!isRestPhase && getReps(step) != null && (
+            <p className="text-5xl font-extrabold text-green-700 mt-6">
+              {getRepsText(step)}
+            </p>
+          )}
+
+          {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
+
+          {waitingForUser && step?.type === "exercise" && (
+            <div className="mt-6">
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold" onClick={handleManualContinue}>
+                {doneLabel}
+              </button>
+            </div>
+          )}
+
+          {isRestPhase && (
+            <div className="mt-6 text-left inline-block text-start">
+              <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
+              {nextExerciseInfo ? (
+                <>
+                  <p className="text-base font-bold text-gray-900">{nextExerciseInfo.ex?.name}</p>
+                  {(() => {
+                    const repsText = getRepsText(nextExerciseInfo.st);
+                    const secs = getTimedSeconds(nextExerciseInfo.st);
+                    const timedText = secs > 0 ? `${secs} ${secShort}` : "";
+                    const effort = repsText || timedText;
+                    return effort ? (
+                      <p className="text-sm text-gray-900 mt-1">{effort}</p>
+                    ) : null;
+                  })()}
+
+                  {nextExerciseInfo.setNo != null && (
+                    <p className="text-sm text-gray-800 mt-1">
+                      {setWord} {nextExerciseInfo.setNo}/{nextExerciseInfo.totalSets}
+                    </p>
+                  )}
+                  {nextExerciseInfo.ex?.description && (
+                    <p className="text-sm text-gray-700 italic mt-2">{nextExerciseInfo.ex.description}</p>
+                  )}
+                </>
+              ) : (
+                <p className="text-sm text-gray-600 italic">
+                  {t("player.almostFinished", { defaultValue: i18n.language?.startsWith("lt") ? "Netoli pabaigos..." : "Almost finished..." })}
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+      </Shell>
+    );
+  }
+
+  // ---- Summary ----
+  if (phase === "summary") {
+    const options = [
+      { value: 1, label: "😣", text: t("player.rateTooHard", { defaultValue: "Per sunku" }) },
+      { value: 2, label: "😟", text: t("player.rateAHard", { defaultValue: "Šiek tiek sunku" }) },
+      { value: 3, label: "😌", text: t("player.ratePerfect", { defaultValue: "Tobulai" }) },
+      { value: 4, label: "🙂", text: t("player.rateAEasy", { defaultValue: "Šiek tiek lengva" }) },
+      { value: 5, label: "😄", text: t("player.rateTooEasy", { defaultValue: "Per lengva" }) },
+    ];
+
+    return (
+      <Shell
+        footer={
+          <div className="flex flex-col items-center justify-center gap-3">
+            {!submitted ? (
+              <button
+                type="button"
+                data-finish-btn="1"
+                tabIndex={-1}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                }}
+                className={`bg-green-600 text-white px-6 py-3 rounded-lg font-semibold ${submitting ? "opacity-70 cursor-wait" : "hover:bg-green-700"}`}
+                onClick={async () => {
+                  if (submitting) return;
+                  const y = lastYRef.current;
+                  setSubmitting(true);
+                  try {
+                    setInputActive(false);
+                    if (isIOS) {
+                      try {
+                        unlockBodyScroll();
+                      } catch {}
+                    }
+                    const rsp = await fetch("/api/complete-plan", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ planId, difficultyRating: rating, userComment: commentRef.current }),
+                    });
+                    if (!rsp.ok) throw new Error(`HTTP ${rsp.status}`);
+                    setSubmitted(true);
+                    requestAnimationFrame(() => restoreScroll(y));
+                    setTimeout(() => {
+                      try {
+                        onClose?.();
+                      } catch {}
+                      try {
+                        if (!onClose && router) router.push("/workouts");
+                      } catch {}
+                    }, 3000);
+                  } catch (e) {
+                    // optionally show toast
+                  } finally {
+                    setSubmitting(false);
+                  }
+                }}
+                disabled={submitting}
+              >
+                <span className="inline-flex items-center gap-2">
+                  {submitting && (
+                    <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24" fill="none">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
+                      <path d="M22 12a10 10 0 0 1-10 10" stroke="currentColor" strokeWidth="4" opacity="0.75" />
+                    </svg>
+                  )}
+                  {finishWorkout}
+                </span>
+              </button>
+            ) : (
+              <span className="text-green-600">{thanksForFeedback}</span>
+            )}
+          </div>
+        }
+      >
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-2xl font-bold mb-2 text-center">🎉 {workoutCompletedLabel}</h2>
+          <p className="mb-4 text-gray-800 whitespace-pre-wrap text-center">
+            {workoutData?.days?.[0]?.motivationEnd || thanksForWorkingOut}
+          </p>
+
+          {workoutData?.days?.[0]?.waterRecommendation && (
+            <div className="p-3 bg-blue-50 rounded-lg text-sm text-blue-900 mb-3">💧 {workoutData.days[0].waterRecommendation}</div>
+          )}
+          {workoutData?.days?.[0]?.outdoorSuggestion && (
+            <div className="p-3 bg-green-50 rounded-lg text-sm text-green-900 mb-3">🌿 {workoutData.days[0].outdoorSuggestion}</div>
+          )}
+
+          <p className="text-sm text-gray-700 mb-2 font-semibold">{howWasDifficulty}</p>
+
+          <div className="flex justify-center gap-2 mb-2">
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  const y = saveScroll();
+                  setRating(opt.value);
+                  requestAnimationFrame(() => restoreScroll(y));
+                }}
+                className={`text-3xl p-1 rounded-full border-2 ${ 
+                  rating === opt.value ? "border-green-600 bg-green-50" : "border-transparent"
+                } hover:border-green-400`}
+                type="button"
+                title={opt.text}
+                aria-label={opt.text}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap gap-2 mb-4 justify-center">
+            {options.map((opt) => (
+              <span key={opt.value} className={`text-xs ${rating === opt.value ? "font-bold text-green-700" : "text-gray-400"}`}>
+                {opt.text}
+              </span>
+            ))}
+          </div>
+
+          <textarea
+            ref={textareaRef}
+            onClick={(e) => e.stopPropagation()}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+              const y = lastYRef.current;
+              requestAnimationFrame(() => restoreScroll(y));
+            }}
+            placeholder={commentPlaceholder}
+            defaultValue={commentRef.current}
+            onChange={(e) => {
+              const el = e.target;
+              caretRef.current = { start: el.selectionStart, end: el.selectionEnd };
+              commentRef.current = el.value;
+              const y = lastYRef.current;
+              requestAnimationFrame(() => {
+                if (!isIOS) {
+                  try {
+                    const ta = textareaRef.current;
+                    if (ta) {
+                      ta.focus({ preventScroll: true });
+                      const c = caretRef.current || {};
+                      if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end);
+                    }
+                  } catch {}
+                }
+                restoreScroll(y);
+              });
+            }}
+            onFocus={() => setInputActive(true)}
+            onBlur={(e) => {
+              if (isIOS) return;
+              try {
+                const to = e.relatedTarget;
+                if (to && to.getAttribute && to.getAttribute("data-finish-btn") === "1") return;
+              } catch {}
+              setInputActive(false);
+            }}
+            onKeyDown={(e) => e.stopPropagation()}
+            className="w-full p-3 border rounded mb-24 outline-none focus:ring-2 focus:ring-black/10"
+            onInput={() => {
+              const y = lastYRef.current;
+              requestAnimationFrame(() => {
+                if (!isIOS) {
+                  try {
+                    const ta = textareaRef.current;
+                    if (ta) {
+                      ta.focus({ preventScroll: true });
+                      const c = caretRef.current || {};
+                      if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end);
+                    }
+                  } catch {}
+                }
+                restoreScroll(y);
+              });
+            }}
+            rows={4}
+          />
+        </div>
+      </Shell>
+    );
+  }
+
+  return null;
+}
