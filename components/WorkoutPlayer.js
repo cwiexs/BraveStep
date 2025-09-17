@@ -114,6 +114,61 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // AUDIO
   const audioRef = useRef({
+
+  // ---- iOS audio priming (WebAudio + SpeechSynthesis) ----
+  const audioPrimedRef = useRef(false);
+  function primeAudio() {
+    if (audioPrimedRef.current) return;
+    audioPrimedRef.current = true;
+    try {
+      // Ensure WebAudio context exists and is resumed
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!audioRef.current) audioRef.current = {};
+      if (!audioRef.current.wa) audioRef.current.wa = { scheduled: [] };
+      if (!audioRef.current.wa.ctx) audioRef.current.wa.ctx = new AC();
+      const ctx = audioRef.current.wa.ctx;
+      if (ctx && ctx.state === "suspended") { ctx.resume().catch(() => {}); }
+      // Play a very short near-silent blip to unlock output
+      try {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        g.gain.value = 0.0001;
+        o.connect(g).connect(ctx.destination);
+        o.start();
+        o.stop(ctx.currentTime + 0.04);
+      } catch {}
+    } catch {}
+    try {
+      // Warm up SpeechSynthesis (some iOS versions need a user-gesture-initiated first call)
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(" ");
+        u.volume = 0; // silent
+        u.rate = 1;
+        try {
+          window.speechSynthesis.speak(u);
+          // cancel right after to avoid lingering
+          setTimeout(() => { try { window.speechSynthesis.cancel(); } catch {} }, 50);
+        } catch {}
+        // Access voices to trigger voiceschanged event
+        try { const _v = window.speechSynthesis.getVoices(); } catch {}
+      }
+    } catch {}
+  }
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const once = () => primeAudio();
+    // prime on first interaction
+    window.addEventListener("pointerdown", once, { once: true });
+    window.addEventListener("touchstart", once, { once: true, passive: true });
+    window.addEventListener("mousedown", once, { once: true });
+    return () => {
+      try { window.removeEventListener("pointerdown", once); } catch {}
+      try { window.removeEventListener("touchstart", once); } catch {}
+      try { window.removeEventListener("mousedown", once); } catch {}
+    };
+  }, []);
     html: { loaded: false, beep: null, silence: null, nums: {} },
     wa: { ctx: null, ready: false, buffers: new Map(), scheduled: [] },
   });
@@ -371,6 +426,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function speakNumber(n) {
+    /*patched*/
+    try {
+      // original body
+
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -386,7 +445,23 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     } else {
       ping();
     }
-  }
+  
+    } catch (e) {
+      // fallback to a quick beep via WebAudio
+      try {
+        const ctx = audioRef.current?.wa?.ctx || new (window.AudioContext || window.webkitAudioContext)();
+        if (ctx.state === "suspended") { try { ctx.resume(); } catch {} }
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        g.gain.value = 0.07;
+        o.connect(g).connect(ctx.destination);
+        o.type = "sine";
+        const t0 = ctx.currentTime;
+        o.start(t0);
+        o.stop(t0 + 0.08);
+      } catch {}
+    }
+}
 
   function stopAllScheduled() {
   try { stopAllAudioScheduled(); } catch {}
@@ -730,6 +805,7 @@ vibe([40, 40]);
     setGetReadySecondsStr(String(clamped));
   }
 function handleManualContinue() {
+    try { primeAudio(); } catch {}
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
@@ -1005,7 +1081,7 @@ function handleManualContinue() {
       <Shell
         footer={
           <div className="flex flex-col items-center gap-3">
-            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold" onClick={handleManualContinue}>
+            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold" onClick={() => { try { primeAudio(); } catch {} handleManualContinue(); }}>
               {startWorkoutLabel}
             </button>
           </div>
@@ -1159,7 +1235,7 @@ function handleManualContinue() {
 
           {waitingForUser && step?.type === "exercise" && (
             <div className="mt-6">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold" onClick={handleManualContinue}>
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold" onClick={() => { try { primeAudio(); } catch {} handleManualContinue(); }}>
                 {doneLabel}
               </button>
             </div>
