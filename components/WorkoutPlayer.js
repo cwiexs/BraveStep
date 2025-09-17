@@ -574,7 +574,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             // restart the GET READY timer cleanly
             startTimedStep(d0);
           } catch {}
-        }, 500);
+        }, 2000);
       }
     } catch {}
     
