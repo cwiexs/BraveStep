@@ -78,6 +78,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   const timeoutsRef = useRef([]);
 
+  // Extra watchdogs / hardening for mobile timers
+  const realDeadlineRef = useRef(null); // Date.now()-based deadline (not throttled)
+  const watchdogIntRef = useRef(null);  // setInterval fallback when rAF/setTimeout are throttled
+  const zeroStallTimeoutRef = useRef(null); // last-resort guard when UI shows 0s but no switch
+
   // Scroll
   const scrollRef = useRef(null);
   const lastYRef = useRef(0);
@@ -230,6 +235,23 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   function clearAllTimeouts() {
     timeoutsRef.current.forEach((id) => clearTimeout(id));
     timeoutsRef.current = [];
+  }
+
+  function clearWatchdogs() {
+    try { if (watchdogIntRef.current) { clearInterval(watchdogIntRef.current); watchdogIntRef.current = null; } } catch {}
+    try { if (zeroStallTimeoutRef.current) { clearTimeout(zeroStallTimeoutRef.current); zeroStallTimeoutRef.current = null; } } catch {}
+  }
+
+  function forceTransitionFromGetReady() {
+    try {
+      const firstEx = day?.exercises?.[0];
+      if (firstEx) {
+        const idx = findFirstExerciseIndex(firstEx);
+        setCurrentExerciseIndex(0);
+        setCurrentStepIndex(idx);
+      }
+    } catch {}
+    setPhase("exercise");
   }
 
   // --------- AUDIO (WebAudio + fallback) ----------
@@ -504,16 +526,49 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
+
+  // Re-sync timers when returning to foreground (iOS may pause rAF and delay setTimeout)
+  useEffect(() => {
+    const onVis = () => {
+      if (document.visibilityState === "visible") {
+        try {
+          if (!paused && realDeadlineRef.current) {
+            const remain = Math.max(0, realDeadlineRef.current - Date.now());
+            if (remain <= 0) {
+              if (!transitionLockRef.current) {
+                transitionLockRef.current = true;
+                cancelRaf();
+                stopAllScheduled();
+                setStepFinished(true);
+                if (phase === "get_ready") forceTransitionFromGetReady();
+                else handlePhaseComplete();
+              }
+            } else {
+              // re-arm perf clock
+              deadlineRef.current = performance.now() + remain;
+              if (!tickRafRef.current) tickRafRef.current = requestAnimationFrame(tick);
+            }
+          }
+        } catch {}
+      }
+    };
+    document.addEventListener("visibilitychange", onVis);
+    return () => document.removeEventListener("visibilitychange", onVis);
+  }, [paused, phase]);
+
   // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
+    clearWatchdogs();
   };
 
   const tick = (nowMs) => {
-    if (!deadlineRef.current) return;
+    if (!deadlineRef.current && !realDeadlineRef.current) return;
+    const wallMsLeft = realDeadlineRef.current != null ? Math.max(0, realDeadlineRef.current - Date.now()) : Infinity;
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
-      const msLeft = Math.max(0, deadlineRef.current - nowMs);
+      const perfMsLeft = deadlineRef.current != null ? Math.max(0, deadlineRef.current - nowMs) : Infinity;
+      const msLeft = Math.min(perfMsLeft, wallMsLeft);
       const secs = Math.ceil(msLeft / 1000);
       setSecondsLeft((prev) => (prev !== secs ? secs : prev));
 
@@ -524,11 +579,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }
       }
 
-      if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
-      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+      if (msLeft <= 0) {
+        if (transitionLockRef.current) { cancelRaf(); return; }
+        transitionLockRef.current = true;
         cancelRaf();
-        lastSpokenRef.current = null;
         setStepFinished(true);
+        lastSpokenRef.current = null;
+        if (phase === "get_ready") { forceTransitionFromGetReady(); return; }
         handlePhaseComplete();
         return;
       }
@@ -544,6 +601,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     cancelRaf();
     stopAllScheduled();
     lastSpokenRef.current = null;
+    clearWatchdogs();
+
+    // Set both performance-based and wall-clock deadlines
+    const startWall = Date.now();
+    realDeadlineRef.current = startWall + (Math.max(0, durationSec || 0) * 1000);
 
     if (!durationSec || durationSec <= 0) {
       setSecondsLeft(0);
@@ -556,6 +618,24 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     const nowMs = performance.now();
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
+
+    // Watchdog interval: if timers are throttled, force completion when wall clock hits
+    try {
+      watchdogIntRef.current = setInterval(() => {
+        if (paused) return;
+        if (!realDeadlineRef.current) return;
+        if (transitionLockRef.current) return;
+        const left = realDeadlineRef.current - Date.now();
+        if (left <= 0) {
+          transitionLockRef.current = true;
+          cancelRaf();
+          stopAllScheduled();
+          setStepFinished(true);
+          if (phase === "get_ready") { forceTransitionFromGetReady(); }
+          else { try { handlePhaseComplete(); } catch {} }
+        }
+      }, 220);
+    } catch {}
 
     
     try {
@@ -575,6 +655,21 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
         scheduledTimeoutsRef.current.push(wd);
+      }
+    } catch {}
+
+    // Last-resort: if UI shows 0s after expected end and nothing moved, push it over the line
+    try {
+      if (phase === "get_ready") {
+        zeroStallTimeoutRef.current = setTimeout(() => {
+          if (!transitionLockRef.current && secondsLeft === 0) {
+            transitionLockRef.current = true;
+            cancelRaf();
+            stopAllScheduled();
+            setStepFinished(true);
+            forceTransitionFromGetReady();
+          }
+        }, Math.max(0, Math.round(durationSec * 1000) + 900));
       }
     } catch {}
 vibe([40, 40]);
@@ -656,6 +751,7 @@ vibe([40, 40]);
       timeoutsRef.current.forEach((id) => clearTimeout(id));
       cancelRaf();
       stopAllScheduled();
+      clearWatchdogs();
     };
   }, []);
 
