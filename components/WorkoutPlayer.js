@@ -82,6 +82,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const realDeadlineRef = useRef(null); // Date.now()-based deadline (not throttled)
   const watchdogIntRef = useRef(null);  // setInterval fallback when rAF/setTimeout are throttled
   const zeroStallTimeoutRef = useRef(null); // last-resort guard when UI shows 0s but no switch
+  const hardCutoverTimeoutRef = useRef(null); // fires ~100ms after deadline to force transition
 
   // Scroll
   const scrollRef = useRef(null);
@@ -240,6 +241,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   function clearWatchdogs() {
     try { if (watchdogIntRef.current) { clearInterval(watchdogIntRef.current); watchdogIntRef.current = null; } } catch {}
     try { if (zeroStallTimeoutRef.current) { clearTimeout(zeroStallTimeoutRef.current); zeroStallTimeoutRef.current = null; } } catch {}
+    try { if (hardCutoverTimeoutRef.current) { clearTimeout(hardCutoverTimeoutRef.current); hardCutoverTimeoutRef.current = null; } } catch {}
   }
 
   function forceTransitionFromGetReady() {
@@ -556,6 +558,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return () => document.removeEventListener("visibilitychange", onVis);
   }, [paused, phase]);
 
+  function safeVibe(pattern) { try { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(pattern); } catch {} }
+  function safeSpeak(text) { try { if (window && window.speechSynthesis) { const u = new SpeechSynthesisUtterance(text); window.speechSynthesis.speak(u); } } catch {} }
   // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
@@ -672,7 +676,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }, Math.max(0, Math.round(durationSec * 1000) + 900));
       }
     } catch {}
-vibe([40, 40]);
+safeVibe([40, 40]);
     ping();
 
     tickRafRef.current = requestAnimationFrame(tick);
@@ -752,6 +756,7 @@ vibe([40, 40]);
       cancelRaf();
       stopAllScheduled();
       clearWatchdogs();
+      try { if (hardCutoverTimeoutRef.current) { clearTimeout(hardCutoverTimeoutRef.current); hardCutoverTimeoutRef.current = null; } } catch {}
     };
   }, []);
 
@@ -1018,7 +1023,26 @@ function handleManualContinue() {
             <p className="text-sm text-gray-700 mb-5">
               {t("player.confirmExitBody", {
                 defaultValue: "Jei išeisite dabar, ši sesija nebus užskaityta kaip atlikta."
-              })}
+              })
+    // Hard cutover ~120ms after the real deadline (helps iOS when it freezes at 0s on first run)
+    try {
+      if (phase === "get_ready") {
+        if (hardCutoverTimeoutRef.current) { clearTimeout(hardCutoverTimeoutRef.current); hardCutoverTimeoutRef.current = null; }
+        const ms = Math.max(0, Math.round(durationSec * 1000) + 120);
+        hardCutoverTimeoutRef.current = setTimeout(() => {
+          if (transitionLockRef.current) return;
+          // If still in get_ready and not switched, force it now.
+          if (phase === "get_ready") {
+            transitionLockRef.current = true;
+            cancelRaf();
+            stopAllScheduled();
+            setStepFinished(true);
+            forceTransitionFromGetReady();
+          }
+        }, ms);
+      }
+    } catch {}
+    }
             </p>
             <div className="flex items-center justify-end gap-2">
               <button
