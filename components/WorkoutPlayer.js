@@ -84,6 +84,38 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const zeroStallTimeoutRef = useRef(null); // last-resort guard when UI shows 0s but no switch
   const hardCutoverTimeoutRef = useRef(null); // fires ~100ms after deadline to force transition
 
+  // --- iOS audio unlock ---
+  const audioCtxRef = useRef(null);
+  const audioUnlockedRef = useRef(false);
+  const primeAudioOnceRef = useRef(false);
+
+  function ensureAudioContext() {
+    try {
+      if (!audioCtxRef.current) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (Ctx) audioCtxRef.current = new Ctx();
+      }
+    } catch {}
+    return audioCtxRef.current;
+  }
+
+  function primeAudio() {
+    if (audioUnlockedRef.current) return;
+    const ctx = ensureAudioContext();
+    if (!ctx) { audioUnlockedRef.current = true; return; }
+    try {
+      if (ctx.state === "suspended") ctx.resume();
+      // create a 1-sample silent buffer and play it very shortly
+      const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
+      src.stop(0);
+      audioUnlockedRef.current = true;
+    } catch { audioUnlockedRef.current = true; }
+  }
+
   // Scroll
   const scrollRef = useRef(null);
   const lastYRef = useRef(0);
@@ -560,6 +592,33 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   function safeVibe(pattern) { try { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(pattern); } catch {} }
   function safeSpeak(text) { try { if (window && window.speechSynthesis) { const u = new SpeechSynthesisUtterance(text); window.speechSynthesis.speak(u); } } catch {} }
+
+  // Prime audio on first user gesture (iOS requires a gesture to unlock AudioContext)
+  useEffect(() => {
+    if (primeAudioOnceRef.current) return;
+    const onFirstInteract = () => {
+      if (primeAudioOnceRef.current) return;
+      primeAudioOnceRef.current = true;
+      try { primeAudio(); } catch {}
+      // Also nudge speechSynthesis by querying voices (without speaking)
+      try { if (window && window.speechSynthesis) { window.speechSynthesis.getVoices(); } } catch {}
+      window.removeEventListener("pointerdown", onFirstInteract);
+      window.removeEventListener("touchstart", onFirstInteract, { passive: true });
+      window.removeEventListener("keydown", onFirstInteract);
+      document.removeEventListener("click", onFirstInteract);
+    };
+    window.addEventListener("pointerdown", onFirstInteract);
+    window.addEventListener("touchstart", onFirstInteract, { passive: true });
+    window.addEventListener("keydown", onFirstInteract);
+    document.addEventListener("click", onFirstInteract);
+    return () => {
+      window.removeEventListener("pointerdown", onFirstInteract);
+      window.removeEventListener("touchstart", onFirstInteract);
+      window.removeEventListener("keydown", onFirstInteract);
+      document.removeEventListener("click", onFirstInteract);
+    };
+  }, []);
+
   // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
@@ -676,7 +735,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }, Math.max(0, Math.round(durationSec * 1000) + 900));
       }
     } catch {}
-safeVibe([40, 40]);
+setTimeout(() => { try { safeVibe([40, 40]); } catch {} }, 150);
     ping();
 
     tickRafRef.current = requestAnimationFrame(tick);
