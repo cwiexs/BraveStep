@@ -77,6 +77,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
+  const lastAdvancedRef = useRef(null);
   const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
@@ -511,7 +512,24 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
-  // TIMER
+  
+  /* universal timer watchdog */
+  useEffect(() => {
+    if (paused) return;
+    const timed = phase === "get_ready" || (phase === "exercise" && getTimedSeconds(step) > 0);
+    if (!timed) return;
+    if (secondsLeft > 0) return;
+    // step identity token
+    const key = `${phase}:${currentExerciseIndex}:${currentStepIndex}:${getTimedSeconds(step)}`;
+    if (lastAdvancedRef.current === key) return;
+    lastAdvancedRef.current = key;
+    // advance safely
+    try {
+      if (transitionLockRef.current) transitionLockRef.current = false;
+      handlePhaseComplete();
+    } catch {}
+  }, [secondsLeft, phase, currentExerciseIndex, currentStepIndex, step, paused]);
+// TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
@@ -532,7 +550,18 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
 
       if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
-      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+      if (phase === "get_ready") {
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        }
+      } catch {}
+      setPhase("exercise");
+      return;
+    //__patched__ cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
         setStepFinished(true);
@@ -721,7 +750,18 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+    if (phase === "get_ready") {
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        }
+      } catch {}
+      setPhase("exercise");
+      return;
+    //__patched__ try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
     cancelRaf();
     stopAllScheduled();
 
@@ -979,6 +1019,17 @@ function handleManualContinue() {
 
   // ---- Get Ready ----
   if (phase === "get_ready") {
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        }
+      } catch {}
+      setPhase("exercise");
+      return;
+    //__patched__
     const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
