@@ -3,25 +3,38 @@ import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
 
-
-
-    const msLeft = Math.max(0, deadlineRef.current - now);
-    if (msLeft <= 0) {
-      try { finishIfDue && finishIfDue(); } catch {}
-    } else {
-      try {
-        cancelRaf && cancelRaf();
-        clearWatchdog && clearWatchdog();
-        if (lastTickRef) lastTickRef.current = now;
-        if (tickRafRef) tickRafRef.current = requestAnimationFrame(tick);
-        if (watchdogIdRef) watchdogIdRef.current = setTimeout(() => { try { finishIfDue && finishIfDue(); } catch {} }, Math.round(msLeft) + 400);
-      } catch {}
+  // Recover timer after tab/app returns to foreground (mobile-safe)
+  useEffect(() => {
+    const onVis = () => {
+      if (typeof document === "undefined") return;
+      if (document.visibilityState !== "visible") return;
+      if (!deadlineRef?.current) return;
+      const now = performance.now();
+      const msLeft = Math.max(0, deadlineRef.current - now);
+      if (msLeft <= 0) {
+        try { if (typeof finishIfDue === "function") finishIfDue(); } catch {}
+      } else {
+        try {
+          if (typeof cancelRaf === "function") cancelRaf();
+          if (typeof clearWatchdog === "function") clearWatchdog();
+          if (lastTickRef) lastTickRef.current = now;
+          if (tickRafRef) tickRafRef.current = requestAnimationFrame(tick);
+          if (watchdogIdRef) watchdogIdRef.current = setTimeout(() => {
+            try { if (typeof finishIfDue === "function") finishIfDue(); } catch {}
+          }, Math.round(msLeft) + 400);
+        } catch {}
+      }
+    };
+    if (typeof document !== "undefined") {
+      document.addEventListener("visibilitychange", onVis, { passive: true });
     }
-  };
-  document.addEventListener("visibilitychange", onVis, { passive: true });
-  return () => document.removeEventListener("visibilitychange", onVis);
-}, []);
-export default function WorkoutPlayer({ workoutData, planId, onClose }) {
+    return () => {
+      if (typeof document !== "undefined") {
+        document.removeEventListener("visibilitychange", onVis);
+      }
+    };
+  }, []);
+
   const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
   const isIOS = typeof navigator !== "undefined" &&
