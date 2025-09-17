@@ -576,7 +576,7 @@ transitionLockRef.current = false;
             else if (typeof restartCurrentStep === "function") restartCurrentStep();
             else { cancelRaf(); stopAllScheduled(); startTimedStep(d0); }
           } catch {}
-        }, 500); // you can change this delay (ms)
+        }, 2000); // you can change this delay (ms)
       }
     } catch {}
 
