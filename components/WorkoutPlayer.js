@@ -75,20 +75,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
   const stepTokenRef = useRef(0);
-const timeoutsRef = useRef([]);
-// Extra watchdogs / hardening for mobile timers
-const realDeadlineRef = useRef(null); // Date.now() deadline
-const watchdogIntRef = useRef(null);  // setInterval fallback
-const zeroStallTimeoutRef = useRef(null); // guard if UI shows 0s but no switch
-const hardCutoverTimeoutRef = useRef(null); // fires slightly after deadline to force transition
+const autoRestartOnceRef = useRef(false);
 
-// iOS audio unlock
-const audioCtxRef = useRef(null);
-const audioUnlockedRef = useRef(false);
-const primeAudioOnceRef = useRef(false);
-
-
-  
+  const timeoutsRef = useRef([]);
 
   // Scroll
   const scrollRef = useRef(null);
@@ -103,7 +92,6 @@ const primeAudioOnceRef = useRef(false);
     if (inputActive) lockBodyScroll();
     else unlockBodyScroll();
     return () => {
-  try { clearWatchdogs(); } catch {}
       if (isIOS) unlockBodyScroll();
     };
   }, [isIOS, inputActive]);
@@ -517,107 +505,7 @@ const primeAudioOnceRef = useRef(false);
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
-  
-function clearWatchdogs() {
-  try { if (watchdogIntRef) { clearInterval(watchdogIntRef.current); watchdogIntRef.current = null; } } catch {}
-  try { if (zeroStallTimeoutRef) { clearTimeout(zeroStallTimeoutRef.current); zeroStallTimeoutRef.current = null; } } catch {}
-  try { if (hardCutoverTimeoutRef) { clearTimeout(hardCutoverTimeoutRef.current); hardCutoverTimeoutRef.current = null; } } catch {}
-}
-
-function ensureAudioContext() {
-  try {
-    if (!audioCtxRef.current) {
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (Ctx) audioCtxRef.current = new Ctx();
-    }
-  } catch {}
-  return audioCtxRef.current;
-}
-function primeAudio() {
-  if (audioUnlockedRef.current) return;
-  const ctx = ensureAudioContext();
-  if (!ctx) { audioUnlockedRef.current = true; return; }
-  try {
-    if (ctx.state === "suspended") ctx.resume();
-    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
-    const s = ctx.createBufferSource();
-    s.buffer = buf; s.connect(ctx.destination); s.start(0); s.stop(0);
-    audioUnlockedRef.current = true;
-  } catch { audioUnlockedRef.current = true; }
-}
-
-function safeVibe(pattern){ try{ if (navigator && navigator.vibrate) navigator.vibrate(pattern); } catch {} }
-
-
-useEffect(() => {
-  const onVis = () => {
-    if (document.visibilityState !== "visible") return;
-    try {
-      if (!paused && realDeadlineRef.current) {
-        const remain = Math.max(0, realDeadlineRef.current - Date.now());
-        if (remain <= 0) {
-          // Force complete
-          if (!transitionLockRef.current) {
-            transitionLockRef.current = true;
-            cancelRaf && cancelRaf();
-            stopAllScheduled && stopAllScheduled();
-            setStepFinished && setStepFinished(true);
-            if (phase === "get_ready") {
-              try {
-                const firstEx = day?.exercises?.[0];
-                if (firstEx && typeof findFirstExerciseIndex === "function") {
-                  const idx = findFirstExerciseIndex(firstEx);
-                  setCurrentExerciseIndex && setCurrentExerciseIndex(0);
-                  setCurrentStepIndex && setCurrentStepIndex(idx);
-                }
-              } catch {}
-              setPhase && setPhase("exercise");
-            } else {
-              handlePhaseComplete && handlePhaseComplete();
-            }
-          }
-        } else {
-          if (typeof performance !== "undefined") {
-            deadlineRef.current = performance.now() + remain;
-            if (!tickRafRef.current && typeof requestAnimationFrame !== "undefined") {
-              tickRafRef.current = requestAnimationFrame(tick);
-            }
-          }
-        }
-      }
-    } catch {}
-  };
-  document.addEventListener("visibilitychange", onVis);
-  return () => document.removeEventListener("visibilitychange", onVis);
-}, [paused, phase]);
-
-
-// Prime audio on first user gesture
-useEffect(() => {
-  if (primeAudioOnceRef.current) return;
-  const onFirstInteract = () => {
-    if (primeAudioOnceRef.current) return;
-    primeAudioOnceRef.current = true;
-    try { primeAudio(); } catch {}
-    try { if (window && window.speechSynthesis) window.speechSynthesis.getVoices(); } catch {}
-    window.removeEventListener("pointerdown", onFirstInteract);
-    window.removeEventListener("touchstart", onFirstInteract);
-    window.removeEventListener("keydown", onFirstInteract);
-    document.removeEventListener("click", onFirstInteract);
-  };
-  window.addEventListener("pointerdown", onFirstInteract);
-  window.addEventListener("touchstart", onFirstInteract, { passive: true });
-  window.addEventListener("keydown", onFirstInteract);
-  document.addEventListener("click", onFirstInteract);
-  return () => {
-    window.removeEventListener("pointerdown", onFirstInteract);
-    window.removeEventListener("touchstart", onFirstInteract);
-    window.removeEventListener("keydown", onFirstInteract);
-    document.removeEventListener("click", onFirstInteract);
-  };
-}, []);
-
-// TIMER
+  // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
@@ -668,63 +556,19 @@ useEffect(() => {
 
     const nowMs = performance.now();
     deadlineRef.current = nowMs + durationSec * 1000;
-// wall-clock deadline
-const startWall = Date.now();
-realDeadlineRef.current = startWall + Math.max(0, (durationSec || 0) * 1000);
-
-// watchdog interval
+// --- Universal cheat: auto-restart GET READY once after 500ms to unstick timers ---
 try {
-  if (watchdogIntRef.current) { clearInterval(watchdogIntRef.current); watchdogIntRef.current = null; }
-  watchdogIntRef.current = setInterval(() => {
-    if (paused) return;
-    if (!realDeadlineRef.current) return;
-    if (transitionLockRef.current) return;
-    const left = realDeadlineRef.current - Date.now();
-    if (left <= 0) {
-      transitionLockRef.current = true;
-      cancelRaf && cancelRaf();
-      stopAllScheduled && stopAllScheduled();
-      setStepFinished && setStepFinished(true);
-      if (phase === "get_ready") {
-        try {
-          const firstEx = day?.exercises?.[0];
-          if (firstEx && typeof findFirstExerciseIndex === "function") {
-            const idx = findFirstExerciseIndex(firstEx);
-            setCurrentExerciseIndex && setCurrentExerciseIndex(0);
-            setCurrentStepIndex && setCurrentStepIndex(idx);
-          }
-        } catch {}
-        setPhase && setPhase("exercise");
-      } else {
-        handlePhaseComplete && handlePhaseComplete();
-      }
-    }
-  }, 220);
+  if (phase === "get_ready" && !autoRestartOnceRef.current) {
+    autoRestartOnceRef.current = true;
+    setTimeout(() => {
+      try {
+        if (typeof restartGetReady === "function") { restartGetReady(); }
+        else if (typeof restartCurrentStep === "function") { restartCurrentStep(); }
+      } catch {}
+    }, 500);
+  }
 } catch {}
-
-// Hard cutover slightly after planned deadline (GET READY only)
-try {
-  if (phase === "get_ready") {
-    if (hardCutoverTimeoutRef.current) { clearTimeout(hardCutoverTimeoutRef.current); hardCutoverTimeoutRef.current = null; }
-    const ms = Math.max(0, Math.round((durationSec || 0) * 1000) + 150);
-    hardCutoverTimeoutRef.current = setTimeout(() => {
-      if (transitionLockRef.current) return;
-      if (phase === "get_ready") {
-        transitionLockRef.current = true;
-        cancelRaf && cancelRaf();
-        stopAllScheduled && stopAllScheduled();
-        setStepFinished && setStepFinished(true);
-        try {
-          const firstEx = day?.exercises?.[0];
-          if (firstEx && typeof findFirstExerciseIndex === "function") {
-            const idx = findFirstExerciseIndex(firstEx);
-            setCurrentExerciseIndex && setCurrentExerciseIndex(0);
-            setCurrentStepIndex && setCurrentStepIndex(idx);
-          }
-        } catch {}
-        setPhase && setPhase("exercise");
-      }
-    }, ms);
+}, 500);
   }
 } catch {}
 
@@ -750,7 +594,7 @@ try {
         scheduledTimeoutsRef.current.push(wd);
       }
     } catch {}
-setTimeout(() => { try { safeVibe([40, 40]); } catch {} }, 150);
+vibe([40, 40]);
     ping();
 
     tickRafRef.current = requestAnimationFrame(tick);
