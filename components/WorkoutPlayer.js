@@ -539,7 +539,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   };
 
   const startTimedStep = (durationSec) => {
-    transitionLockRef.current = false;
+    
+  // reset one-time auto-restart flag when entering GET READY
+  try { if (phase === "get_ready") autoRestartOnceRef.current = false; } catch {}
+transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
     cancelRaf();
@@ -558,25 +561,25 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-        // --- One-time universal auto-restart to unstick mobile timers (GET READY only) ---
+    // --- One-time universal auto-refresh (cheat) to unstick timers in GET READY ---
     try {
       if (phase === "get_ready" && !autoRestartOnceRef.current) {
         autoRestartOnceRef.current = true;
         const d0 = durationSec;
-        const t0 = __token;
+        const t0 = stepTokenRef.current;
         setTimeout(() => {
           try {
-            // still same step token and still in get_ready?
-            if (t0 !== stepTokenRef.current) return;
-            if (phase !== "get_ready") return;
-            cancelRaf();
-            stopAllScheduled();
-            // restart the GET READY timer cleanly
-            startTimedStep(d0);
+            if (t0 !== stepTokenRef.current) return; // different step now
+            if (phase !== "get_ready") return;       // already moved on
+            // Prefer using component's own restart API if available
+            if (typeof restartGetReady === "function")      restartGetReady();
+            else if (typeof restartCurrentStep === "function") restartCurrentStep();
+            else { cancelRaf(); stopAllScheduled(); startTimedStep(d0); }
           } catch {}
-        }, 2000);
+        }, 500); // you can change this delay (ms)
       }
     } catch {}
+
     
     try {
       if (durationSec > 0) {
