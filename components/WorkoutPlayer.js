@@ -539,18 +539,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       cancelRaf();
       lastSpokenRef.current = null;
       setStepFinished(true);
-      if (phase === "get_ready") {
-        try {
-          const firstEx = day?.exercises?.[0];
-          if (firstEx) {
-            const idx = findFirstExerciseIndex(firstEx);
-            setCurrentExerciseIndex(0);
-            setCurrentStepIndex(idx);
-          }
-        } catch {}
-        setPhase("exercise");
-        return true;
-      }
       try { handlePhaseComplete(); } catch {}
       return true;
     }
@@ -587,7 +575,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-    // interval fallback (mobile safety)
+    // interval fallback for mobile
     cancelInterval();
     try {
       tickIntervalRef.current = setInterval(() => {
