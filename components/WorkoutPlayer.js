@@ -732,10 +732,7 @@ function handleManualContinue() {
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
         startTimedStep(gr);
-        try {
-          const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60));
-          scheduledTimeoutsRef.current.push(id);
-        } catch {}
+
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
@@ -1040,8 +1037,7 @@ function handleManualContinue() {
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() { transitionLockRef.current = false;
-    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
+    function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
 
     return (
       <Shell
