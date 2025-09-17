@@ -11,6 +11,20 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   // ---- iOS scroll lock while typing ----
   const pageYRef = useRef(0);
   const scheduledTimeoutsRef = useRef([]);
+
+  // --- Timer/timeout helpers (mobile-safe) ---
+  function stopAllTimeouts() {
+    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
+    scheduledTimeoutsRef.current = [];
+  }
+  // Keep audio stopper separate; if it previously cleared timeouts, delegate to stopAllTimeouts too.
+  function stopAllAudioScheduled() {
+    try {
+      // If any audio scheduling exists, cancel here (placeholder to keep compatibility).
+      // Additionally clear any residual timeouts to be safe.
+      stopAllTimeouts();
+    } catch {}
+  }
   const lockBodyScroll = () => {
     try {
       pageYRef.current = window.scrollY || window.pageYOffset || 0;
