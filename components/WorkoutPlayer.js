@@ -727,6 +727,28 @@ function handleManualContinue() {
         setCurrentExerciseIndex(0);
         setCurrentStepIndex(0);
       }
+    } catch (err) {
+      console.warn("Could not find first exercise", err);
+      setCurrentExerciseIndex(0);
+      setCurrentStepIndex(0);
+    }
+    setPhase("get_ready");
+    const gr = Number(getReadySeconds) || 0;
+    if (gr > 0) {
+      transitionLockRef.current = false; // reset before starting pre-workout timer
+      startTimedStep(gr);
+    } else {
+      setSecondsLeft(0);
+      setWaitingForUser(false);
+      setPhase("exercise");
+    }
+  } else if (phase === "exercise") {
+    setStepFinished(true);
+    handlePhaseComplete();
+  } else if (phase === "summary") {
+    onClose?.();
+  }
+}
     } catch {}
     setPhase("get_ready");
     const gr = Number(getReadySeconds) || 0;
