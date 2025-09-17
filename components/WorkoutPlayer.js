@@ -566,7 +566,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
             const dl = deadlineRef.current;
             if (!dl) return;
             const now = performance.now ? performance.now() : Date.now();
-            if (now + 100 < dl) return; // dar ne laikas
+            if (now < dl - 10) return; // dar ne laikas
             if (transitionLockRef.current) return;
             transitionLockRef.current = true;
             cancelRaf();
