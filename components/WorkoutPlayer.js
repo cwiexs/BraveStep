@@ -504,6 +504,22 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
+  // Fallback: if pre-workout (get_ready) reaches 0s but something prevented the usual transition,
+  // force a safe phase change identical to exercise/rest logic.
+  useEffect(() => {
+    if (phase === "get_ready" && secondsLeft === 0) {
+      if (transitionLockRef.current) return;
+      transitionLockRef.current = true;
+      try { cancelRaf(); } catch {}
+      try { stopAllScheduled(); } catch {}
+      try { setStepFinished(true); } catch {}
+      setTimeout(() => {
+        try { handlePhaseComplete(); } catch {}
+      }, 0);
+    }
+  }, [phase, secondsLeft]);
+
+
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
   // TIMER
@@ -712,61 +728,21 @@ vibe([40, 40]);
     setGetReadySecondsStr(String(clamped));
   }
 function handleManualContinue() {
-  cancelRaf();
-  stopAllScheduled();
-  if (phase === "intro") {
-    primeIOSAudio();
-    // Preselect first exercise step
-    try {
-      const firstEx = day?.exercises?.[0];
-      if (firstEx) {
-        const idx = findFirstExerciseIndex(firstEx);
-        setCurrentExerciseIndex(0);
-        setCurrentStepIndex(idx);
-      } else {
-        setCurrentExerciseIndex(0);
-        setCurrentStepIndex(0);
-      }
-    } catch (err) {
-      console.warn("Could not find first exercise", err);
-      setCurrentExerciseIndex(0);
-      setCurrentStepIndex(0);
-    }
-    setPhase("get_ready");
-    const gr = Number(getReadySeconds) || 0;
-    if (gr > 0) {
-      transitionLockRef.current = false; // reset before starting pre-workout timer
-      startTimedStep(gr);
-    } else {
-      setSecondsLeft(0);
-      setWaitingForUser(false);
-      setPhase("exercise");
-    }
-  } else if (phase === "exercise") {
-    setStepFinished(true);
-    handlePhaseComplete();
-  } else if (phase === "summary") {
-    onClose?.();
-  }
-}
-    } catch {}
-    setPhase("get_ready");
-    const gr = Number(getReadySeconds) || 0;
-    if (gr > 0) {
-      transitionLockRef.current = false; // reset before starting pre-workout timer
-      startTimedStep(gr);
-    } else {
-      setSecondsLeft(0);
-      setWaitingForUser(false);
-      setPhase("exercise");
-    }
-  } else if (phase === "exercise") {
-    setStepFinished(true);
-    handlePhaseComplete();
-  } else if (phase === "summary") {
-    onClose?.();
-  }
-}
+    cancelRaf();
+    stopAllScheduled();
+    if (phase === "intro") {
+      primeIOSAudio();
+      // Preselect first exercise step
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        } else {
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(0);
+        }
       } catch {}
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
@@ -786,23 +762,7 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") {
-    transitionLockRef.current = false; // ensure reset before switching
-    try {
-      const firstEx = day?.exercises?.[0];
-      let idx = 0;
-      if (firstEx) {
-        idx = findFirstExerciseIndex(firstEx);
-        setCurrentExerciseIndex(0);
-        setCurrentStepIndex(idx);
-      }
-    } catch (err) {
-      console.warn("Failed to locate first exercise step", err);
-      setCurrentExerciseIndex(0);
-      setCurrentStepIndex(0);
-    }
-    setPhase("exercise");
-    return; try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+    if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
     cancelRaf();
     stopAllScheduled();
 
@@ -1038,7 +998,6 @@ function handleManualContinue() {
 
   // ---- Intro ----
   if (phase === "intro") {
-      transitionLockRef.current = false; // reset lock before starting
     return (
       <Shell
         footer={
@@ -1061,22 +1020,6 @@ function handleManualContinue() {
 
   // ---- Get Ready ----
   if (phase === "get_ready") {
-    transitionLockRef.current = false; // ensure reset before switching
-    try {
-      const firstEx = day?.exercises?.[0];
-      let idx = 0;
-      if (firstEx) {
-        idx = findFirstExerciseIndex(firstEx);
-        setCurrentExerciseIndex(0);
-        setCurrentStepIndex(idx);
-      }
-    } catch (err) {
-      console.warn("Failed to locate first exercise step", err);
-      setCurrentExerciseIndex(0);
-      setCurrentStepIndex(0);
-    }
-    setPhase("exercise");
-    return;
     const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
