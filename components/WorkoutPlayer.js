@@ -285,14 +285,16 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  function stopAllScheduledAudio() {
-    const { scheduled } = audioRef.current.wa;
-    scheduled.forEach((s) => {
-      try {
-        s.source.stop(0);
-      } catch {}
-    });
-    audioRef.current.wa.scheduled = [];
+  function stopAllScheduled() {
+    // Stop WebAudio scheduled events
+    try {
+      const { scheduled } = audioRef.current.wa;
+      (scheduled || []).forEach((s) => { try { s.source.stop(0); } catch {} });
+      audioRef.current.wa.scheduled = [];
+    } catch {}
+    // Clear any setTimeout-based fallbacks
+    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
+    scheduledTimeoutsRef.current = [];
   }
 
   function ensureHTMLAudioLoaded() {
@@ -385,21 +387,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (voiceEnabled && "speechSynthesis" in window) {
       try {
         const u = new SpeechSynthesisUtterance(String(n));
-        u.lang = i18n.language?.startsWith("lt") ? "lt-LT" : "en-US";
-        u.rate = 1.05;
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(u);
+   ak(u);
       } catch {}
     } else {
       ping();
     }
   }
 
-  function stopAllScheduled() {
-    try { stopAllScheduledAudio(); } catch {}
-    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
-    scheduledTimeoutsRef.current = [];
-  }
+  
 
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
@@ -485,7 +480,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     try {
       localStorage.setItem("bs_descriptions_enabled", String(descriptionsEnabled));
     } catch {}
-  }, [descriptionsEnabled]);
+  }, [voiceEnabled]);
 
   useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
@@ -514,23 +509,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
   
-  /* universal timer watchdog */
-  useEffect(() => {
-    if (paused) return;
-    const timed = phase === "get_ready" || (phase === "exercise" && getTimedSeconds(step) > 0);
-    if (!timed) return;
-    if (secondsLeft > 0) return;
-    // step identity token
-    const key = `${phase}:${currentExerciseIndex}:${currentStepIndex}:${getTimedSeconds(step)}`;
-    if (lastAdvancedRef.current === key) return;
-    lastAdvancedRef.current = key;
-    // advance safely
-    try {
-      if (transitionLockRef.current) transitionLockRef.current = false;
-      handlePhaseComplete();
-    } catch {}
-  }, [secondsLeft, phase, currentExerciseIndex, currentStepIndex, step, paused]);
-// TIMER
+  // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
@@ -550,30 +529,27 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }
       }
 
-      if (msLeft <= 0) {
-        if (transitionLockRef.current) { cancelRaf(); return; }
-        transitionLockRef.current = true;
+      if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
+      if (phase === "get_ready") {
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        }
+      } catch {}
+      cancelRaf();
+      stopAllScheduled();
+      setPhase("exercise");
+      return;
+    //__patched__ cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
-
-        if (phase === "get_ready") {
-          try {
-            const firstEx = day?.exercises?.[0];
-            if (firstEx) {
-              const idx = findFirstExerciseIndex(firstEx);
-              setCurrentExerciseIndex(0);
-              setCurrentStepIndex(idx);
-            }
-          } catch {}
-          setPhase("exercise");
-          return;
-        }
-
         setStepFinished(true);
         handlePhaseComplete();
         return;
       }
-
       lastTickRef.current = nowMs;
     }
     tickRafRef.current = requestAnimationFrame(tick);
@@ -764,8 +740,7 @@ function handleManualContinue() {
       } catch {}
       setPhase("exercise");
       return;
-    }
-
+    //__patched__ try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
     cancelRaf();
     stopAllScheduled();
 
@@ -919,7 +894,7 @@ function handleManualContinue() {
                 <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Takelis:" })}</label>
                 <select value={fxTrack} onChange={(e) => setFxTrack(e.target.value)} className="border rounded px-2 py-1 text-sm">
                   <option value="beep">beep.wav</option>
-                  <option value="silence">silence.mp3</option>
+                  <option value="silence">silance.mp3</option>
                 </select>
                 <button onClick={() => { ping(); }} className="px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200">
                   {t("player.testFx", { defaultValue: "Išbandyti" })}
@@ -1011,7 +986,7 @@ function handleManualContinue() {
           </div>
         }
       >
-        <div className="w-full min-h-[60vh] grid place-items-center">
+        <div className="w-full min-h_[60vh] grid place-items-center">
           <div className="max-w-2xl text-center">
             <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
             <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
@@ -1023,7 +998,18 @@ function handleManualContinue() {
 
   // ---- Get Ready ----
   if (phase === "get_ready") {
-const firstEx = day?.exercises?.[0] || null;
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        }
+      } catch {}
+      setPhase("exercise");
+      return;
+    //__patched__
+    const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
     if (firstEx?.steps && Array.isArray(firstEx.steps)) {
