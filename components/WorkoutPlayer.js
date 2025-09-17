@@ -715,6 +715,7 @@ function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
+      transitionLockRef.current = false; // reset lock before starting
       primeIOSAudio();
       // Preselect first exercise step
       try {
@@ -746,7 +747,23 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+    if (phase === "get_ready") {
+    transitionLockRef.current = false; // ensure reset before switching
+    try {
+      const firstEx = day?.exercises?.[0];
+      let idx = 0;
+      if (firstEx) {
+        idx = findFirstExerciseIndex(firstEx);
+        setCurrentExerciseIndex(0);
+        setCurrentStepIndex(idx);
+      }
+    } catch (err) {
+      console.warn("Failed to locate first exercise step", err);
+      setCurrentExerciseIndex(0);
+      setCurrentStepIndex(0);
+    }
+    setPhase("exercise");
+    return; try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
     cancelRaf();
     stopAllScheduled();
 
@@ -982,6 +999,7 @@ function handleManualContinue() {
 
   // ---- Intro ----
   if (phase === "intro") {
+      transitionLockRef.current = false; // reset lock before starting
     return (
       <Shell
         footer={
@@ -1004,6 +1022,22 @@ function handleManualContinue() {
 
   // ---- Get Ready ----
   if (phase === "get_ready") {
+    transitionLockRef.current = false; // ensure reset before switching
+    try {
+      const firstEx = day?.exercises?.[0];
+      let idx = 0;
+      if (firstEx) {
+        idx = findFirstExerciseIndex(firstEx);
+        setCurrentExerciseIndex(0);
+        setCurrentStepIndex(idx);
+      }
+    } catch (err) {
+      console.warn("Failed to locate first exercise step", err);
+      setCurrentExerciseIndex(0);
+      setCurrentStepIndex(0);
+    }
+    setPhase("exercise");
+    return;
     const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
