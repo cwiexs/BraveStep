@@ -568,10 +568,6 @@ try {
     }, 500);
   }
 } catch {}
-}, 500);
-  }
-} catch {}
-
     setSecondsLeft(durationSec);
 
     
