@@ -816,7 +816,6 @@ vibe([40, 40]);
     document.addEventListener("visibilitychange", onVis);
     return () => { try { document.removeEventListener("visibilitychange", onVis); } catch {} };
   }, []);
-);
 
   // Watchdog: jei kažkas „dingo“, užbaik
   useEffect(() => {
