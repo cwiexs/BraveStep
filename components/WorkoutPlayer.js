@@ -808,7 +808,8 @@ vibe([40, 40]);
       cancelRaf();
       stopAllScheduled();
     };
-  }, []
+  }, []);
+
   useEffect(() => {
     if (typeof document === "undefined") return;
     const onVis = () => { if (document.visibilityState === "visible") ensureAudioReady(); };
