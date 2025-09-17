@@ -11,20 +11,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   // ---- iOS scroll lock while typing ----
   const pageYRef = useRef(0);
   const scheduledTimeoutsRef = useRef([]);
-
-  // --- Timer/timeout helpers (mobile-safe) ---
-  function stopAllTimeouts() {
-    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
-    scheduledTimeoutsRef.current = [];
-  }
-  // Keep audio stopper separate; if it previously cleared timeouts, delegate to stopAllTimeouts too.
-  function stopAllAudioScheduled() {
-    try {
-      // If any audio scheduling exists, cancel here (placeholder to keep compatibility).
-      // Additionally clear any residual timeouts to be safe.
-      stopAllTimeouts();
-    } catch {}
-  }
   const lockBodyScroll = () => {
     try {
       pageYRef.current = window.scrollY || window.pageYOffset || 0;
@@ -294,7 +280,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  function stopAllAudioScheduled() {
+  function stopAllScheduled() {
     const { scheduled } = audioRef.current.wa;
     scheduled.forEach((s) => {
       try {
@@ -402,7 +388,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  function stopAllAudioScheduled() {
+  function stopAllScheduled() {
     try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
   }
@@ -520,10 +506,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
   // TIMER
-
   const cancelInterval = () => {
     if (tickIntervalRef.current) {
-      try { clearInterval(tickIntervalRef.current); } catch {} 
+      try { clearInterval(tickIntervalRef.current); } catch {}
       tickIntervalRef.current = null;
     }
   };
@@ -535,7 +520,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   };
 
 
-  const checkAndAdvance = (nowMs) => {
+  const advanceIfDue = (nowMs) => {
     if (!deadlineRef.current) return false;
     const msLeft = Math.max(0, deadlineRef.current - nowMs);
     const secs = Math.ceil(msLeft / 1000);
@@ -549,12 +534,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
 
     if (msLeft <= 0) {
-      if (transitionLockRef.current) return true;
+      if (transitionLockRef.current) { cancelRaf(); return true; }
       transitionLockRef.current = true;
-      cancelRaf(); // also cancels interval
+      cancelRaf();
       lastSpokenRef.current = null;
       setStepFinished(true);
-
       if (phase === "get_ready") {
         try {
           const firstEx = day?.exercises?.[0];
@@ -576,8 +560,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
-      const advanced = checkAndAdvance(nowMs);
-      if (advanced) return;
+      const done = advanceIfDue(nowMs);
+      if (done) return;
       lastTickRef.current = nowMs;
     }
     tickRafRef.current = requestAnimationFrame(tick);
@@ -588,8 +572,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
     cancelRaf();
-    stopAllTimeouts();
-    stopAllAudioScheduled();
+    stopAllScheduled();
     lastSpokenRef.current = null;
 
     if (!durationSec || durationSec <= 0) {
@@ -604,12 +587,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-    // Start interval fallback for mobile (iOS/Android) where rAF may stall
+    // interval fallback (mobile safety)
     cancelInterval();
     try {
       tickIntervalRef.current = setInterval(() => {
         const now = (performance && performance.now) ? performance.now() : Date.now();
-        checkAndAdvance(now);
+        advanceIfDue(now);
       }, 250);
     } catch {}
 
@@ -643,8 +626,7 @@ vibe([40, 40]);
     setPaused(true);
     if (deadlineRef.current) remainMsRef.current = Math.max(0, deadlineRef.current - performance.now());
     cancelRaf();
-    stopAllTimeouts();
-    stopAllAudioScheduled();
+    stopAllScheduled();
   };
 
   const resumeTimer = () => {
@@ -658,7 +640,7 @@ vibe([40, 40]);
       try {
         tickIntervalRef.current = setInterval(() => {
           const now = (performance && performance.now) ? performance.now() : Date.now();
-          checkAndAdvance(now);
+          advanceIfDue(now);
         }, 250);
       } catch {}
 
@@ -669,8 +651,7 @@ vibe([40, 40]);
   useEffect(() => {
     if (phase !== "exercise") return;
     cancelRaf();
-    stopAllTimeouts();
-    stopAllAudioScheduled();
+    stopAllScheduled();
     deadlineRef.current = null;
 
     if (!step) {
@@ -720,7 +701,7 @@ vibe([40, 40]);
     return () => {
       timeoutsRef.current.forEach((id) => clearTimeout(id));
       cancelRaf();
-      stopAllTimeouts();
+      stopAllScheduled();
     };
   }, []);
 
@@ -742,8 +723,7 @@ vibe([40, 40]);
   }
 function handleManualContinue() {
     cancelRaf();
-    stopAllTimeouts();
-    stopAllAudioScheduled();
+    stopAllScheduled();
     if (phase === "intro") {
       primeIOSAudio();
       // Preselect first exercise step
@@ -778,8 +758,7 @@ function handleManualContinue() {
   function handlePhaseComplete() {
     if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
     cancelRaf();
-    stopAllTimeouts();
-    stopAllAudioScheduled();
+    stopAllScheduled();
 
     if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex((prev) => prev + 1);
@@ -795,8 +774,7 @@ function handleManualContinue() {
 
   function goToPrevious() {
     cancelRaf();
-    stopAllTimeouts();
-    stopAllAudioScheduled();
+    stopAllScheduled();
     if (step && currentStepIndex > 0) {
       setCurrentStepIndex((prev) => prev - 1);
     } else if (exercise && currentExerciseIndex > 0) {
@@ -808,8 +786,7 @@ function handleManualContinue() {
   }
   function goToNext() {
     cancelRaf();
-    stopAllTimeouts();
-    stopAllAudioScheduled();
+    stopAllScheduled();
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
       // dar yra žingsnių tame pačiame pratime
       setCurrentStepIndex((prev) => prev + 1);
@@ -824,8 +801,7 @@ function handleManualContinue() {
   }
   function restartCurrentStep() {
     cancelRaf();
-    stopAllTimeouts();
-    stopAllAudioScheduled();
+    stopAllScheduled();
     const duration = getTimedSeconds(step);
     if (duration > 0) startTimedStep(duration);
   }
@@ -999,7 +975,7 @@ function handleManualContinue() {
               </button>
               <button
                 onClick={() => {
-                  try { cancelRaf(); stopAllTimeouts(); } catch {}
+                  try { cancelRaf(); stopAllScheduled(); } catch {}
                   setShowConfirmExit(false);
                   onClose?.();
                 }}
@@ -1049,14 +1025,14 @@ function handleManualContinue() {
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
     function restartGetReady() { transitionLockRef.current = false;
-    const gr = Number(getReadySeconds) || 0; stopAllTimeouts(); startTimedStep(gr > 0 ? gr : 0); }
+    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
 
     return (
       <Shell
         footer={
           <>
             <div className="flex items-center justify-center gap-4">
-              <button onClick={() => { cancelRaf(); stopAllTimeouts(); setPhase("intro"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
+              <button onClick={() => { cancelRaf(); stopAllScheduled(); setPhase("intro"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
                 <SkipBack className="w-6 h-6 text-gray-800" />
               </button>
               <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
