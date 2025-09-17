@@ -159,18 +159,36 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
     } catch {}
   }
+  function ensureAudioReady() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!audioRef.current) audioRef.current = {};
+      if (!audioRef.current.wa) audioRef.current.wa = { scheduled: [] };
+      if (!audioRef.current.wa.ctx) audioRef.current.wa.ctx = new AC();
+      const ctx = audioRef.current.wa.ctx;
+      if (ctx && ctx.state !== "running") { try { ctx.resume(); } catch {} }
+    } catch {}
+  }
+
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const once = () => primeAudio();
     // prime on first interaction
     window.addEventListener("pointerdown", once, { once: true });
+    const keep = () => ensureAudioReady();
+    window.addEventListener("pointerdown", keep);
     window.addEventListener("touchstart", once, { once: true, passive: true });
+    window.addEventListener("touchstart", keep, { passive: true });
     window.addEventListener("mousedown", once, { once: true });
+    window.addEventListener("mousedown", keep);
     return () => {
       try { window.removeEventListener("pointerdown", once); } catch {}
+      try { window.removeEventListener("pointerdown", keep); } catch {}
       try { window.removeEventListener("touchstart", once); } catch {}
+      try { window.removeEventListener("touchstart", keep); } catch {}
       try { window.removeEventListener("mousedown", once); } catch {}
+      try { window.removeEventListener("mousedown", keep); } catch {}
     };
   }, []);
 
@@ -422,6 +440,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function ping() {
+    try { ensureAudioReady(); } catch {}
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
@@ -432,6 +451,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     try {
       // original body
 
+    try { ensureAudioReady(); } catch {}
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -788,7 +808,14 @@ vibe([40, 40]);
       cancelRaf();
       stopAllScheduled();
     };
+  }, []
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const onVis = () => { if (document.visibilityState === "visible") ensureAudioReady(); };
+    document.addEventListener("visibilitychange", onVis);
+    return () => { try { document.removeEventListener("visibilitychange", onVis); } catch {} };
   }, []);
+);
 
   // Watchdog: jei kažkas „dingo“, užbaik
   useEffect(() => {
