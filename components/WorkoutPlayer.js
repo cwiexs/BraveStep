@@ -3,7 +3,15 @@ import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
 
-  // Recover timer after tab/app returns to foreground (mobile-safe)
+export default function WorkoutPlayer({ workoutData, planId, onClose }) {
+  // === Mobile-safe Get Ready Timer (patched) START ===
+  // Refs (only additional one)
+  const watchdogIdRef = useRef(null);
+
+  function cancelRaf() { try { if (tickRafRef?.current) cancelAnimationFrame(tickRafRef.current); } catch {} if (tickRafRef) tickRafRef.current = null; }
+  function clearWatchdog() { try { if (watchdogIdRef?.current) clearTimeout(watchdogIdRef.current); } catch {} if (watchdogIdRef) watchdogIdRef.current = null; }
+
+  // Recover timer after tab/app returns to foreground
   useEffect(() => {
     const onVis = () => {
       if (typeof document === "undefined") return;
@@ -15,48 +23,27 @@ import { useTranslation } from "next-i18next";
         try { if (typeof finishIfDue === "function") finishIfDue(); } catch {}
       } else {
         try {
-          if (typeof cancelRaf === "function") cancelRaf();
-          if (typeof clearWatchdog === "function") clearWatchdog();
+          cancelRaf();
+          clearWatchdog();
           if (lastTickRef) lastTickRef.current = now;
-          if (tickRafRef) tickRafRef.current = requestAnimationFrame(tick);
-          if (watchdogIdRef) watchdogIdRef.current = setTimeout(() => {
-            try { if (typeof finishIfDue === "function") finishIfDue(); } catch {}
-          }, Math.round(msLeft) + 400);
+          if (typeof tick === "function") tickRafRef.current = requestAnimationFrame(tick);
+          watchdogIdRef.current = setTimeout(() => { try { if (typeof finishIfDue === "function") finishIfDue(); } catch {} }, Math.round(msLeft) + 400);
         } catch {}
       }
     };
     if (typeof document !== "undefined") {
       document.addEventListener("visibilitychange", onVis, { passive: true });
     }
-    return () => {
-      if (typeof document !== "undefined") {
-        document.removeEventListener("visibilitychange", onVis);
-      }
-    };
+    return () => { if (typeof document !== "undefined") document.removeEventListener("visibilitychange", onVis); };
   }, []);
+  // === Mobile-safe Get Ready Timer (patched) END ===
 
   const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
-  const isIOS = typeof navigator !== "undefined" &&
-useEffect(() => {
-  const onVis = () => {
-    if (document.visibilityState !== "visible") return;
-    if (!deadlineRef?.current) return;
-    const now = performance.now();
- /iP(hone|ad|od)/i.test(navigator.userAgent);
+  const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
 
   // ---- iOS scroll lock while typing ----
-  const pageYRef = 
-function cancelRaf() {
-  if (tickRafRef?.current) cancelAnimationFrame(tickRafRef.current);
-  if (tickRafRef) tickRafRef.current = null;
-}
-
-function clearWatchdog() {
-  if (watchdogIdRef?.current) clearTimeout(watchdogIdRef.current);
-  if (watchdogIdRef) watchdogIdRef.current = null;
-}
-useRef(0);
+  const pageYRef = useRef(0);
   const scheduledTimeoutsRef = useRef([]);
   const lockBodyScroll = () => {
     try {
@@ -84,9 +71,7 @@ useRef(0);
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [phase, setPhase] = useState("intro");
-  const phaseRef = useRef(phase);
-  useEffect(() => { phaseRef.current = phase; }, [phase]); // intro | exercise | summary
+  const [phase, setPhase] = useState("intro"); // intro | exercise | summary
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -123,7 +108,6 @@ useRef(0);
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
-  const watchdogIdRef = useRef(null);      // setTimeout fallback when rAF is throttled
   const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
@@ -648,8 +632,6 @@ vibe([40, 40]);
       lastSpokenRef.current = null;
       deadlineRef.current = performance.now() + remainMsRef.current;
       tickRafRef.current = requestAnimationFrame(tick);
-  // watchdog to finish even if rAF is throttled
-  if (watchdogIdRef) watchdogIdRef.current = setTimeout(() => { try { finishIfDue && finishIfDue(); } catch {} }, Math.max(0, Math.round((deadlineRef.current - performance.now()) || 0)) + 400);
     }
   };
 
