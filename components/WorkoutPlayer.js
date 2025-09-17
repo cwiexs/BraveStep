@@ -4,40 +4,6 @@ import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } 
 import { useTranslation } from "next-i18next";
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
-  // === Mobile-safe Get Ready Timer (patched) START ===
-  // Refs (only additional one)
-  const watchdogIdRef = useRef(null);
-
-  function cancelRaf() { try { if (tickRafRef?.current) cancelAnimationFrame(tickRafRef.current); } catch {} if (tickRafRef) tickRafRef.current = null; }
-  function clearWatchdog() { try { if (watchdogIdRef?.current) clearTimeout(watchdogIdRef.current); } catch {} if (watchdogIdRef) watchdogIdRef.current = null; }
-
-  // Recover timer after tab/app returns to foreground
-  useEffect(() => {
-    const onVis = () => {
-      if (typeof document === "undefined") return;
-      if (document.visibilityState !== "visible") return;
-      if (!deadlineRef?.current) return;
-      const now = performance.now();
-      const msLeft = Math.max(0, deadlineRef.current - now);
-      if (msLeft <= 0) {
-        try { if (typeof finishIfDue === "function") finishIfDue(); } catch {}
-      } else {
-        try {
-          cancelRaf();
-          clearWatchdog();
-          if (lastTickRef) lastTickRef.current = now;
-          if (typeof tick === "function") tickRafRef.current = requestAnimationFrame(tick);
-          watchdogIdRef.current = setTimeout(() => { try { if (typeof finishIfDue === "function") finishIfDue(); } catch {} }, Math.round(msLeft) + 400);
-        } catch {}
-      }
-    };
-    if (typeof document !== "undefined") {
-      document.addEventListener("visibilitychange", onVis, { passive: true });
-    }
-    return () => { if (typeof document !== "undefined") document.removeEventListener("visibilitychange", onVis); };
-  }, []);
-  // === Mobile-safe Get Ready Timer (patched) END ===
-
   const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
   const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
@@ -313,7 +279,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  
+  function stopAllScheduled() {
+    const { scheduled } = audioRef.current.wa;
+    scheduled.forEach((s) => {
+      try {
+        s.source.stop(0);
+      } catch {}
+    });
+    audioRef.current.wa.scheduled = [];
+  }
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
@@ -346,20 +320,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         beep.volume = 0.75;
         beep.play();
       } catch {}
-// Unified scheduler cleanup: stops WebAudio scheduled sounds AND clears all scheduled timeouts
-function stopAllScheduled() {
-  try {
-    const { scheduled } = audioRef.current.wa || { scheduled: [] };
-    (scheduled || []).forEach((s) => {
-      try { s.source.stop(0); } catch {}
-    });
-    if (audioRef.current.wa) audioRef.current.wa.scheduled = [];
-  } catch {}
-  try {
-    (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id));
-  } catch {}
-  scheduledTimeoutsRef.current = [];
-}
       return true;
     }
     if (["1", "2", "3", "4", "5"].includes(name)) {
@@ -426,6 +386,12 @@ function stopAllScheduled() {
       ping();
     }
   }
+
+  function stopAllScheduled() {
+    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
+    scheduledTimeoutsRef.current = [];
+  }
+
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
     try {
@@ -537,7 +503,13 @@ function stopAllScheduled() {
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
-// TIMER
+
+  // TIMER
+  const cancelRaf = () => {
+    if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
+    tickRafRef.current = null;
+  };
+
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
@@ -610,18 +582,6 @@ vibe([40, 40]);
 
     tickRafRef.current = requestAnimationFrame(tick);
   };
-
-
-function finishIfDue() {
-  try {
-    if (transitionLockRef.current) return;
-    transitionLockRef.current = true;
-    cancelRaf();
-    lastSpokenRef.current = null;
-    setStepFinished(true);
-    handlePhaseComplete();
-  } catch {}
-}
 
   const pauseTimer = () => {
     if (paused) return;
@@ -1116,12 +1076,13 @@ function handleManualContinue() {
         <div className="max-w-2xl mx-auto text-center mt-6">
           <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
             {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
-          </h2>
 
           {/* Description under title (toggleable) */}
           {!isRestPhase && descriptionsEnabled && exercise?.description && (
             <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2"><Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" /><span className="font-normal">{exercise.description}</span></div>
           )}
+
+          </h2>
 
           {!isRestPhase && step?.type === "exercise" && (
             <p className="text-lg font-semibold text-gray-900 mb-2">
