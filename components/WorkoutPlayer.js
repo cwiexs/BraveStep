@@ -75,9 +75,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
   const stepTokenRef = useRef(0);
-const autoRestartOnceRef = useRef(false);
 
   const timeoutsRef = useRef([]);
+  const autoRestartOnceRef = useRef(false);
 
   // Scroll
   const scrollRef = useRef(null);
@@ -556,20 +556,27 @@ const autoRestartOnceRef = useRef(false);
 
     const nowMs = performance.now();
     deadlineRef.current = nowMs + durationSec * 1000;
-// --- Universal cheat: auto-restart GET READY once after 500ms to unstick timers ---
-try {
-  if (phase === "get_ready" && !autoRestartOnceRef.current) {
-    autoRestartOnceRef.current = true;
-    setTimeout(() => {
-      try {
-        if (typeof restartGetReady === "function") { restartGetReady(); }
-        else if (typeof restartCurrentStep === "function") { restartCurrentStep(); }
-      } catch {}
-    }, 500);
-  }
-} catch {}
     setSecondsLeft(durationSec);
 
+        // --- One-time universal auto-restart to unstick mobile timers (GET READY only) ---
+    try {
+      if (phase === "get_ready" && !autoRestartOnceRef.current) {
+        autoRestartOnceRef.current = true;
+        const d0 = durationSec;
+        const t0 = __token;
+        setTimeout(() => {
+          try {
+            // still same step token and still in get_ready?
+            if (t0 !== stepTokenRef.current) return;
+            if (phase !== "get_ready") return;
+            cancelRaf();
+            stopAllScheduled();
+            // restart the GET READY timer cleanly
+            startTimedStep(d0);
+          } catch {}
+        }, 500);
+      }
+    } catch {}
     
     try {
       if (durationSec > 0) {
