@@ -90,27 +90,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (!isIOS) return;
     if (inputActive) lockBodyScroll();
     else unlockBodyScroll();
-
-  // --- AUTO START: GET_READY uses the same timer engine as steps (top-level hook) ---
-  useEffect(() => {
-    if (phase !== "get_ready") return;
-    try { cancelRaf(); } catch {}
-    try { stopAllScheduled(); } catch {}
-    if (transitionLockRef) transitionLockRef.current = false;
-    const secsRaw = Number(getReadySeconds);
-    const secs = Number.isFinite(secsRaw) ? Math.max(0, Math.round(secsRaw)) : 0;
-    if (secs > 0) {
-      try { startTimedStep(secs); } catch {}
-    } else {
-      try {
-        setSecondsLeft(0);
-        setStepFinished(true);
-        setPhase("exercise");
-      } catch {}
-    }
-  }, [phase, getReadySeconds]);
-
-
     return () => {
       if (isIOS) unlockBodyScroll();
     };
@@ -504,6 +483,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   // After switching from get_ready to exercise, ensure timer initializes
   useEffect(() => {
     if (phase === "exercise") {
+
+// Priverstinis perėjimas iš intro į exercise, kai baigiasi getReady laikas
+useEffect(() => {
+  if (phase === "intro" && secondsLeft === 0 && !waitingForUser) {
+    setPhase("exercise");
+  }
+}, [phase, secondsLeft, waitingForUser]);
+
       // kick the timer setup effect by nudging step state if needed
       setTimeout(() => {
         try { setCurrentStepIndex((v) => v); } catch {}
@@ -546,20 +533,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
 
       if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
-      if (phase === "get_ready") {
-        cancelRaf();
-        setStepFinished(true);
-        try {
-          const firstEx = day?.exercises?.[0];
-          if (firstEx) {
-            const idx = findFirstExerciseIndex(firstEx);
-            setCurrentExerciseIndex(0);
-            setCurrentStepIndex(idx);
-          }
-        } catch {}
-        setPhase("exercise");
-        return;
-      } } catch {} setPhase("exercise"); return; }
+      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
         setStepFinished(true);
@@ -635,7 +609,6 @@ vibe([40, 40]);
     }
   };
 
-  
   // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
     if (phase !== "exercise") return;
@@ -695,7 +668,6 @@ vibe([40, 40]);
   }, []);
 
   // Watchdog: jei kažkas „dingo“, užbaik
-
   useEffect(() => {
     if (phase === "exercise") {
       if (!day || !exercise || !step) setPhase("summary");
@@ -1006,7 +978,6 @@ function handleManualContinue() {
     );
   }
 
-  
   // ---- Get Ready ----
   if (phase === "get_ready") {
     const firstEx = day?.exercises?.[0] || null;
@@ -1019,13 +990,8 @@ function handleManualContinue() {
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() {
-  try { cancelRaf(); } catch {}
-  try { stopAllScheduled(); } catch {}
-  if (transitionLockRef) transitionLockRef.current = false;
-  setPhase("get_ready");
-}
-
+    function restartGetReady() { transitionLockRef.current = false;
+    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
 
     return (
       <Shell
