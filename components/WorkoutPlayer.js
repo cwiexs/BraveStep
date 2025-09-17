@@ -712,22 +712,39 @@ vibe([40, 40]);
     setGetReadySecondsStr(String(clamped));
   }
 function handleManualContinue() {
-    cancelRaf();
-    stopAllScheduled();
-    if (phase === "intro") {
-      transitionLockRef.current = false; // reset lock before starting
-      primeIOSAudio();
-      // Preselect first exercise step
-      try {
-        const firstEx = day?.exercises?.[0];
-        if (firstEx) {
-          const idx = findFirstExerciseIndex(firstEx);
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(idx);
-        } else {
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(0);
-        }
+  cancelRaf();
+  stopAllScheduled();
+  if (phase === "intro") {
+    primeIOSAudio();
+    // Preselect first exercise step
+    try {
+      const firstEx = day?.exercises?.[0];
+      if (firstEx) {
+        const idx = findFirstExerciseIndex(firstEx);
+        setCurrentExerciseIndex(0);
+        setCurrentStepIndex(idx);
+      } else {
+        setCurrentExerciseIndex(0);
+        setCurrentStepIndex(0);
+      }
+    } catch {}
+    setPhase("get_ready");
+    const gr = Number(getReadySeconds) || 0;
+    if (gr > 0) {
+      transitionLockRef.current = false; // reset before starting pre-workout timer
+      startTimedStep(gr);
+    } else {
+      setSecondsLeft(0);
+      setWaitingForUser(false);
+      setPhase("exercise");
+    }
+  } else if (phase === "exercise") {
+    setStepFinished(true);
+    handlePhaseComplete();
+  } else if (phase === "summary") {
+    onClose?.();
+  }
+}
       } catch {}
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
