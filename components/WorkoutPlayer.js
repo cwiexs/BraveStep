@@ -1336,23 +1336,3 @@ function handleManualContinue() {
 
   return null;
 }
-
-// --- Safety: ensure transition when countdown reaches zero on mobile ---
-useEffect(() => {
-  try {
-    if (phase === "get_ready" && secondsLeft <= 0 && !waitingForUser && !paused) {
-      const id = setTimeout(() => {
-        try {
-          if (phase === "get_ready" && secondsLeft <= 0) {
-            if (!transitionLockRef.current) {
-              transitionLockRef.current = true;
-            }
-            cancelRaf && cancelRaf();
-            setPhase("exercise");
-          }
-        } catch {}
-      }, 150);
-      return () => clearTimeout(id);
-    }
-  } catch {}
-}, [phase, secondsLeft, waitingForUser, paused]);
