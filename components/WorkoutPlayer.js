@@ -534,9 +534,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
     }
 
+    
     if (msLeft <= 0) {
-      
-      // Explicit fast-path for the first transition out of get_ready
+      if (transitionLockRef.current) { cancelRaf(); return true; }
+      transitionLockRef.current = true;
+      cancelRaf();
+      try { stopAllScheduled(); } catch {}
+      lastSpokenRef.current = null;
+      setStepFinished(true);
+
       if (phase === "get_ready") {
         try {
           const firstEx = day?.exercises?.[0];
@@ -552,6 +558,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         setPhase("exercise");
         return true;
       }
+
+      try { handlePhaseComplete(); } catch {}
+      return true;
+    }
+
 if (transitionLockRef.current) { cancelRaf(); return true; }
       transitionLockRef.current = true;
       cancelRaf();
