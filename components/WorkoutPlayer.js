@@ -537,6 +537,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
+
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
       const msLeft = Math.max(0, deadlineRef.current - nowMs);
       const secs = Math.ceil(msLeft / 1000);
@@ -549,74 +550,32 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }
       }
 
-      if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
-      if (phase === "get_ready") {
-      try {
-        const firstEx = day?.exercises?.[0];
-        if (firstEx) {
-          const idx = findFirstExerciseIndex(firstEx);
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(idx);
-        }
-      } catch {}
-      setPhase("exercise");
-      return;
-    //__patched__ cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+      if (msLeft <= 0) {
+        if (transitionLockRef.current) { cancelRaf(); return; }
+        transitionLockRef.current = true;
+
         cancelRaf();
         lastSpokenRef.current = null;
         setStepFinished(true);
-        handlePhaseComplete();
+
+        if (phase === "get_ready") {
+          try {
+            const firstEx = day?.exercises?.[0];
+            if (firstEx) {
+              const idx = findFirstExerciseIndex(firstEx);
+              setCurrentExerciseIndex(0);
+              setCurrentStepIndex(idx);
+            }
+          } catch {}
+          setPhase("exercise");
+        } else {
+          try { handlePhaseComplete(); } catch {}
+        }
         return;
       }
-      }
-      lastTickRef.current = nowMs;
     }
-    tickRafRef.current = requestAnimationFrame(tick);
-  };
 
-  const startTimedStep = (durationSec) => {
-    transitionLockRef.current = false;
-    stepTokenRef.current = (stepTokenRef.current || 0) + 1;
-    const __token = stepTokenRef.current;
-    cancelRaf();
-    stopAllScheduled();
-    lastSpokenRef.current = null;
-
-    if (!durationSec || durationSec <= 0) {
-      setSecondsLeft(0);
-      setWaitingForUser(true);
-      return;
-    }
-    setWaitingForUser(false);
-    setPaused(false);
-
-    const nowMs = performance.now();
-    deadlineRef.current = nowMs + durationSec * 1000;
-    setSecondsLeft(durationSec);
-
-    
-    try {
-      if (durationSec > 0) {
-        const wd = setTimeout(() => {
-          try {
-            if (__token !== stepTokenRef.current) return;
-            const dl = deadlineRef.current;
-            if (!dl) return;
-            const now = performance.now ? performance.now() : Date.now();
-            if (now < dl - 10) return; // dar ne laikas
-            if (transitionLockRef.current) return;
-            transitionLockRef.current = true;
-            cancelRaf();
-            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
-            try { handlePhaseComplete(); } catch {}
-          } catch {}
-        }, Math.max(0, Math.round(durationSec * 1000) + 350));
-        scheduledTimeoutsRef.current.push(wd);
-      }
-    } catch {}
-vibe([40, 40]);
-    ping();
-
+    lastTickRef.current = nowMs;
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
