@@ -679,7 +679,6 @@ vibe([40, 40]);
   }, []);
 
   // Watchdog: jei kažkas „dingo“, užbaik
-  useEffect(
 
   // --- AUTO START: GET_READY uses the same timer engine as steps ---
   useEffect(() => {
@@ -700,7 +699,7 @@ vibe([40, 40]);
     }
   }, [phase, getReadySeconds]);
 
-() => {
+useEffect(() => {
     if (phase === "exercise") {
       if (!day || !exercise || !step) setPhase("summary");
     }
