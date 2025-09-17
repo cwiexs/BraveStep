@@ -280,7 +280,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  function stopAllScheduled() {
+  function stopAllAudioScheduled() {
     const { scheduled } = audioRef.current.wa;
     scheduled.forEach((s) => {
       try {
@@ -389,9 +389,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function stopAllScheduled() {
-    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
-    scheduledTimeoutsRef.current = [];
-  }
+  try { stopAllAudioScheduled(); } catch {}
+  try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
+  scheduledTimeoutsRef.current = [];
+}
 
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
@@ -534,7 +535,24 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
 
     if (msLeft <= 0) {
-      if (transitionLockRef.current) { cancelRaf(); return true; }
+      
+      // Explicit fast-path for the first transition out of get_ready
+      if (phase === "get_ready") {
+        try {
+          const firstEx = day?.exercises?.[0];
+          if (firstEx) {
+            const idx = findFirstExerciseIndex(firstEx);
+            setCurrentExerciseIndex(0);
+            setCurrentStepIndex(idx);
+          } else {
+            setCurrentExerciseIndex(0);
+            setCurrentStepIndex(0);
+          }
+        } catch {}
+        setPhase("exercise");
+        return true;
+      }
+if (transitionLockRef.current) { cancelRaf(); return true; }
       transitionLockRef.current = true;
       cancelRaf();
       lastSpokenRef.current = null;
@@ -584,27 +602,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }, 250);
     } catch {}
 
-    try {
-      if (durationSec > 0) {
-        const wd = setTimeout(() => {
-          try {
-            if (__token !== stepTokenRef.current) return;
-            const dl = deadlineRef.current;
-            if (!dl) return;
-            const now = performance.now ? performance.now() : Date.now();
-            if (now < dl - 10) return; // dar ne laikas
-            if (transitionLockRef.current) return;
-            transitionLockRef.current = true;
-            cancelRaf();
-            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
-            try { handlePhaseComplete(); } catch {}
-          } catch {}
-        }, Math.max(0, Math.round(durationSec * 1000) + 350));
-        scheduledTimeoutsRef.current.push(wd);
-      }
-    } catch {}
-vibe([40, 40]);
-    ping();
+    vibe([40, 40]);
+    try { ping(); } catch {}
 
     tickRafRef.current = requestAnimationFrame(tick);
   };
