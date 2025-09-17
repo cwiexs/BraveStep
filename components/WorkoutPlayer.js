@@ -1378,4 +1378,4 @@ function handleManualContinue() {
 
   return null;
 }
-}
+
