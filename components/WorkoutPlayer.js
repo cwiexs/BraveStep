@@ -90,6 +90,27 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (!isIOS) return;
     if (inputActive) lockBodyScroll();
     else unlockBodyScroll();
+
+  // --- AUTO START: GET_READY uses the same timer engine as steps (top-level hook) ---
+  useEffect(() => {
+    if (phase !== "get_ready") return;
+    try { cancelRaf(); } catch {}
+    try { stopAllScheduled(); } catch {}
+    if (transitionLockRef) transitionLockRef.current = false;
+    const secsRaw = Number(getReadySeconds);
+    const secs = Number.isFinite(secsRaw) ? Math.max(0, Math.round(secsRaw)) : 0;
+    if (secs > 0) {
+      try { startTimedStep(secs); } catch {}
+    } else {
+      try {
+        setSecondsLeft(0);
+        setStepFinished(true);
+        setPhase("exercise");
+      } catch {}
+    }
+  }, [phase, getReadySeconds]);
+
+
     return () => {
       if (isIOS) unlockBodyScroll();
     };
@@ -602,25 +623,7 @@ vibe([40, 40]);
   };
 
   
-  // --- AUTO START: GET_READY uses the same timer engine as steps ---
-  useEffect(() => {
-    if (phase !== "get_ready") return;
-    try { cancelRaf(); } catch {}
-    try { stopAllScheduled(); } catch {}
-    if (transitionLockRef) transitionLockRef.current = false;
-    const secsRaw = Number(getReadySeconds);
-    const secs = Number.isFinite(secsRaw) ? Math.max(0, Math.round(secsRaw)) : 0;
-    if (secs > 0) {
-      try { startTimedStep(secs); } catch {}
-    } else {
-      try {
-        setSecondsLeft(0);
-        setStepFinished(true);
-        setPhase("exercise");
-      } catch {}
-    }
-  }, [phase, getReadySeconds]);
-// --- TIMER SETUP / STEP SWITCH ---
+  // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
     if (phase !== "exercise") return;
     cancelRaf();
@@ -680,26 +683,7 @@ vibe([40, 40]);
 
   // Watchdog: jei kažkas „dingo“, užbaik
 
-  // --- AUTO START: GET_READY uses the same timer engine as steps ---
   useEffect(() => {
-    if (phase !== "get_ready") return;
-    try { cancelRaf(); } catch {}
-    try { stopAllScheduled(); } catch {}
-    if (transitionLockRef) transitionLockRef.current = false;
-    const secsRaw = Number(getReadySeconds);
-    const secs = Number.isFinite(secsRaw) ? Math.max(0, Math.round(secsRaw)) : 0;
-    if (secs > 0) {
-      try { startTimedStep(secs); } catch {}
-    } else {
-      try {
-        setSecondsLeft(0);
-        setStepFinished(true);
-        setPhase("exercise");
-      } catch {}
-    }
-  }, [phase, getReadySeconds]);
-
-useEffect(() => {
     if (phase === "exercise") {
       if (!day || !exercise || !step) setPhase("summary");
     }
@@ -1010,26 +994,7 @@ function handleManualContinue() {
   }
 
   
-  // --- AUTO START: GET_READY uses the same timer engine as steps ---
-  useEffect(() => {
-    if (phase !== "get_ready") return;
-    try { cancelRaf(); } catch {}
-    try { stopAllScheduled(); } catch {}
-    if (transitionLockRef) transitionLockRef.current = false;
-    const secsRaw = Number(getReadySeconds);
-    const secs = Number.isFinite(secsRaw) ? Math.max(0, Math.round(secsRaw)) : 0;
-    if (secs > 0) {
-      try { startTimedStep(secs); } catch {}
-    } else {
-      try {
-        setSecondsLeft(0);
-        setStepFinished(true);
-        setPhase("exercise");
-      } catch {}
-    }
-  }, [phase, getReadySeconds]);
-
-// ---- Get Ready ----
+  // ---- Get Ready ----
   if (phase === "get_ready") {
     const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
