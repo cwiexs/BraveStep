@@ -1041,7 +1041,13 @@ function handleManualContinue() {
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() { cancelRaf(); stopAllScheduled();  if (transitionLockRef) transitionLockRef.current = false;  setPhase("get_ready"); } catch {} try { stopAllScheduled(); } catch {} if (transitionLockRef) transitionLockRef.current = false; setPhase("get_ready"); } catch {} try { stopAllScheduled(); } catch {} if (transitionLockRef) transitionLockRef.current = false; setPhase("get_ready"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
+    function restartGetReady() {
+  try { cancelRaf(); } catch {}
+  try { stopAllScheduled(); } catch {}
+  if (transitionLockRef) transitionLockRef.current = false;
+  setPhase("get_ready");
+}
+
 
     return (
       <Shell
