@@ -115,7 +115,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   // AUDIO
   const audioRef = useRef({
 
-  // ---- iOS audio priming (WebAudio + SpeechSynthesis) ----
+  
+    html: { loaded: false, beep: null, silence: null, nums: {} },
+    wa: { ctx: null, ready: false, buffers: new Map(), scheduled: [] },
+  });
+// ---- iOS audio priming (WebAudio + SpeechSynthesis) ----
   const audioPrimedRef = useRef(false);
   function primeAudio() {
     if (audioPrimedRef.current) return;
@@ -169,9 +173,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       try { window.removeEventListener("mousedown", once); } catch {}
     };
   }, []);
-    html: { loaded: false, beep: null, silence: null, nums: {} },
-    wa: { ctx: null, ready: false, buffers: new Map(), scheduled: [] },
-  });
+
   const lastSpokenRef = useRef(null);
 
   // Derived
