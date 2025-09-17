@@ -313,15 +313,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  function stopAllScheduled() {
-    const { scheduled } = audioRef.current.wa;
-    scheduled.forEach((s) => {
-      try {
-        s.source.stop(0);
-      } catch {}
-    });
-    audioRef.current.wa.scheduled = [];
-  }
+  
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
@@ -354,6 +346,20 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         beep.volume = 0.75;
         beep.play();
       } catch {}
+// Unified scheduler cleanup: stops WebAudio scheduled sounds AND clears all scheduled timeouts
+function stopAllScheduled() {
+  try {
+    const { scheduled } = audioRef.current.wa || { scheduled: [] };
+    (scheduled || []).forEach((s) => {
+      try { s.source.stop(0); } catch {}
+    });
+    if (audioRef.current.wa) audioRef.current.wa.scheduled = [];
+  } catch {}
+  try {
+    (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id));
+  } catch {}
+  scheduledTimeoutsRef.current = [];
+}
       return true;
     }
     if (["1", "2", "3", "4", "5"].includes(name)) {
@@ -420,12 +426,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       ping();
     }
   }
-
-  function stopAllScheduled() {
-    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
-    scheduledTimeoutsRef.current = [];
-  }
-
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
     try {
@@ -537,13 +537,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
-
-  // TIMER
-  const cancelRaf = () => {
-    if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
-    tickRafRef.current = null;
-  };
-
+// TIMER
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
@@ -616,6 +610,18 @@ vibe([40, 40]);
 
     tickRafRef.current = requestAnimationFrame(tick);
   };
+
+
+function finishIfDue() {
+  try {
+    if (transitionLockRef.current) return;
+    transitionLockRef.current = true;
+    cancelRaf();
+    lastSpokenRef.current = null;
+    setStepFinished(true);
+    handlePhaseComplete();
+  } catch {}
+}
 
   const pauseTimer = () => {
     if (paused) return;
@@ -1110,13 +1116,12 @@ function handleManualContinue() {
         <div className="max-w-2xl mx-auto text-center mt-6">
           <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
             {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
+          </h2>
 
           {/* Description under title (toggleable) */}
           {!isRestPhase && descriptionsEnabled && exercise?.description && (
             <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2"><Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" /><span className="font-normal">{exercise.description}</span></div>
           )}
-
-          </h2>
 
           {!isRestPhase && step?.type === "exercise" && (
             <p className="text-lg font-semibold text-gray-900 mb-2">
