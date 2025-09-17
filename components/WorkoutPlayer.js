@@ -286,15 +286,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function stopAllScheduled() {
-    // Stop WebAudio scheduled events
-    try {
-      const { scheduled } = audioRef.current.wa;
-      (scheduled || []).forEach((s) => { try { s.source.stop(0); } catch {} });
-      audioRef.current.wa.scheduled = [];
-    } catch {}
-    // Clear any setTimeout-based fallbacks
-    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
-    scheduledTimeoutsRef.current = [];
+    const { scheduled } = audioRef.current.wa;
+    scheduled.forEach((s) => {
+      try {
+        s.source.stop(0);
+      } catch {}
+    });
+    audioRef.current.wa.scheduled = [];
   }
 
   function ensureHTMLAudioLoaded() {
@@ -387,14 +385,20 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (voiceEnabled && "speechSynthesis" in window) {
       try {
         const u = new SpeechSynthesisUtterance(String(n));
-   ak(u);
+        u.lang = i18n.language?.startsWith("lt") ? "lt-LT" : "en-US";
+        u.rate = 1.05;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(u);
       } catch {}
     } else {
       ping();
     }
   }
 
-  
+  function stopAllScheduled() {
+    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
+    scheduledTimeoutsRef.current = [];
+  }
 
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
@@ -509,7 +513,23 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
   
-  // TIMER
+  /* universal timer watchdog */
+  useEffect(() => {
+    if (paused) return;
+    const timed = phase === "get_ready" || (phase === "exercise" && getTimedSeconds(step) > 0);
+    if (!timed) return;
+    if (secondsLeft > 0) return;
+    // step identity token
+    const key = `${phase}:${currentExerciseIndex}:${currentStepIndex}:${getTimedSeconds(step)}`;
+    if (lastAdvancedRef.current === key) return;
+    lastAdvancedRef.current = key;
+    // advance safely
+    try {
+      if (transitionLockRef.current) transitionLockRef.current = false;
+      handlePhaseComplete();
+    } catch {}
+  }, [secondsLeft, phase, currentExerciseIndex, currentStepIndex, step, paused]);
+// TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
@@ -539,8 +559,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           setCurrentStepIndex(idx);
         }
       } catch {}
-      cancelRaf();
-      stopAllScheduled();
       setPhase("exercise");
       return;
     //__patched__ cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
@@ -549,6 +567,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         setStepFinished(true);
         handlePhaseComplete();
         return;
+      }
       }
       lastTickRef.current = nowMs;
     }
@@ -1371,4 +1390,5 @@ function handleManualContinue() {
   }
 
   return null;
+}
 }
