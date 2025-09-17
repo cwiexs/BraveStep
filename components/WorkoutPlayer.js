@@ -483,19 +483,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   // After switching from get_ready to exercise, ensure timer initializes
   useEffect(() => {
     if (phase === "exercise") {
-
-// Saugesnis perėjimas iš intro į exercise, kai baigiasi getReady laikas
-useEffect(() => {
-  if (
-    phase === "intro" &&
-    secondsLeft === 0 &&
-    !waitingForUser &&
-    workoutData?.days?.[currentDay]?.exercises?.length > 0
-  ) {
-    setPhase("exercise");
-  }
-}, [phase, secondsLeft, waitingForUser, workoutData, currentDay]);
-
       // kick the timer setup effect by nudging step state if needed
       setTimeout(() => {
         try { setCurrentStepIndex((v) => v); } catch {}
@@ -579,7 +566,7 @@ useEffect(() => {
             const dl = deadlineRef.current;
             if (!dl) return;
             const now = performance.now ? performance.now() : Date.now();
-            if (now < dl - 10) return; // dar ne laikas
+            if (now + 100 < dl) return; // dar ne laikas
             if (transitionLockRef.current) return;
             transitionLockRef.current = true;
             cancelRaf();
@@ -1349,3 +1336,23 @@ function handleManualContinue() {
 
   return null;
 }
+
+// --- Safety: ensure transition when countdown reaches zero on mobile ---
+useEffect(() => {
+  try {
+    if (phase === "get_ready" && secondsLeft <= 0 && !waitingForUser && !paused) {
+      const id = setTimeout(() => {
+        try {
+          if (phase === "get_ready" && secondsLeft <= 0) {
+            if (!transitionLockRef.current) {
+              transitionLockRef.current = true;
+            }
+            cancelRaf && cancelRaf();
+            setPhase("exercise");
+          }
+        } catch {}
+      }, 150);
+      return () => clearTimeout(id);
+    }
+  } catch {}
+}, [phase, secondsLeft, waitingForUser, paused]);
