@@ -484,12 +484,17 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => {
     if (phase === "exercise") {
 
-// Priverstinis perėjimas iš intro į exercise, kai baigiasi getReady laikas
+// Saugesnis perėjimas iš intro į exercise, kai baigiasi getReady laikas
 useEffect(() => {
-  if (phase === "intro" && secondsLeft === 0 && !waitingForUser) {
+  if (
+    phase === "intro" &&
+    secondsLeft === 0 &&
+    !waitingForUser &&
+    workoutData?.days?.[currentDay]?.exercises?.length > 0
+  ) {
     setPhase("exercise");
   }
-}, [phase, secondsLeft, waitingForUser]);
+}, [phase, secondsLeft, waitingForUser, workoutData, currentDay]);
 
       // kick the timer setup effect by nudging step state if needed
       setTimeout(() => {
