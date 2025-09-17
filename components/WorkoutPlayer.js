@@ -88,7 +88,7 @@ const audioUnlockedRef = useRef(false);
 const primeAudioOnceRef = useRef(false);
 
 
-  const timeoutsRef = useRef([]);
+  
 
   // Scroll
   const scrollRef = useRef(null);
