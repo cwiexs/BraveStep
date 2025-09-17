@@ -53,9 +53,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [fxEnabled, setFxEnabled] = useState(true);
   const [fxTrack, setFxTrack] = useState("beep");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
-
-  /* ios default voice off */
-  useEffect(() => { if (isIOS) try { setVoiceEnabled(false); } catch {} }, []);
   const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
   const [getReadySeconds, setGetReadySeconds] = useState(10);
   const [getReadySecondsStr, setGetReadySecondsStr] = useState("10");
@@ -77,7 +74,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
-  const lastAdvancedRef = useRef(null);
   const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
@@ -248,7 +244,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   async function loadWABuffer(name, url) {
     try {
-      const ctx = ensureWAContext();
+      const ctx = await ensureWAContext();
       if (!ctx) return false;
       if (audioRef.current.wa.buffers.has(name)) return true;
       const res = await fetch(url);
@@ -262,8 +258,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function playWABuffer(name, when = 0) {
-    // Disable WebAudio on iOS to avoid post-gesture mutes
-    if (isIOS) return false;
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
       if (!ctx) return false;
@@ -297,8 +291,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
-    const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch{}
-    const silence = new Audio("/silence.mp3");
+    const beep = new Audio("/beep.wav");
+    const silence = new Audio("/silance.mp3");
     const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
@@ -339,13 +333,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return false;
   }
 
-  function primeIOSAudio() {
-    const ctx = ensureWAContext();
+  async function primeIOSAudio() {
+    const ctx = await ensureWAContext();
     try {
-      try { ctx?.resume?.(); } catch {}
+      await ctx?.resume();
     } catch {}
 
-    Promise.all([
+    await Promise.all([
       loadWABuffer("beep", "/beep.wav"),
       loadWABuffer("1", "/1.mp3"),
       loadWABuffer("2", "/2.mp3"),
@@ -359,7 +353,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const s = audioRef.current.html.silence;
       s.volume = 0.01;
       s.currentTime = 0;
-      try { s.play().catch(() => {}); } catch {}
+      await s.play().catch(() => {});
       setTimeout(() => {
         try {
           s.pause();
@@ -370,14 +364,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function ping() {
-    if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
   }
 
   function speakNumber(n) {
-    if (isIOS) { if (!playHTML(String(n))) ping(); return; }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -512,24 +504,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
-  
-  /* universal timer watchdog */
-  useEffect(() => {
-    if (paused) return;
-    const timed = phase === "get_ready" || (phase === "exercise" && getTimedSeconds(step) > 0);
-    if (!timed) return;
-    if (secondsLeft > 0) return;
-    // step identity token
-    const key = `${phase}:${currentExerciseIndex}:${currentStepIndex}:${getTimedSeconds(step)}`;
-    if (lastAdvancedRef.current === key) return;
-    lastAdvancedRef.current = key;
-    // advance safely
-    try {
-      if (transitionLockRef.current) transitionLockRef.current = false;
-      handlePhaseComplete();
-    } catch {}
-  }, [secondsLeft, phase, currentExerciseIndex, currentStepIndex, step, paused]);
-// TIMER
+  // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
@@ -537,7 +512,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
-
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
       const msLeft = Math.max(0, deadlineRef.current - nowMs);
       const secs = Math.ceil(msLeft / 1000);
@@ -550,32 +524,62 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }
       }
 
-      if (msLeft <= 0) {
-        if (transitionLockRef.current) { cancelRaf(); return; }
-        transitionLockRef.current = true;
-
+      if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
+      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
         setStepFinished(true);
-
-        if (phase === "get_ready") {
-          try {
-            const firstEx = day?.exercises?.[0];
-            if (firstEx) {
-              const idx = findFirstExerciseIndex(firstEx);
-              setCurrentExerciseIndex(0);
-              setCurrentStepIndex(idx);
-            }
-          } catch {}
-          setPhase("exercise");
-        } else {
-          try { handlePhaseComplete(); } catch {}
-        }
+        handlePhaseComplete();
         return;
       }
+      lastTickRef.current = nowMs;
     }
+    tickRafRef.current = requestAnimationFrame(tick);
+  };
 
-    lastTickRef.current = nowMs;
+  const startTimedStep = (durationSec) => {
+    transitionLockRef.current = false;
+    stepTokenRef.current = (stepTokenRef.current || 0) + 1;
+    const __token = stepTokenRef.current;
+    cancelRaf();
+    stopAllScheduled();
+    lastSpokenRef.current = null;
+
+    if (!durationSec || durationSec <= 0) {
+      setSecondsLeft(0);
+      setWaitingForUser(true);
+      return;
+    }
+    setWaitingForUser(false);
+    setPaused(false);
+
+    const nowMs = performance.now();
+    deadlineRef.current = nowMs + durationSec * 1000;
+    setSecondsLeft(durationSec);
+
+    
+    try {
+      if (durationSec > 0) {
+        const wd = setTimeout(() => {
+          try {
+            if (__token !== stepTokenRef.current) return;
+            const dl = deadlineRef.current;
+            if (!dl) return;
+            const now = performance.now ? performance.now() : Date.now();
+            if (now < dl - 10) return; // dar ne laikas
+            if (transitionLockRef.current) return;
+            transitionLockRef.current = true;
+            cancelRaf();
+            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
+            try { handlePhaseComplete(); } catch {}
+          } catch {}
+        }, Math.max(0, Math.round(durationSec * 1000) + 350));
+        scheduledTimeoutsRef.current.push(wd);
+      }
+    } catch {}
+vibe([40, 40]);
+    ping();
+
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
@@ -692,7 +696,10 @@ function handleManualContinue() {
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
         startTimedStep(gr);
-
+        try {
+          const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60));
+          scheduledTimeoutsRef.current.push(id);
+        } catch {}
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
@@ -707,18 +714,7 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") {
-      try {
-        const firstEx = day?.exercises?.[0];
-        if (firstEx) {
-          const idx = findFirstExerciseIndex(firstEx);
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(idx);
-        }
-      } catch {}
-      setPhase("exercise");
-      return;
-    //__patched__ try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+    if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
     cancelRaf();
     stopAllScheduled();
 
@@ -976,17 +972,6 @@ function handleManualContinue() {
 
   // ---- Get Ready ----
   if (phase === "get_ready") {
-      try {
-        const firstEx = day?.exercises?.[0];
-        if (firstEx) {
-          const idx = findFirstExerciseIndex(firstEx);
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(idx);
-        }
-      } catch {}
-      setPhase("exercise");
-      return;
-    //__patched__
     const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
@@ -997,7 +982,8 @@ function handleManualContinue() {
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
+    function restartGetReady() { transitionLockRef.current = false;
+    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
 
     return (
       <Shell
@@ -1349,5 +1335,4 @@ function handleManualContinue() {
   }
 
   return null;
-}
 }
