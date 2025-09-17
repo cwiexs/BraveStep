@@ -546,7 +546,20 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       }
 
       if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
-      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+      if (phase === "get_ready") {
+        cancelRaf();
+        setStepFinished(true);
+        try {
+          const firstEx = day?.exercises?.[0];
+          if (firstEx) {
+            const idx = findFirstExerciseIndex(firstEx);
+            setCurrentExerciseIndex(0);
+            setCurrentStepIndex(idx);
+          }
+        } catch {}
+        setPhase("exercise");
+        return;
+      } } catch {} setPhase("exercise"); return; }
         cancelRaf();
         lastSpokenRef.current = null;
         setStepFinished(true);
