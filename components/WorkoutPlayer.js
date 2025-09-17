@@ -4,11 +4,7 @@ import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } 
 import { useTranslation } from "next-i18next";
 
 
-useEffect(() => {
-  const onVis = () => {
-    if (document.visibilityState !== "visible") return;
-    if (!deadlineRef?.current) return;
-    const now = performance.now();
+
     const msLeft = Math.max(0, deadlineRef.current - now);
     if (msLeft <= 0) {
       try { finishIfDue && finishIfDue(); } catch {}
@@ -28,7 +24,13 @@ useEffect(() => {
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
-  const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
+  const isIOS = typeof navigator !== "undefined" &&
+useEffect(() => {
+  const onVis = () => {
+    if (document.visibilityState !== "visible") return;
+    if (!deadlineRef?.current) return;
+    const now = performance.now();
+ /iP(hone|ad|od)/i.test(navigator.userAgent);
 
   // ---- iOS scroll lock while typing ----
   const pageYRef = 
