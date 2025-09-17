@@ -448,6 +448,29 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   function speakNumber(n) {
     /*patched*/
+    // iOS: use WebAudio beep instead of speech for reliability
+    try {
+      if (typeof isIOS !== "undefined" && isIOS) {
+        try { ensureAudioReady(); } catch {}
+        try {
+          const AC = window.AudioContext || window.webkitAudioContext;
+          if (!audioRef.current) audioRef.current = {};
+          if (!audioRef.current.wa) audioRef.current.wa = { scheduled: [] };
+          if (!audioRef.current.wa.ctx) audioRef.current.wa.ctx = new AC();
+          const ctx = audioRef.current.wa.ctx;
+          if (ctx && ctx.state === "suspended") { try { ctx.resume(); } catch {} }
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          g.gain.value = 0.06;
+          o.connect(g).connect(ctx.destination);
+          let num = parseInt(n, 10); if (isNaN(num)) num = 1;
+          const base = 900; const step = 60;
+          o.frequency.value = Math.max(440, base - num * step);
+          const t0 = ctx.currentTime; o.start(t0); o.stop(t0 + 0.1);
+        } catch {}
+        return true;
+      }
+    } catch {}
     try {
       // original body
 
@@ -816,6 +839,26 @@ vibe([40, 40]);
     document.addEventListener("visibilitychange", onVis);
     return () => { try { document.removeEventListener("visibilitychange", onVis); } catch {} };
   }, []);
+  useEffect(() => {
+    // audio keep-alive during active phases (iOS may suspend contexts)
+    if (!(phase === "get_ready" || phase === "exercise")) return;
+    if (paused) return;
+    let id = setInterval(() => {
+      try {
+        ensureAudioReady();
+        const ctx = audioRef.current?.wa?.ctx || (window.AudioContext || window.webkitAudioContext ? new (window.AudioContext || window.webkitAudioContext)() : null);
+        if (!ctx) return;
+        if (ctx.state === "suspended") { try { ctx.resume(); } catch {} }
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        g.gain.value = 0.0001; // inaudible nudge
+        o.connect(g).connect(ctx.destination);
+        const t0 = ctx.currentTime; o.start(t0); o.stop(t0 + 0.02);
+      } catch {}
+    }, 12000);
+    return () => { try { clearInterval(id); } catch {} };
+  }, [phase, paused]);
+
 
   // Watchdog: jei kažkas „dingo“, užbaik
   useEffect(() => {
