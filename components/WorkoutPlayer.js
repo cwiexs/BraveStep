@@ -70,6 +70,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // Timer
   const tickRafRef = useRef(null);
+  const tickIntervalRef = useRef(null);
   const lastTickRef = useRef(0);
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
@@ -77,7 +78,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
-  const autoRestartOnceRef = useRef(false);
 
   // Scroll
   const scrollRef = useRef(null);
@@ -280,7 +280,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  function stopAllScheduled() {
+  function stopAllAudioScheduled() {
     const { scheduled } = audioRef.current.wa;
     scheduled.forEach((s) => {
       try {
@@ -388,7 +388,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  function stopAllScheduled() {
+  function stopAllAudioScheduled() {
     try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
   }
@@ -506,47 +506,76 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
   // TIMER
+
+  const cancelInterval = () => {
+    if (tickIntervalRef.current) {
+      try { clearInterval(tickIntervalRef.current); } catch {} 
+      tickIntervalRef.current = null;
+    }
+  };
+
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
+    cancelInterval();
+  };
+
+
+  const checkAndAdvance = (nowMs) => {
+    if (!deadlineRef.current) return false;
+    const msLeft = Math.max(0, deadlineRef.current - nowMs);
+    const secs = Math.ceil(msLeft / 1000);
+    setSecondsLeft((prev) => (prev !== secs ? secs : prev));
+
+    if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
+      if (lastSpokenRef.current !== secs) {
+        speakNumber(secs);
+        lastSpokenRef.current = secs;
+      }
+    }
+
+    if (msLeft <= 0) {
+      if (transitionLockRef.current) return true;
+      transitionLockRef.current = true;
+      cancelRaf(); // also cancels interval
+      lastSpokenRef.current = null;
+      setStepFinished(true);
+
+      if (phase === "get_ready") {
+        try {
+          const firstEx = day?.exercises?.[0];
+          if (firstEx) {
+            const idx = findFirstExerciseIndex(firstEx);
+            setCurrentExerciseIndex(0);
+            setCurrentStepIndex(idx);
+          }
+        } catch {}
+        setPhase("exercise");
+        return true;
+      }
+      try { handlePhaseComplete(); } catch {}
+      return true;
+    }
+    return false;
   };
 
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
-      const msLeft = Math.max(0, deadlineRef.current - nowMs);
-      const secs = Math.ceil(msLeft / 1000);
-      setSecondsLeft((prev) => (prev !== secs ? secs : prev));
-
-      if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
-        if (lastSpokenRef.current !== secs) {
-          speakNumber(secs);
-          lastSpokenRef.current = secs;
-        }
-      }
-
-      if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
-      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
-        cancelRaf();
-        lastSpokenRef.current = null;
-        setStepFinished(true);
-        handlePhaseComplete();
-        return;
-      }
+      const advanced = checkAndAdvance(nowMs);
+      if (advanced) return;
       lastTickRef.current = nowMs;
     }
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
   const startTimedStep = (durationSec) => {
-    
-  // reset one-time auto-restart flag when entering GET READY
-  try { if (phase === "get_ready") autoRestartOnceRef.current = false; } catch {}
-transitionLockRef.current = false;
+    transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
     cancelRaf();
-    stopAllScheduled();
+    stopAllTimeouts();
+    stopAllAudioScheduled();
     lastSpokenRef.current = null;
 
     if (!durationSec || durationSec <= 0) {
@@ -561,26 +590,15 @@ transitionLockRef.current = false;
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-    // --- One-time universal auto-refresh (cheat) to unstick timers in GET READY ---
+    // Start interval fallback for mobile (iOS/Android) where rAF may stall
+    cancelInterval();
     try {
-      if (phase === "get_ready" && !autoRestartOnceRef.current) {
-        autoRestartOnceRef.current = true;
-        const d0 = durationSec;
-        const t0 = stepTokenRef.current;
-        setTimeout(() => {
-          try {
-            if (t0 !== stepTokenRef.current) return; // different step now
-            if (phase !== "get_ready") return;       // already moved on
-            // Prefer using component's own restart API if available
-            if (typeof restartGetReady === "function")      restartGetReady();
-            else if (typeof restartCurrentStep === "function") restartCurrentStep();
-            else { cancelRaf(); stopAllScheduled(); startTimedStep(d0); }
-          } catch {}
-        }, 2000); // you can change this delay (ms)
-      }
+      tickIntervalRef.current = setInterval(() => {
+        const now = (performance && performance.now) ? performance.now() : Date.now();
+        checkAndAdvance(now);
+      }, 250);
     } catch {}
 
-    
     try {
       if (durationSec > 0) {
         const wd = setTimeout(() => {
@@ -611,7 +629,8 @@ vibe([40, 40]);
     setPaused(true);
     if (deadlineRef.current) remainMsRef.current = Math.max(0, deadlineRef.current - performance.now());
     cancelRaf();
-    stopAllScheduled();
+    stopAllTimeouts();
+    stopAllAudioScheduled();
   };
 
   const resumeTimer = () => {
@@ -621,6 +640,14 @@ vibe([40, 40]);
       lastSpokenRef.current = null;
       deadlineRef.current = performance.now() + remainMsRef.current;
       tickRafRef.current = requestAnimationFrame(tick);
+      cancelInterval();
+      try {
+        tickIntervalRef.current = setInterval(() => {
+          const now = (performance && performance.now) ? performance.now() : Date.now();
+          checkAndAdvance(now);
+        }, 250);
+      } catch {}
+
     }
   };
 
@@ -628,7 +655,8 @@ vibe([40, 40]);
   useEffect(() => {
     if (phase !== "exercise") return;
     cancelRaf();
-    stopAllScheduled();
+    stopAllTimeouts();
+    stopAllAudioScheduled();
     deadlineRef.current = null;
 
     if (!step) {
@@ -678,7 +706,7 @@ vibe([40, 40]);
     return () => {
       timeoutsRef.current.forEach((id) => clearTimeout(id));
       cancelRaf();
-      stopAllScheduled();
+      stopAllTimeouts();
     };
   }, []);
 
@@ -700,7 +728,8 @@ vibe([40, 40]);
   }
 function handleManualContinue() {
     cancelRaf();
-    stopAllScheduled();
+    stopAllTimeouts();
+    stopAllAudioScheduled();
     if (phase === "intro") {
       primeIOSAudio();
       // Preselect first exercise step
@@ -719,10 +748,6 @@ function handleManualContinue() {
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
         startTimedStep(gr);
-        try {
-          const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60));
-          scheduledTimeoutsRef.current.push(id);
-        } catch {}
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
@@ -739,7 +764,8 @@ function handleManualContinue() {
   function handlePhaseComplete() {
     if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
     cancelRaf();
-    stopAllScheduled();
+    stopAllTimeouts();
+    stopAllAudioScheduled();
 
     if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex((prev) => prev + 1);
@@ -755,7 +781,8 @@ function handleManualContinue() {
 
   function goToPrevious() {
     cancelRaf();
-    stopAllScheduled();
+    stopAllTimeouts();
+    stopAllAudioScheduled();
     if (step && currentStepIndex > 0) {
       setCurrentStepIndex((prev) => prev - 1);
     } else if (exercise && currentExerciseIndex > 0) {
@@ -767,7 +794,8 @@ function handleManualContinue() {
   }
   function goToNext() {
     cancelRaf();
-    stopAllScheduled();
+    stopAllTimeouts();
+    stopAllAudioScheduled();
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
       // dar yra žingsnių tame pačiame pratime
       setCurrentStepIndex((prev) => prev + 1);
@@ -782,7 +810,8 @@ function handleManualContinue() {
   }
   function restartCurrentStep() {
     cancelRaf();
-    stopAllScheduled();
+    stopAllTimeouts();
+    stopAllAudioScheduled();
     const duration = getTimedSeconds(step);
     if (duration > 0) startTimedStep(duration);
   }
@@ -956,7 +985,7 @@ function handleManualContinue() {
               </button>
               <button
                 onClick={() => {
-                  try { cancelRaf(); stopAllScheduled(); } catch {}
+                  try { cancelRaf(); stopAllTimeouts(); } catch {}
                   setShowConfirmExit(false);
                   onClose?.();
                 }}
@@ -1006,14 +1035,14 @@ function handleManualContinue() {
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
     function restartGetReady() { transitionLockRef.current = false;
-    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
+    const gr = Number(getReadySeconds) || 0; stopAllTimeouts(); startTimedStep(gr > 0 ? gr : 0); }
 
     return (
       <Shell
         footer={
           <>
             <div className="flex items-center justify-center gap-4">
-              <button onClick={() => { cancelRaf(); stopAllScheduled(); setPhase("intro"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
+              <button onClick={() => { cancelRaf(); stopAllTimeouts(); setPhase("intro"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
                 <SkipBack className="w-6 h-6 text-gray-800" />
               </button>
               <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
