@@ -53,6 +53,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [fxEnabled, setFxEnabled] = useState(true);
   const [fxTrack, setFxTrack] = useState("beep");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+
+  /* ios default voice off */
+  useEffect(() => { if (isIOS) try { setVoiceEnabled(false); } catch {} }, []);
   const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
   const [getReadySeconds, setGetReadySeconds] = useState(10);
   const [getReadySecondsStr, setGetReadySecondsStr] = useState("10");
@@ -70,7 +73,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // Timer
   const tickRafRef = useRef(null);
-  const tickIntervalRef = useRef(null);
   const lastTickRef = useRef(0);
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
@@ -114,84 +116,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // AUDIO
   const audioRef = useRef({
-
-  
     html: { loaded: false, beep: null, silence: null, nums: {} },
     wa: { ctx: null, ready: false, buffers: new Map(), scheduled: [] },
   });
-// ---- iOS audio priming (WebAudio + SpeechSynthesis) ----
-  const audioPrimedRef = useRef(false);
-  function primeAudio() {
-    if (audioPrimedRef.current) return;
-    audioPrimedRef.current = true;
-    try {
-      // Ensure WebAudio context exists and is resumed
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!audioRef.current) audioRef.current = {};
-      if (!audioRef.current.wa) audioRef.current.wa = { scheduled: [] };
-      if (!audioRef.current.wa.ctx) audioRef.current.wa.ctx = new AC();
-      const ctx = audioRef.current.wa.ctx;
-      if (ctx && ctx.state === "suspended") { ctx.resume().catch(() => {}); }
-      // Play a very short near-silent blip to unlock output
-      try {
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        g.gain.value = 0.0001;
-        o.connect(g).connect(ctx.destination);
-        o.start();
-        o.stop(ctx.currentTime + 0.04);
-      } catch {}
-    } catch {}
-    try {
-      // Warm up SpeechSynthesis (some iOS versions need a user-gesture-initiated first call)
-      if (typeof window !== "undefined" && window.speechSynthesis) {
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(" ");
-        u.volume = 0; // silent
-        u.rate = 1;
-        try {
-          window.speechSynthesis.speak(u);
-          // cancel right after to avoid lingering
-          setTimeout(() => { try { window.speechSynthesis.cancel(); } catch {} }, 50);
-        } catch {}
-        // Access voices to trigger voiceschanged event
-        try { const _v = window.speechSynthesis.getVoices(); } catch {}
-      }
-    } catch {}
-  }
-  function ensureAudioReady() {
-    try {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!audioRef.current) audioRef.current = {};
-      if (!audioRef.current.wa) audioRef.current.wa = { scheduled: [] };
-      if (!audioRef.current.wa.ctx) audioRef.current.wa.ctx = new AC();
-      const ctx = audioRef.current.wa.ctx;
-      if (ctx && ctx.state !== "running") { try { ctx.resume(); } catch {} }
-    } catch {}
-  }
-
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const once = () => primeAudio();
-    // prime on first interaction
-    window.addEventListener("pointerdown", once, { once: true });
-    const keep = () => ensureAudioReady();
-    window.addEventListener("pointerdown", keep);
-    window.addEventListener("touchstart", once, { once: true, passive: true });
-    window.addEventListener("touchstart", keep, { passive: true });
-    window.addEventListener("mousedown", once, { once: true });
-    window.addEventListener("mousedown", keep);
-    return () => {
-      try { window.removeEventListener("pointerdown", once); } catch {}
-      try { window.removeEventListener("pointerdown", keep); } catch {}
-      try { window.removeEventListener("touchstart", once); } catch {}
-      try { window.removeEventListener("touchstart", keep); } catch {}
-      try { window.removeEventListener("mousedown", once); } catch {}
-      try { window.removeEventListener("mousedown", keep); } catch {}
-    };
-  }, []);
-
   const lastSpokenRef = useRef(null);
 
   // Derived
@@ -320,7 +247,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   async function loadWABuffer(name, url) {
     try {
-      const ctx = await ensureWAContext();
+      const ctx = ensureWAContext();
       if (!ctx) return false;
       if (audioRef.current.wa.buffers.has(name)) return true;
       const res = await fetch(url);
@@ -334,6 +261,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function playWABuffer(name, when = 0) {
+    // Disable WebAudio on iOS to avoid post-gesture mutes
+    if (isIOS) return false;
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
       if (!ctx) return false;
@@ -355,7 +284,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  function stopAllAudioScheduled() {
+  function stopAllScheduled() {
     const { scheduled } = audioRef.current.wa;
     scheduled.forEach((s) => {
       try {
@@ -367,8 +296,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
-    const beep = new Audio("/beep.wav");
-    const silence = new Audio("/silance.mp3");
+    const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch{}
+    const silence = new Audio("/silence.mp3");
     const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
@@ -409,13 +338,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return false;
   }
 
-  async function primeIOSAudio() {
-    const ctx = await ensureWAContext();
+  function primeIOSAudio() {
+    const ctx = ensureWAContext();
     try {
-      await ctx?.resume();
+      try { ctx?.resume?.(); } catch {}
     } catch {}
 
-    await Promise.all([
+    Promise.all([
       loadWABuffer("beep", "/beep.wav"),
       loadWABuffer("1", "/1.mp3"),
       loadWABuffer("2", "/2.mp3"),
@@ -429,7 +358,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const s = audioRef.current.html.silence;
       s.volume = 0.01;
       s.currentTime = 0;
-      await s.play().catch(() => {});
+      try { s.play().catch(() => {}); } catch {}
       setTimeout(() => {
         try {
           s.pause();
@@ -440,41 +369,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function ping() {
-    try { ensureAudioReady(); } catch {}
+    if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
   }
 
   function speakNumber(n) {
-    /*patched*/
-    // iOS: use WebAudio beep instead of speech for reliability
-    try {
-      if (typeof isIOS !== "undefined" && isIOS) {
-        try { ensureAudioReady(); } catch {}
-        try {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (!audioRef.current) audioRef.current = {};
-          if (!audioRef.current.wa) audioRef.current.wa = { scheduled: [] };
-          if (!audioRef.current.wa.ctx) audioRef.current.wa.ctx = new AC();
-          const ctx = audioRef.current.wa.ctx;
-          if (ctx && ctx.state === "suspended") { try { ctx.resume(); } catch {} }
-          const o = ctx.createOscillator();
-          const g = ctx.createGain();
-          g.gain.value = 0.06;
-          o.connect(g).connect(ctx.destination);
-          let num = parseInt(n, 10); if (isNaN(num)) num = 1;
-          const base = 900; const step = 60;
-          o.frequency.value = Math.max(440, base - num * step);
-          const t0 = ctx.currentTime; o.start(t0); o.stop(t0 + 0.1);
-        } catch {}
-        return true;
-      }
-    } catch {}
-    try {
-      // original body
-
-    try { ensureAudioReady(); } catch {}
+    if (isIOS) { if (!playHTML(String(n))) ping(); return; }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -490,29 +392,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     } else {
       ping();
     }
-  
-    } catch (e) {
-      // fallback to a quick beep via WebAudio
-      try {
-        const ctx = audioRef.current?.wa?.ctx || new (window.AudioContext || window.webkitAudioContext)();
-        if (ctx.state === "suspended") { try { ctx.resume(); } catch {} }
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        g.gain.value = 0.07;
-        o.connect(g).connect(ctx.destination);
-        o.type = "sine";
-        const t0 = ctx.currentTime;
-        o.start(t0);
-        o.stop(t0 + 0.08);
-      } catch {}
-    }
-}
+  }
 
   function stopAllScheduled() {
-  try { stopAllAudioScheduled(); } catch {}
-  try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
-  scheduledTimeoutsRef.current = [];
-}
+    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
+    scheduledTimeoutsRef.current = [];
+  }
 
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
@@ -624,78 +509,42 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
-  const forcedGetReadyRef = useRef(false);
-  // Fallback: if pre-workout (get_ready) reaches 0s but something prevented the usual transition,
-  // force a safe phase change identical to exercise/rest logic.
-  useEffect(() => {
-    if (phase === "get_ready" && secondsLeft === 0 && !forcedGetReadyRef.current) {
-      forcedGetReadyRef.current = true;
-      transitionLockRef.current = true;
-      try { cancelRaf(); } catch {}
-      try { stopAllScheduled(); } catch {}
-      try { setStepFinished(true); } catch {}
-      setTimeout(() => {
-        try { handlePhaseComplete(); } catch {}
-      }, 0);
-    }
-  }, [phase, secondsLeft]);
-
-
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
   // TIMER
-  const cancelInterval = () => {
-    if (tickIntervalRef.current) {
-      try { clearInterval(tickIntervalRef.current); } catch {}
-      tickIntervalRef.current = null;
-    }
-  };
-
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
-    cancelInterval();
-  };
-
-
-  const advanceIfDue = (nowMs) => {
-    if (!deadlineRef.current) return false;
-    const msLeft = Math.max(0, deadlineRef.current - nowMs);
-    const secs = Math.ceil(msLeft / 1000);
-    setSecondsLeft((prev) => (prev !== secs ? secs : prev));
-
-    if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
-      if (lastSpokenRef.current !== secs) {
-        speakNumber(secs);
-        lastSpokenRef.current = secs;
-      }
-    }
-
-    if (msLeft <= 0) {
-if (transitionLockRef.current) { cancelRaf();   try { stopAllScheduled(); } catch {}
-return true; }
-      transitionLockRef.current = true;
-      cancelRaf();
-      lastSpokenRef.current = null;
-      setStepFinished(true);
-      try { handlePhaseComplete(); } catch {}
-      return true;
-    }
-    return false;
   };
 
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
-      const done = advanceIfDue(nowMs);
-      if (done) return;
+      const msLeft = Math.max(0, deadlineRef.current - nowMs);
+      const secs = Math.ceil(msLeft / 1000);
+      setSecondsLeft((prev) => (prev !== secs ? secs : prev));
+
+      if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
+        if (lastSpokenRef.current !== secs) {
+          speakNumber(secs);
+          lastSpokenRef.current = secs;
+        }
+      }
+
+      if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
+      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+        cancelRaf();
+        lastSpokenRef.current = null;
+        setStepFinished(true);
+        handlePhaseComplete();
+        return;
+      }
       lastTickRef.current = nowMs;
     }
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
   const startTimedStep = (durationSec) => {
-    transitionLockRef.current = false;
     transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
@@ -715,15 +564,7 @@ return true; }
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-    // interval fallback for mobile
-    cancelInterval();
-    try {
-      tickIntervalRef.current = setInterval(() => {
-        const now = (performance && performance.now) ? performance.now() : Date.now();
-        advanceIfDue(now);
-      }, 250);
-    } catch {}
-
+    
     try {
       if (durationSec > 0) {
         const wd = setTimeout(() => {
@@ -744,7 +585,7 @@ return true; }
       }
     } catch {}
 vibe([40, 40]);
-    try { ping(); } catch {}
+    ping();
 
     tickRafRef.current = requestAnimationFrame(tick);
   };
@@ -764,14 +605,6 @@ vibe([40, 40]);
       lastSpokenRef.current = null;
       deadlineRef.current = performance.now() + remainMsRef.current;
       tickRafRef.current = requestAnimationFrame(tick);
-      cancelInterval();
-      try {
-        tickIntervalRef.current = setInterval(() => {
-          const now = (performance && performance.now) ? performance.now() : Date.now();
-          advanceIfDue(now);
-        }, 250);
-      } catch {}
-
     }
   };
 
@@ -833,33 +666,6 @@ vibe([40, 40]);
     };
   }, []);
 
-  useEffect(() => {
-    if (typeof document === "undefined") return;
-    const onVis = () => { if (document.visibilityState === "visible") ensureAudioReady(); };
-    document.addEventListener("visibilitychange", onVis);
-    return () => { try { document.removeEventListener("visibilitychange", onVis); } catch {} };
-  }, []);
-  useEffect(() => {
-    // audio keep-alive during active phases (iOS may suspend contexts)
-    if (!(phase === "get_ready" || phase === "exercise")) return;
-    if (paused) return;
-    let id = setInterval(() => {
-      try {
-        ensureAudioReady();
-        const ctx = audioRef.current?.wa?.ctx || (window.AudioContext || window.webkitAudioContext ? new (window.AudioContext || window.webkitAudioContext)() : null);
-        if (!ctx) return;
-        if (ctx.state === "suspended") { try { ctx.resume(); } catch {} }
-        const o = ctx.createOscillator();
-        const g = ctx.createGain();
-        g.gain.value = 0.0001; // inaudible nudge
-        o.connect(g).connect(ctx.destination);
-        const t0 = ctx.currentTime; o.start(t0); o.stop(t0 + 0.02);
-      } catch {}
-    }, 12000);
-    return () => { try { clearInterval(id); } catch {} };
-  }, [phase, paused]);
-
-
   // Watchdog: jei kažkas „dingo“, užbaik
   useEffect(() => {
     if (phase === "exercise") {
@@ -877,7 +683,6 @@ vibe([40, 40]);
     setGetReadySecondsStr(String(clamped));
   }
 function handleManualContinue() {
-    try { primeAudio(); } catch {}
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
@@ -897,8 +702,11 @@ function handleManualContinue() {
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
-        transitionLockRef.current = false;
         startTimedStep(gr);
+        try {
+          const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60));
+          scheduledTimeoutsRef.current.push(id);
+        } catch {}
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
@@ -1153,7 +961,7 @@ function handleManualContinue() {
       <Shell
         footer={
           <div className="flex flex-col items-center gap-3">
-            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold" onClick={() => { try { primeAudio(); } catch {} handleManualContinue(); }}>
+            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold" onClick={handleManualContinue}>
               {startWorkoutLabel}
             </button>
           </div>
@@ -1182,7 +990,7 @@ function handleManualContinue() {
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
     function restartGetReady() { transitionLockRef.current = false;
-    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
+    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
 
     return (
       <Shell
@@ -1307,7 +1115,7 @@ function handleManualContinue() {
 
           {waitingForUser && step?.type === "exercise" && (
             <div className="mt-6">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold" onClick={() => { try { primeAudio(); } catch {} handleManualContinue(); }}>
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold" onClick={handleManualContinue}>
                 {doneLabel}
               </button>
             </div>
