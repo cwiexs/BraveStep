@@ -601,7 +601,26 @@ vibe([40, 40]);
     }
   };
 
-  // --- TIMER SETUP / STEP SWITCH ---
+  
+  // --- AUTO START: GET_READY uses the same timer engine as steps ---
+  useEffect(() => {
+    if (phase !== "get_ready") return;
+    try { cancelRaf(); } catch {}
+    try { stopAllScheduled(); } catch {}
+    if (transitionLockRef) transitionLockRef.current = false;
+    const secsRaw = Number(getReadySeconds);
+    const secs = Number.isFinite(secsRaw) ? Math.max(0, Math.round(secsRaw)) : 0;
+    if (secs > 0) {
+      try { startTimedStep(secs); } catch {}
+    } else {
+      try {
+        setSecondsLeft(0);
+        setStepFinished(true);
+        setPhase("exercise");
+      } catch {}
+    }
+  }, [phase, getReadySeconds]);
+// --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
     if (phase !== "exercise") return;
     cancelRaf();
@@ -660,7 +679,28 @@ vibe([40, 40]);
   }, []);
 
   // Watchdog: jei kažkas „dingo“, užbaik
+  useEffect(
+
+  // --- AUTO START: GET_READY uses the same timer engine as steps ---
   useEffect(() => {
+    if (phase !== "get_ready") return;
+    try { cancelRaf(); } catch {}
+    try { stopAllScheduled(); } catch {}
+    if (transitionLockRef) transitionLockRef.current = false;
+    const secsRaw = Number(getReadySeconds);
+    const secs = Number.isFinite(secsRaw) ? Math.max(0, Math.round(secsRaw)) : 0;
+    if (secs > 0) {
+      try { startTimedStep(secs); } catch {}
+    } else {
+      try {
+        setSecondsLeft(0);
+        setStepFinished(true);
+        setPhase("exercise");
+      } catch {}
+    }
+  }, [phase, getReadySeconds]);
+
+() => {
     if (phase === "exercise") {
       if (!day || !exercise || !step) setPhase("summary");
     }
@@ -970,7 +1010,27 @@ function handleManualContinue() {
     );
   }
 
-  // ---- Get Ready ----
+  
+  // --- AUTO START: GET_READY uses the same timer engine as steps ---
+  useEffect(() => {
+    if (phase !== "get_ready") return;
+    try { cancelRaf(); } catch {}
+    try { stopAllScheduled(); } catch {}
+    if (transitionLockRef) transitionLockRef.current = false;
+    const secsRaw = Number(getReadySeconds);
+    const secs = Number.isFinite(secsRaw) ? Math.max(0, Math.round(secsRaw)) : 0;
+    if (secs > 0) {
+      try { startTimedStep(secs); } catch {}
+    } else {
+      try {
+        setSecondsLeft(0);
+        setStepFinished(true);
+        setPhase("exercise");
+      } catch {}
+    }
+  }, [phase, getReadySeconds]);
+
+// ---- Get Ready ----
   if (phase === "get_ready") {
     const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
@@ -982,8 +1042,7 @@ function handleManualContinue() {
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() { transitionLockRef.current = false;
-    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
+    function restartGetReady() { cancelRaf(); stopAllScheduled();  if (transitionLockRef) transitionLockRef.current = false;  setPhase("get_ready"); } catch {} try { stopAllScheduled(); } catch {} if (transitionLockRef) transitionLockRef.current = false; setPhase("get_ready"); } catch {} try { stopAllScheduled(); } catch {} if (transitionLockRef) transitionLockRef.current = false; setPhase("get_ready"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
 
     return (
       <Shell
