@@ -9,12 +9,14 @@ const DEBUG = (typeof window !== "undefined") && (() => {
     if (usp.get("debug") === "1") return true;                 // ?debug=1
     if (localStorage.getItem("player_debug") === "1") return true;
     if (localStorage.getItem("debug") === "1") return true;
-    if (window.__PLAYER_DEBUG_ON__ === true) return true;      // tiesiog per Console
+    if (window.__PLAYER_DEBUG_ON__ === true) return true;      // per Console
   } catch (_) {}
   return false;
 })();
 
-// Greiti mygtukai per Console (QA):
+// Boot log (visada, kad pamatytume ar modulis kraunasi)
+try { console.log("[PLAYER] DEBUG_PATCH_LOADED", { DEBUG }); } catch {}
+
 if (typeof window !== "undefined") {
   try { window.__PLAYER_DEBUG_ON__ = DEBUG; } catch {}
   window.__PLAYER_DEBUG_ENABLE__ = () => {
