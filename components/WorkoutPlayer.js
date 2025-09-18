@@ -1007,7 +1007,8 @@ function handleManualContinue() {
     </div>
   );
 
-  // ---- Intro ----
+    function renderPhase() {
+// ---- Intro ----
   if (phase === "intro") {
     return (
       <Shell
@@ -1385,5 +1386,7 @@ function handleManualContinue() {
     );
   }
 
-  return null;
+  }
+
+  return renderPhase();
 }
