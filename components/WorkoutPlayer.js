@@ -1,5 +1,4 @@
 import { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
-import { flushSync } from "react-dom";
 import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
@@ -79,7 +78,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
 const stepTokenRef = useRef(0);
-const enteredFromGetReadyRef = useRef(false);
 
   const timeoutsRef = useRef([]);
 
@@ -125,10 +123,10 @@ const enteredFromGetReadyRef = useRef(false);
 
   // Derived
   const day = workoutData?.days?.[currentDay];
-  const exercise = exercises?.[currentExerciseIndex];
+  const exercise = day?.exercises?.[currentExerciseIndex];
   const step = exercise?.steps?.[currentStepIndex];
 
-  const isLastExerciseInDay = !!day && currentExerciseIndex === (exercises?.length || 1) - 1;
+  const isLastExerciseInDay = !!day && currentExerciseIndex === (day?.exercises?.length || 1) - 1;
   const isLastStepInExercise = !!exercise && currentStepIndex === (exercise?.steps?.length || 1) - 1;
 
   // nauji aiškūs indikatoriai pabaigai
@@ -416,8 +414,8 @@ const enteredFromGetReadyRef = useRef(false);
     let exIdx = currentExerciseIndex;
     let stIdx = currentStepIndex + 1;
 
-    while (exIdx < (exercises?.length || 0)) {
-      const ex = exercises?.[exIdx];
+    while (exIdx < (day.exercises?.length || 0)) {
+      const ex = day.exercises?.[exIdx];
       if (!ex) break;
       while (stIdx < (ex.steps?.length || 0)) {
         const st = ex.steps?.[stIdx];
@@ -488,7 +486,9 @@ const enteredFromGetReadyRef = useRef(false);
     } catch {}
   }, [descriptionsEnabled]);
 
-  useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);// After switching from get_ready to exercise, ensure timer initializes
+  useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
+
+  // After switching from get_ready to exercise, ensure timer initializes
   useEffect(() => {
     if (phase === "exercise") {
       // kick the timer setup effect by nudging step state if needed
@@ -501,8 +501,6 @@ const enteredFromGetReadyRef = useRef(false);
   // Ensure exercise timer starts when we enter exercise (after get_ready)
   useEffect(() => {
     if (phase !== "exercise") return;
-    // If a timer is already running (e.g., we started it synchronously on transition), skip
-    if (deadlineRef.current) return;
     const d = getTimedSeconds(step);
     if (Number.isFinite(d) && d > 0) {
       startTimedStep(d);
@@ -540,8 +538,18 @@ const enteredFromGetReadyRef = useRef(false);
         cancelRaf();
         lastSpokenRef.current = null;
 
-        /* get_ready handled as a REST step now */
-
+        if (phase === "get_ready") {
+          try {
+            const firstEx = day?.exercises?.[0];
+            if (firstEx) {
+              const idx = findFirstExerciseIndex(firstEx);
+              setCurrentExerciseIndex(0);
+              setCurrentStepIndex(idx);
+            }
+          } catch {}
+          setPhase("exercise");
+          return;
+        }
 
         setStepFinished(true);
         handlePhaseComplete();
@@ -620,8 +628,6 @@ vibe([40, 40]);
   // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
     if (phase !== "exercise") return;
-    // If we just synchronously entered from get_ready and a timer started, do not reset it
-    if (enteredFromGetReadyRef.current && deadlineRef.current) { enteredFromGetReadyRef.current = false; return; }
     cancelRaf();
     stopAllScheduled();
     deadlineRef.current = null;
@@ -684,50 +690,7 @@ vibe([40, 40]);
     }
   }, [phase, day, exercise, step]);
 
-  
-  // Robust transition from get_ready -> exercise (avoids iOS/Android first-run freeze)
-  function enterFirstExerciseFromGetReady() {
-    enteredFromGetReadyRef.current = true;
-      try {
-      const firstEx = exercises?.[0];
-      let idx = 0;
-      if (firstEx) {
-        idx = findFirstExerciseIndex(firstEx);
-      }
-      const firstSt = firstEx?.steps?.[idx];
-      const d = getTimedSeconds(firstSt);
-
-      // Clean any pending timers/schedules from get_ready before switching
-      cancelRaf();
-      stopAllScheduled();
-      deadlineRef.current = null;
-      transitionLockRef.current = false;
-
-      try {
-        flushSync(() => {
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(idx);
-          setPhase("exercise");
-        });
-      } catch {
-        setCurrentExerciseIndex(0);
-        setCurrentStepIndex(idx);
-        setPhase("exercise");
-      }
-
-      // Start the first exercise timer immediately (don't rely only on effects)
-      if (d > 0) {
-        startTimedStep(d);
-      } else {
-        setSecondsLeft(0);
-        setWaitingForUser(firstSt?.type === "exercise");
-      }
-    } catch {
-      // Fallback: at least enter exercise phase
-      setPhase("exercise");
-    }
-  }
-// Navigation
+  // Navigation
   
   function commitGetReady() {
     const raw = (getReadySecondsStr ?? "").toString().trim();
@@ -743,7 +706,7 @@ function handleManualContinue() {
       primeIOSAudio();
       // Preselect first exercise step
       try {
-        const firstEx = exercises?.[0];
+        const firstEx = day?.exercises?.[0];
         if (firstEx) {
           const idx = findFirstExerciseIndex(firstEx);
           setCurrentExerciseIndex(0);
@@ -753,7 +716,7 @@ function handleManualContinue() {
           setCurrentStepIndex(0);
         }
       } catch {}
-      setCurrentExerciseIndex(0); setCurrentStepIndex(0); setPhase("exercise");
+      setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
         startTimedStep(gr);
@@ -772,7 +735,18 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    /* get_ready handled as a REST step now */
+    if (phase === "get_ready") {
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        }
+      } catch {}
+      setPhase("exercise");
+      return;
+    }
 
     cancelRaf();
     stopAllScheduled();
@@ -781,7 +755,7 @@ function handleManualContinue() {
       setCurrentStepIndex((prev) => prev + 1);
       return;
     }
-    if (day && currentExerciseIndex + 1 < exercises.length) {
+    if (day && currentExerciseIndex + 1 < day.exercises.length) {
       setCurrentExerciseIndex((prev) => prev + 1);
       setCurrentStepIndex(0);
       return;
@@ -797,7 +771,7 @@ function handleManualContinue() {
     } else if (exercise && currentExerciseIndex > 0) {
       const prevIdx = currentExerciseIndex - 1;
       setCurrentExerciseIndex(prevIdx);
-      const prevEx = exercises?.[prevIdx];
+      const prevEx = day?.exercises?.[prevIdx];
       setCurrentStepIndex(prevEx?.steps?.length ? prevEx.steps.length - 1 : 0);
     }
   }
@@ -807,7 +781,7 @@ function handleManualContinue() {
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
       // dar yra žingsnių tame pačiame pratime
       setCurrentStepIndex((prev) => prev + 1);
-    } else if (day && currentExerciseIndex + 1 < exercises.length) {
+    } else if (day && currentExerciseIndex + 1 < day.exercises.length) {
       // žingsnių nebėra, bet yra kitas pratimas
       setCurrentExerciseIndex((prev) => prev + 1);
       setCurrentStepIndex(0);
@@ -1007,8 +981,7 @@ function handleManualContinue() {
     </div>
   );
 
-    function renderPhase() {
-// ---- Intro ----
+  // ---- Intro ----
   if (phase === "intro") {
     return (
       <Shell
@@ -1031,11 +1004,18 @@ function handleManualContinue() {
   }
 
   // ---- Get Ready ----
-  /* get_ready handled as a REST step now */
+  if (phase === "get_ready") {
+const firstEx = day?.exercises?.[0] || null;
+    let firstSt = null;
+    let totalSets = 0;
+    if (firstEx?.steps && Array.isArray(firstEx.steps)) {
+      totalSets = firstEx.steps.filter((s) => s.type === "exercise").length || 0;
+      firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
+    }
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartCurrentStep() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
+    function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
 
     return (
       <Shell
@@ -1051,7 +1031,7 @@ function handleManualContinue() {
               <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
                 <RotateCcw className="w-6 h-6 text-gray-800" />
               </button>
-              <button onClick={() => { setStepFinished(true); try { const firstEx = exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
@@ -1127,7 +1107,7 @@ function handleManualContinue() {
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
           <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
-            {(step?.__isGetReady ? (i18n?.language?.startsWith?.("lt") ? "Pasiruoškite" : "Get ready") : (isRestPhase ? restLabel : (exercise?.name || exerciseLabel)))}
+            {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
 
           {/* Description under title (toggleable) */}
           {!isRestPhase && descriptionsEnabled && exercise?.description && (
@@ -1386,7 +1366,5 @@ function handleManualContinue() {
     );
   }
 
-  }
-
-  return renderPhase();
+  return null;
 }
