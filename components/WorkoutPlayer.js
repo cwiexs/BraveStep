@@ -490,7 +490,23 @@ const enteredFromGetReadyRef = useRef(false);
 
   useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
-  // After switching from get_ready to exercise, ensure timer initializes
+  
+  // Ensure GET_READY timer always starts (in case batched updates swallowed the start)
+  useEffect(() => {
+    if (phase === "get_ready") {
+      if (!deadlineRef.current) {
+        const gr = Number(getReadySeconds) || 0;
+        if (gr > 0) {
+          startTimedStep(gr);
+        } else {
+          setSecondsLeft(0);
+          setWaitingForUser(false);
+          setPhase("exercise");
+        }
+      }
+    }
+  }, [phase, getReadySeconds]);
+// After switching from get_ready to exercise, ensure timer initializes
   useEffect(() => {
     if (phase === "exercise") {
       // kick the timer setup effect by nudging step state if needed
