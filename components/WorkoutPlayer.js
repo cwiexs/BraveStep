@@ -67,7 +67,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [phase, setPhase] = useState("intro"); // intro | exercise | summary
+  const [phase, setPhase] = useState("intro");
+  // Keep the latest phase in a ref to avoid stale-closure bugs in async timers
+  const phaseRef = useRef("intro");
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+ // intro | exercise | summary
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -563,12 +567,14 @@ const stepTokenRef = useRef(0);
       }
 
       if (msLeft <= 0) {
-        if (transitionLockRef.current) { cancelRaf(); return; }
+        
+        try { dbg("tick:deadline-reached", { phase: phaseRef.current, msLeft, secs }); } catch {}
+if (transitionLockRef.current) { cancelRaf(); return; }
         transitionLockRef.current = true;
         cancelRaf();
         lastSpokenRef.current = null;
 
-        if (phase === "get_ready") {
+        if (phaseRef.current === "get_ready") {
           try {
             const firstEx = day?.exercises?.[0];
             if (firstEx) {
@@ -612,7 +618,10 @@ const stepTokenRef = useRef(0);
     setSecondsLeft(durationSec);
 
     
-    try {
+    
+    try { dbg("startTimedStep", { durationSec, phase: phaseRef.current, token: __token }); } catch {}
+
+try {
       if (durationSec > 0) {
         const wd = setTimeout(() => {
           try {
@@ -765,7 +774,8 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") {
+    const __phaseNow = phaseRef.current;
+    if (__phaseNow === "get_ready") {
       try {
         const firstEx = day?.exercises?.[0];
         if (firstEx) {
