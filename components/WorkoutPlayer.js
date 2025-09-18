@@ -3,26 +3,13 @@ import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
 
-// === DEBUG SWITCH ===
-// Robust: ?debug=1 OR localStorage.debug="1" OR localStorage.player_debug="1" OR window.__PLAYER_DEBUG_ON__=true
-const DEBUG = typeof window !== "undefined" && (
-  new URLSearchParams(window.location.search).get("debug") === "1"
-  || (function(){ try { return localStorage.getItem("debug")==="1" || localStorage.getItem("player_debug")==="1"; } catch(_) { return false; } })()
-  || (typeof window !== "undefined" && window.__PLAYER_DEBUG_ON__ === true)
-);
-function dbg(...args) { if (DEBUG) { try { console.log("[PLAYER]", ...args); } catch {} } }
-
-// Robust DEBUG switch: URL ?debug=1 OR localStorage.debug="1" OR window.__PLAYER_DEBUG_ON__=truefunction dbg(...args) { if (DEBUG) { try { console.log("[PLAYER]", ...args); } catch {} } }
-
-
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
   const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
 
   // ---- iOS scroll lock while typing ----
-  const leadingModeRef = useRef(false);
-const pageYRef = useRef(0);
+  const pageYRef = useRef(0);
   const scheduledTimeoutsRef = useRef([]);
   const lockBodyScroll = () => {
     try {
@@ -78,18 +65,11 @@ const pageYRef = useRef(0);
   const [inputActive, setInputActive] = useState(false);
   const [showConfirmExit, setShowConfirmExit] = useState(false);
 
-  // Leading rest before the first exercise (replaces old GET_READY)
-  const [leadingBreakActive, setLeadingBreakActive] = useState(false);
-
   // ---- Refs ----
   const wakeLockRef = useRef(null);
   const textareaRef = useRef(null);
   const caretRef = useRef({ start: null, end: null });
   const commentRef = useRef("");
-  const fallbackTORef = useRef(null);
-const stepRunIdRef = useRef(0);
-const lastStartRef = useRef({ key: null, ts: 0 }); // fallback timeout for leading break
-
 
   // Timer
   const tickRafRef = useRef(null);
@@ -418,8 +398,6 @@ const stepTokenRef = useRef(0);
     try { stopAllScheduledAudio(); } catch {}
     try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
-    stepRunIdRef.current += 1; try { if (fallbackTORef.current) { clearTimeout(fallbackTORef.current); fallbackTORef.current = null; } } catch {}
-
   }
 
   function vibe(pattern = [40, 40]) {
@@ -555,8 +533,6 @@ const stepTokenRef = useRef(0);
       }
 
       if (msLeft <= 0) {
-        if (leadingModeRef.current) { dbg("tick<=0: END leadingBreak"); setLeadingBreakActive(false); leadingModeRef.current = false; lastStartRef.current = {key:null, ts:0}; setSecondsLeft(0); return; }
-
         if (transitionLockRef.current) { cancelRaf(); return; }
         transitionLockRef.current = true;
         cancelRaf();
@@ -576,8 +552,7 @@ const stepTokenRef = useRef(0);
         }
 
         setStepFinished(true);
-        dbg("tick: ZERO -> handlePhaseComplete", {phase, ex: currentExerciseIndex, st: currentStepIndex});
-        lastStartRef.current = { key: null, ts: 0 }; handlePhaseComplete();
+        handlePhaseComplete();
         return;
       }
 
@@ -586,15 +561,7 @@ const stepTokenRef = useRef(0);
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
-  const startTimedStep = (durationSec, isLeading = false) => { leadingModeRef.current = !!isLeading;
-  try {
-    const key = `${phase}|${currentExerciseIndex}|${currentStepIndex}|${isLeading?'L':'N'}|${durationSec}`;
-    const now = Date.now();
-    const last = lastStartRef.current || {key:null,ts:0};
-    if (last.key === key && (now - last.ts) < 500) { dbg('startTimedStep: SKIP duplicate', {key}); return; }
-    lastStartRef.current = { key, ts: now };
-  } catch {}
- dbg('startTimedStep', { durationSec, leadingBreakActive });
+  const startTimedStep = (durationSec) => {
     transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
@@ -628,8 +595,7 @@ const stepTokenRef = useRef(0);
             transitionLockRef.current = true;
             cancelRaf();
             // Leiskime eiti ta pačia logika kaip rAF pabaigoje
-            try { dbg("tick: ZERO -> handlePhaseComplete", {phase, ex: currentExerciseIndex, st: currentStepIndex});
-        lastStartRef.current = { key: null, ts: 0 }; handlePhaseComplete(); } catch {}
+            try { handlePhaseComplete(); } catch {}
           } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
         scheduledTimeoutsRef.current.push(wd);
@@ -638,21 +604,7 @@ const stepTokenRef = useRef(0);
 vibe([40, 40]);
     ping();
 
-    
-    // Fallback for leading break in case RAF/watchdog miss
-    stepRunIdRef.current += 1; try { if (fallbackTORef.current) { clearTimeout(fallbackTORef.current); fallbackTORef.current = null; } } catch {}
-    if (leadingModeRef.current) { const ms = Math.max(0, Math.floor(durationSec * 1000) + 120);
-      fallbackTORef.current = setTimeout(() => {
-        try {
-          if (leadingBreakActive) {
-            dbg("fallback: END leadingBreak (timeout)");
-            setLeadingBreakActive(false);
-            setSecondsLeft(0);
-           }
-        } catch {}
-      }, ms);
-    }
-tickRafRef.current = requestAnimationFrame(tick);
+    tickRafRef.current = requestAnimationFrame(tick);
   };
 
   const pauseTimer = () => {
@@ -764,21 +716,19 @@ function handleManualContinue() {
           setCurrentStepIndex(0);
         }
       } catch {}
-      setPhase("exercise");
+      setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
-      dbg("[intro->exercise] gr=", gr);
-      if (gr > 0) { setLeadingBreakActive(true);
-        setSecondsLeft(gr);
-         startTimedStep(gr, true);
+      if (gr > 0) {
+        startTimedStep(gr);
 
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
+        setPhase("exercise");
       }
     } else if (phase === "exercise") {
       setStepFinished(true);
-      dbg("tick: ZERO -> handlePhaseComplete", {phase, ex: currentExerciseIndex, st: currentStepIndex});
-        lastStartRef.current = { key: null, ts: 0 }; handlePhaseComplete();
+      handlePhaseComplete();
     } else if (phase === "summary") {
       onClose?.();
     }
