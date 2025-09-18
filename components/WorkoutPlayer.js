@@ -489,16 +489,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
-  // After switching from get_ready to exercise, ensure timer initializes
-  useEffect(() => {
-    if (phase === "exercise") {
-      // kick the timer setup effect by nudging step state if needed
-      setTimeout(() => {
-        try { setCurrentStepIndex((v) => v); } catch {}
-      }, 0);
-    }
-  }, [phase]);
-
   // Ensure exercise timer starts when we enter exercise (after get_ready)
   useEffect(() => {
     if (phase !== "exercise") return;
@@ -514,23 +504,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
   
-  /* universal timer watchdog */
-  useEffect(() => {
-    if (paused) return;
-    const timed = phase === "get_ready" || (phase === "exercise" && getTimedSeconds(step) > 0);
-    if (!timed) return;
-    if (secondsLeft > 0) return;
-    // step identity token
-    const key = `${phase}:${currentExerciseIndex}:${currentStepIndex}:${getTimedSeconds(step)}`;
-    if (lastAdvancedRef.current === key) return;
-    lastAdvancedRef.current = key;
-    // advance safely
-    try {
-      if (transitionLockRef.current) transitionLockRef.current = false;
-      handlePhaseComplete();
-    } catch {}
-  }, [secondsLeft, phase, currentExerciseIndex, currentStepIndex, step, paused]);
-// TIMER
+  // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
@@ -550,8 +524,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }
       }
 
-      if (msLeft <= 0) {
-        if (transitionLockRef.current) { cancelRaf(); return; }
+      if (msLeft <= 0) { advanceOnce("tick"); return; }
         transitionLockRef.current = true;
         cancelRaf();
         lastSpokenRef.current = null;
@@ -570,7 +543,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }
 
         setStepFinished(true);
-        handlePhaseComplete();
+        advanceOnce("call");
         return;
       }
 
@@ -600,26 +573,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     setSecondsLeft(durationSec);
 
     
-    try {
-      if (durationSec > 0) {
-        const wd = setTimeout(() => {
-          try {
-            if (__token !== stepTokenRef.current) return;
-            const dl = deadlineRef.current;
-            if (!dl) return;
-            const now = performance.now ? performance.now() : Date.now();
-            if (now < dl - 10) return; // dar ne laikas
-            if (transitionLockRef.current) return;
-            transitionLockRef.current = true;
-            cancelRaf();
-            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
-            try { handlePhaseComplete(); } catch {}
-          } catch {}
-        }, Math.max(0, Math.round(durationSec * 1000) + 350));
-        scheduledTimeoutsRef.current.push(wd);
-      }
-    } catch {}
-vibe([40, 40]);
+    vibe([40, 40]);
     ping();
 
     tickRafRef.current = requestAnimationFrame(tick);
@@ -744,15 +698,20 @@ function handleManualContinue() {
         setWaitingForUser(false);
         setPhase("exercise");
       }
-    } else if (phase === "exercise") {
-      setStepFinished(true);
-      handlePhaseComplete();
-    } else if (phase === "summary") {
+    } else if (phase === "exercise") { setStepFinished(true); advanceOnce("manual"); } else if (phase === "summary") {
       onClose?.();
     }
   }
 
-  function handlePhaseComplete() {
+  // Single, gated advancement to avoid double-switch and skips
+  function advanceOnce(reason = "") {
+    if (transitionLockRef.current) return;
+    transitionLockRef.current = true;
+
+    cancelRaf();
+    stopAllScheduled();
+    lastSpokenRef.current = null;
+
     if (phase === "get_ready") {
       try {
         const firstEx = day?.exercises?.[0];
@@ -761,6 +720,24 @@ function handleManualContinue() {
           setCurrentExerciseIndex(0);
           setCurrentStepIndex(idx);
         }
+      } catch {}
+      setPhase("exercise");
+      return;
+    }
+
+    if (exercise && step && currentStepIndex + 1 < (exercise.steps?.length || 0)) {
+      setCurrentStepIndex((prev) => prev + 1);
+      return;
+    }
+    if (day && currentExerciseIndex + 1 < (day.exercises?.length || 0)) {
+      setCurrentExerciseIndex((prev) => prev + 1);
+      setCurrentStepIndex(0);
+      return;
+    }
+    setPhase("summary");
+  }
+
+  function handlePhaseComplete() { advanceOnce("legacy"); }
       } catch {}
       setPhase("exercise");
       return;
@@ -782,6 +759,7 @@ function handleManualContinue() {
   }
 
   function goToPrevious() {
+    transitionLockRef.current = false;
     cancelRaf();
     stopAllScheduled();
     if (step && currentStepIndex > 0) {
@@ -794,6 +772,7 @@ function handleManualContinue() {
     }
   }
   function goToNext() {
+    transitionLockRef.current = false;
     cancelRaf();
     stopAllScheduled();
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
@@ -809,6 +788,7 @@ function handleManualContinue() {
     }
   }
   function restartCurrentStep() {
+    transitionLockRef.current = false;
     cancelRaf();
     stopAllScheduled();
     const duration = getTimedSeconds(step);
@@ -1049,7 +1029,7 @@ const firstEx = day?.exercises?.[0] || null;
               <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
                 <RotateCcw className="w-6 h-6 text-gray-800" />
               </button>
-              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+              <button onClick={() => { advanceOnce("skip"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
