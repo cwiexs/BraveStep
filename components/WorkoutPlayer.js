@@ -21,7 +21,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const isIOS = typeof navigator !== "undefined" && /iP(hone|ad|od)/i.test(navigator.userAgent);
 
   // ---- iOS scroll lock while typing ----
-  const pageYRef = useRef(0);
+  const leadingModeRef = useRef(false);
+const pageYRef = useRef(0);
   const scheduledTimeoutsRef = useRef([]);
   const lockBodyScroll = () => {
     try {
@@ -85,7 +86,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const textareaRef = useRef(null);
   const caretRef = useRef({ start: null, end: null });
   const commentRef = useRef("");
-  const fallbackTORef = useRef(null); // fallback timeout for leading break
+  const fallbackTORef = useRef(null);
+const stepRunIdRef = useRef(0); // fallback timeout for leading break
 
 
   // Timer
@@ -415,7 +417,7 @@ const stepTokenRef = useRef(0);
     try { stopAllScheduledAudio(); } catch {}
     try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
-    try { if (fallbackTORef.current) { clearTimeout(fallbackTORef.current); fallbackTORef.current = null; } } catch {}
+    stepRunIdRef.current += 1; try { if (fallbackTORef.current) { clearTimeout(fallbackTORef.current); fallbackTORef.current = null; } } catch {}
 
   }
 
@@ -552,7 +554,7 @@ const stepTokenRef = useRef(0);
       }
 
       if (msLeft <= 0) {
-        if (leadingBreakActive) { dbg("tick<=0: END leadingBreak"); setLeadingBreakActive(false); setSecondsLeft(0); return; }
+        if (leadingModeRef.current) { dbg("tick<=0: END leadingBreak"); setLeadingBreakActive(false); leadingModeRef.current = false; setSecondsLeft(0); return; }
 
         if (transitionLockRef.current) { cancelRaf(); return; }
         transitionLockRef.current = true;
@@ -583,7 +585,7 @@ const stepTokenRef = useRef(0);
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
-  const startTimedStep = (durationSec) => { dbg('startTimedStep', { durationSec, leadingBreakActive });
+  const startTimedStep = (durationSec, isLeading = false) => { leadingModeRef.current = !!isLeading; dbg('startTimedStep', { durationSec, leadingBreakActive });
     transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
@@ -629,16 +631,15 @@ vibe([40, 40]);
 
     
     // Fallback for leading break in case RAF/watchdog miss
-    try { if (fallbackTORef.current) { clearTimeout(fallbackTORef.current); fallbackTORef.current = null; } } catch {}
-    if (leadingBreakActive) {
-      const ms = Math.max(0, Math.floor(durationSec * 1000) + 120);
+    stepRunIdRef.current += 1; try { if (fallbackTORef.current) { clearTimeout(fallbackTORef.current); fallbackTORef.current = null; } } catch {}
+    if (leadingModeRef.current) { const ms = Math.max(0, Math.floor(durationSec * 1000) + 120);
       fallbackTORef.current = setTimeout(() => {
         try {
           if (leadingBreakActive) {
             dbg("fallback: END leadingBreak (timeout)");
             setLeadingBreakActive(false);
             setSecondsLeft(0);
-          }
+           }
         } catch {}
       }, ms);
     }
@@ -757,10 +758,9 @@ function handleManualContinue() {
       setPhase("exercise");
       const gr = Number(getReadySeconds) || 0;
       dbg("[intro->exercise] gr=", gr);
-      if (gr > 0) {
-        setLeadingBreakActive(true);
+      if (gr > 0) { setLeadingBreakActive(true);
         setSecondsLeft(gr);
-        startTimedStep(gr);
+         startTimedStep(gr, true);
 
       } else {
         setSecondsLeft(0);
