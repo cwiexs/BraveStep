@@ -2,6 +2,34 @@ import { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
+// === DEBUG SWITCH (robust) ===
+const DEBUG = (typeof window !== "undefined") && (() => {
+  try {
+    const usp = new URLSearchParams(window.location.search || "");
+    if (usp.get("debug") === "1") return true;                 // ?debug=1
+    if (localStorage.getItem("player_debug") === "1") return true;
+    if (localStorage.getItem("debug") === "1") return true;
+    if (window.__PLAYER_DEBUG_ON__ === true) return true;      // tiesiog per Console
+  } catch (_) {}
+  return false;
+})();
+
+// Greiti mygtukai per Console (QA):
+if (typeof window !== "undefined") {
+  try { window.__PLAYER_DEBUG_ON__ = DEBUG; } catch {}
+  window.__PLAYER_DEBUG_ENABLE__ = () => {
+    try { localStorage.setItem("player_debug", "1"); } catch {}
+    location.reload();
+  };
+  window.__PLAYER_DEBUG_DISABLE__ = () => {
+    try { localStorage.removeItem("player_debug"); localStorage.removeItem("debug"); } catch {}
+    location.reload();
+  };
+}
+
+// Vieninga log funkcija
+const dbg = (...args) => { if (DEBUG) console.log("[PLAYER]", ...args); };
+
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
