@@ -4,18 +4,15 @@ import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } 
 import { useTranslation } from "next-i18next";
 
 // === DEBUG SWITCH ===
+// Robust: ?debug=1 OR localStorage.debug="1" OR localStorage.player_debug="1" OR window.__PLAYER_DEBUG_ON__=true
 const DEBUG = typeof window !== "undefined" && (
   new URLSearchParams(window.location.search).get("debug") === "1"
-  || (function(){ try { return localStorage.getItem("player_debug") === "1"; } catch(e) { return false; } })()
-);
-// Robust DEBUG switch: URL ?debug=1 OR localStorage.debug="1" OR window.__PLAYER_DEBUG_ON__=true
-const DEBUG = typeof window !== "undefined" && (
-  new URLSearchParams(window.location.search).get("debug") === "1"
-  || (function(){ try { return localStorage.getItem("debug")==="1"; } catch(_) { return false; } })()
+  || (function(){ try { return localStorage.getItem("debug")==="1" || localStorage.getItem("player_debug")==="1"; } catch(_) { return false; } })()
   || (typeof window !== "undefined" && window.__PLAYER_DEBUG_ON__ === true)
 );
-
 function dbg(...args) { if (DEBUG) { try { console.log("[PLAYER]", ...args); } catch {} } }
+
+// Robust DEBUG switch: URL ?debug=1 OR localStorage.debug="1" OR window.__PLAYER_DEBUG_ON__=truefunction dbg(...args) { if (DEBUG) { try { console.log("[PLAYER]", ...args); } catch {} } }
 
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
