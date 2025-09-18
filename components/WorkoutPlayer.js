@@ -488,20 +488,7 @@ const enteredFromGetReadyRef = useRef(false);
     } catch {}
   }, [descriptionsEnabled]);
 
-  useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
-
-  
-  // Ensure GET_READY timer always starts (in case batched updates swallowed the start)
-  useEffect(() => {
-    /* get_ready handled as a REST step now */ else {
-          setSecondsLeft(0);
-          setWaitingForUser(false);
-          setPhase("exercise");
-        }
-      }
-    }
-  }, [phase, getReadySeconds]);
-// After switching from get_ready to exercise, ensure timer initializes
+  useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);// After switching from get_ready to exercise, ensure timer initializes
   useEffect(() => {
     if (phase === "exercise") {
       // kick the timer setup effect by nudging step state if needed
