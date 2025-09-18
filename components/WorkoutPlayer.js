@@ -78,6 +78,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const textareaRef = useRef(null);
   const caretRef = useRef({ start: null, end: null });
   const commentRef = useRef("");
+  const fallbackTORef = useRef(null); // fallback timeout for leading break
+
 
   // Timer
   const tickRafRef = useRef(null);
@@ -406,6 +408,8 @@ const stepTokenRef = useRef(0);
     try { stopAllScheduledAudio(); } catch {}
     try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
+    try { if (fallbackTORef.current) { clearTimeout(fallbackTORef.current); fallbackTORef.current = null; } } catch {}
+
   }
 
   function vibe(pattern = [40, 40]) {
@@ -541,6 +545,8 @@ const stepTokenRef = useRef(0);
       }
 
       if (msLeft <= 0) {
+        if (leadingBreakActive) { setLeadingBreakActive(false); setSecondsLeft(0); return; }
+
         if (transitionLockRef.current) { cancelRaf(); return; }
         transitionLockRef.current = true;
         cancelRaf();
@@ -614,7 +620,22 @@ const stepTokenRef = useRef(0);
 vibe([40, 40]);
     ping();
 
-    tickRafRef.current = requestAnimationFrame(tick);
+    
+    // Fallback for leading break in case RAF/watchdog miss
+    try { if (fallbackTORef.current) { clearTimeout(fallbackTORef.current); fallbackTORef.current = null; } } catch {}
+    if (leadingBreakActive) {
+      const ms = Math.max(0, Math.floor(durationSec * 1000) + 120);
+      fallbackTORef.current = setTimeout(() => {
+        try {
+          if (leadingBreakActive) {
+            dbg("fallback: END leadingBreak (timeout)");
+            setLeadingBreakActive(false);
+            setSecondsLeft(0);
+          }
+        } catch {}
+      }, ms);
+    }
+tickRafRef.current = requestAnimationFrame(tick);
   };
 
   const pauseTimer = () => {
@@ -726,15 +747,16 @@ function handleManualContinue() {
           setCurrentStepIndex(0);
         }
       } catch {}
-      setPhase("get_ready");
+      setPhase("exercise");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
+        setLeadingBreakActive(true);
+        setSecondsLeft(gr);
         startTimedStep(gr);
 
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
-        setPhase("exercise");
       }
     } else if (phase === "exercise") {
       setStepFinished(true);
