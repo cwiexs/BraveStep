@@ -966,7 +966,7 @@ function handleManualContinue() {
             {/* Pratimų aprašymai */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <div className="min-w-[220px]">
-                <p className="font-medium">{t("player.descriptions", { defaultValue: "Pratimų aprašymai" })}</p>
+                <p className="font-medium">{t("player.descriptions", { defaultValue: "Exercise descriptions" })}</p>
                 <p className="text-sm text-gray-500">{t("player.descriptionsDescShort", { defaultValue: "Show description below the title." })}</p>
               </div>
               <button
@@ -994,7 +994,7 @@ function handleManualContinue() {
             </h3>
             <p className="text-sm text-gray-700 mb-5">
               {t("player.confirmExitBody", {
-                defaultValue: "Jei išeisite dabar, ši sesija nebus užskaityta kaip atlikta."
+                defaultValue: "If you exit now, this session won't be marked as completed."
               })}
             </p>
             <div className="flex items-center justify-end gap-2">
@@ -1226,11 +1226,11 @@ const firstEx = day?.exercises?.[0] || null;
   // ---- Summary ----
   if (phase === "summary") {
     const options = [
-      { value: 1, label: "😣", text: t("player.rateTooHard", { defaultValue: "Per sunku" }) },
-      { value: 2, label: "😟", text: t("player.rateAHard", { defaultValue: "Šiek tiek sunku" }) },
-      { value: 3, label: "😌", text: t("player.ratePerfect", { defaultValue: "Tobulai" }) },
-      { value: 4, label: "🙂", text: t("player.rateAEasy", { defaultValue: "Šiek tiek lengva" }) },
-      { value: 5, label: "😄", text: t("player.rateTooEasy", { defaultValue: "Per lengva" }) },
+      { value: 1, label: "😣", text: t("player.rateTooHard", { defaultValue: "Too hard" }) },
+      { value: 2, label: "😟", text: t("player.rateAHard", { defaultValue: "A bit hard" }) },
+      { value: 3, label: "😌", text: t("player.ratePerfect", { defaultValue: "Just right" }) },
+      { value: 4, label: "🙂", text: t("player.rateAEasy", { defaultValue: "A bit easy" }) },
+      { value: 5, label: "😄", text: t("player.rateTooEasy", { defaultValue: "Too easy" }) },
     ];
 
     return (

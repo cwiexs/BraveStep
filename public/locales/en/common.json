@@ -483,11 +483,11 @@
     "workoutCompleted": "Sveikiname, treniruotė baigta!",
     "thanksForWorkingOut": "Ačiū, kad sportavai!",
     "howWasDifficulty": "Kaip įvertintum treniruotės sunkumą?",
-    "rateTooHard": "Per sunku",
-    "rateAHard": "Šiek tiek sunku",
-    "ratePerfect": "Tobulas balansas",
-    "rateAEasy": "Šiek tiek lengva",
-    "rateTooEasy": "Per lengva",
+    "rateTooHard": "Too hard",
+    "rateAHard": "A bit hard",
+    "ratePerfect": "Just right",
+    "rateAEasy": "A bit easy",
+    "rateTooEasy": "Too easy",
     "commentPlaceholder": "Tavo komentaras apie treniruotę...",
     "finishWorkout": "Baigti treniruotę",
     "thanksForFeedback": "Ačiū už įvertinimą!",
@@ -495,12 +495,12 @@
     "secShortEn": "sec.",
     "upNext": "Kitas:",
     "confirmExitTitle": "Išeiti iš treniruotės?",
-    "confirmExitBody": "Jei išeisite dabar, ši sesija nebus užskaityta kaip atlikta.",
+    "confirmExitBody": "If you exit now, this session won't be marked as completed.",
     "confirmExitCta": "Išeiti",
     "descriptions": "Pratimų aprašymai",
     "descriptionsDescShort": "Rodyti aprašymą po pavadinimu.",
     "common": {
-      "cancel": "Atšaukti"
+      "cancel": "Cancel"
     },
     "settings": {
       "title": "Nustatymai",
