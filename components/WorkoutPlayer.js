@@ -43,6 +43,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [paused, setPaused] = useState(false);
   const [stepFinished, setStepFinished] = useState(false);
 
+  useEffect(() => { dbg("phase →", phase); }, [phase]);
+  useEffect(() => { dbg("index →", { ex: currentExerciseIndex, st: currentStepIndex }); }, [currentExerciseIndex, currentStepIndex]);
+
+
   const [rating, setRating] = useState(3);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -53,6 +57,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [fxEnabled, setFxEnabled] = useState(true);
   const [fxTrack, setFxTrack] = useState("beep");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+
+  /* ios default voice off */
+  useEffect(() => { if (isIOS) try { setVoiceEnabled(false); } catch {} }, []);
   const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
   const [getReadySeconds, setGetReadySeconds] = useState(10);
   const [getReadySecondsStr, setGetReadySecondsStr] = useState("10");
@@ -74,7 +81,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
-  const stepTokenRef = useRef(0);
+const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
 
@@ -86,6 +93,25 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     const el = scrollRef.current;
     if (el) el.scrollTop = y;
   };
+  // --- DEBUG scaffolding (toggle via ?debugPlayer=1 or localStorage.DEBUG_PLAYER="1") ---
+  const DEBUG_PLAYER = (typeof window !== "undefined") && (
+    (typeof window.location !== "undefined" && window.location.search.includes("debugPlayer=1")) ||
+    (typeof localStorage !== "undefined" && localStorage.DEBUG_PLAYER === "1")
+  );
+  const dbgBufRef = useRef([]);
+  const lastPrintedSecRef = useRef(null);
+  const dbg = (...args) => {
+    if (!DEBUG_PLAYER) return;
+    try {
+      const ts = new Date().toISOString();
+      dbgBufRef.current.push([ts, ...args]);
+      if (dbgBufRef.current.length > 400) dbgBufRef.current.shift();
+      // eslint-disable-next-line no-console
+      console.log("[WP]", ...args);
+      if (typeof window !== "undefined") window.__WP_LOGS = dbgBufRef.current;
+    } catch {}
+  };
+
   useEffect(() => {
     if (!isIOS) return;
     if (inputActive) lockBodyScroll();
@@ -244,7 +270,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   async function loadWABuffer(name, url) {
     try {
-      const ctx = await ensureWAContext();
+      const ctx = ensureWAContext();
       if (!ctx) return false;
       if (audioRef.current.wa.buffers.has(name)) return true;
       const res = await fetch(url);
@@ -258,6 +284,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function playWABuffer(name, when = 0) {
+    // Disable WebAudio on iOS to avoid post-gesture mutes
+    if (isIOS) return false;
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
       if (!ctx) return false;
@@ -279,7 +307,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  function stopAllScheduled() {
+  function stopAllScheduledAudio() {
     const { scheduled } = audioRef.current.wa;
     scheduled.forEach((s) => {
       try {
@@ -291,8 +319,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
-    const beep = new Audio("/beep.wav");
-    const silence = new Audio("/silance.mp3");
+    const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch{}
+    const silence = new Audio("/silence.mp3");
     const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
@@ -333,13 +361,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return false;
   }
 
-  async function primeIOSAudio() {
-    const ctx = await ensureWAContext();
+  function primeIOSAudio() {
+    const ctx = ensureWAContext();
     try {
-      await ctx?.resume();
+      try { ctx?.resume?.(); } catch {}
     } catch {}
 
-    await Promise.all([
+    Promise.all([
       loadWABuffer("beep", "/beep.wav"),
       loadWABuffer("1", "/1.mp3"),
       loadWABuffer("2", "/2.mp3"),
@@ -353,7 +381,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const s = audioRef.current.html.silence;
       s.volume = 0.01;
       s.currentTime = 0;
-      await s.play().catch(() => {});
+      try { s.play().catch(() => {}); } catch {}
       setTimeout(() => {
         try {
           s.pause();
@@ -364,12 +392,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function ping() {
+    if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
   }
 
   function speakNumber(n) {
+    if (isIOS) { if (!playHTML(String(n))) ping(); return; }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -388,6 +418,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function stopAllScheduled() {
+    try { stopAllScheduledAudio(); } catch {}
     try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
   }
@@ -476,7 +507,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     try {
       localStorage.setItem("bs_descriptions_enabled", String(descriptionsEnabled));
     } catch {}
-  }, [voiceEnabled]);
+  }, [descriptionsEnabled]);
 
   useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
@@ -503,41 +534,60 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
+// TIMER (watchdog removed)
 
-  // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
   };
 
   const tick = (nowMs) => {
-    if (!deadlineRef.current) return;
-    if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
-      const msLeft = Math.max(0, deadlineRef.current - nowMs);
-      const secs = Math.ceil(msLeft / 1000);
-      setSecondsLeft((prev) => (prev !== secs ? secs : prev));
+  if (!deadlineRef.current) return;
 
-      if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
-        if (lastSpokenRef.current !== secs) {
-          speakNumber(secs);
-          lastSpokenRef.current = secs;
-        }
+  // DEBUG: log once per second
+  if (DEBUG_PLAYER) {
+    try {
+      const _msLeft = Math.max(0, (deadlineRef.current || 0) - nowMs);
+      const sec = Math.max(0, Math.ceil(_msLeft / 1000));
+      if (lastPrintedSecRef.current !== sec) {
+        lastPrintedSecRef.current = sec;
+        dbg("tick", { sec, msLeft: _msLeft, phase, ex: currentExerciseIndex, st: currentStepIndex, paused, lock: transitionLockRef.current });
       }
+    } catch {}
+  }
 
-      if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
-      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
-        cancelRaf();
-        lastSpokenRef.current = null;
-        setStepFinished(true);
-        handlePhaseComplete();
-        return;
+  if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
+    const msLeft = Math.max(0, deadlineRef.current - nowMs);
+    const secs = Math.ceil(msLeft / 1000);
+    setSecondsLeft((prev) => (prev !== secs ? secs : prev));
+
+    if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
+      if (lastSpokenRef.current !== secs) {
+        speakNumber(secs);
+        lastSpokenRef.current = secs;
       }
-      lastTickRef.current = nowMs;
     }
-    tickRafRef.current = requestAnimationFrame(tick);
-  };
+
+    if (msLeft <= 0 && !transitionLockRef.current) {
+      transitionLockRef.current = true;
+      setSecondsLeft(0);
+      try {
+        handlePhaseComplete();
+      } finally {}
+      return;
+    }
+
+    lastTickRef.current = nowMs;
+  }
+
+  tickRafRef.current = requestAnimationFrame(tick);
+};
+;
 
   const startTimedStep = (durationSec) => {
+
+    dbg("startTimedStep()", { durationSec, phase, ex: currentExerciseIndex, st: currentStepIndex, paused });
+
     transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
@@ -676,6 +726,7 @@ vibe([40, 40]);
     setGetReadySecondsStr(String(clamped));
   }
 function handleManualContinue() {
+    dbg("handleManualContinue()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
@@ -692,11 +743,11 @@ function handleManualContinue() {
           setCurrentStepIndex(0);
         }
       } catch {}
-      setSecondsLeft(0);
-      setWaitingForUser(false);
-      setPhase("exercise"); catch {} }, Math.max(0, gr * 1000 + 60));
-          scheduledTimeoutsRef.current.push(id);
-        } catch {}
+      setPhase("get_ready");
+      const gr = Number(getReadySeconds) || 0;
+      if (gr > 0) {
+        startTimedStep(gr);
+
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
@@ -711,7 +762,20 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+    dbg("handlePhaseComplete()", { phase, ex: currentExerciseIndex, st: currentStepIndex, isTerminal });
+    if (phase === "get_ready") {
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        }
+      } catch {}
+      setPhase("exercise");
+      return;
+    }
+
     cancelRaf();
     stopAllScheduled();
 
@@ -728,6 +792,7 @@ function handleManualContinue() {
   }
 
   function goToPrevious() {
+    dbg("goToPrevious()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
     cancelRaf();
     stopAllScheduled();
     if (step && currentStepIndex > 0) {
@@ -740,6 +805,7 @@ function handleManualContinue() {
     }
   }
   function goToNext() {
+    dbg("goToNext()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
     cancelRaf();
     stopAllScheduled();
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
@@ -755,6 +821,7 @@ function handleManualContinue() {
     }
   }
   function restartCurrentStep() {
+    dbg("restartCurrentStep()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
     cancelRaf();
     stopAllScheduled();
     const duration = getTimedSeconds(step);
@@ -805,6 +872,73 @@ function handleManualContinue() {
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden">
             <h3 className="text-xl font-bold mb-6">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
+
+            {/* Get ready seconds */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div className="min-w-[220px]">
+                <p className="font-medium">
+                  {t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}
+                </p>
+                <p className="text-sm text-gray-500">
+                  {t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}
+                </p>
+              </div>
+              <input
+                type="number"
+                min="0"
+                max="120"
+                value={getReadySecondsStr}
+                onChange={(e) => { setGetReadySecondsStr(e.target.value); }}
+                onBlur={commitGetReady}
+                onKeyDown={(e) => { if (e.key === 'Enter') commitGetReady(); }}
+                className="w-24 h-9 border rounded px-2 text-sm text-right"
+              />
+            </div>
+
+            {/* Vibracija */}
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div className="min-w-[220px]">
+                <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
+                <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
+              </div>
+              <button
+                onClick={() => setVibrationEnabled((v) => !v)}
+                className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
+              >
+                {vibrationEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+              </button>
+            </div>
+            {!vibrationSupported && (
+              <div className="text-xs text-amber-600 mb-5">
+                {t("player.vibrationNotSupported", { defaultValue: "Šiame įrenginyje naršyklė vibracijos nepalaiko." })}
+              </div>
+            )}
+
+            {/* Perjungimo garsas */}
+            <div className="mb-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="min-w-[220px]">
+                  <p className="font-medium">{t("player.fx", { defaultValue: "Perjungimo garsas" })}</p>
+                  <p className="text-sm text-gray-500">{t("player.fxDesc", { defaultValue: "Skambėti keičiantis pratimą / poilsį." })}</p>
+                </div>
+                <button
+                  onClick={() => setFxEnabled((v) => !v)}
+                  className={`px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
+                >
+                  {fxEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+                </button>
+              </div>
+              <div className="mt-3 flex items-center flex-wrap gap-2">
+                <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Takelis:" })}</label>
+                <select value={fxTrack} onChange={(e) => setFxTrack(e.target.value)} className="border rounded px-2 py-1 text-sm">
+                  <option value="beep">beep.wav</option>
+                  <option value="silence">silence.mp3</option>
+                </select>
+                <button onClick={() => { ping(); }} className="px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200">
+                  {t("player.testFx", { defaultValue: "Išbandyti" })}
+                </button>
+              </div>
+            </div>
 
             {/* Balso skaičiavimas (5..1) */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -890,7 +1024,7 @@ function handleManualContinue() {
           </div>
         }
       >
-        <div className="w-full min-h_[60vh] grid place-items-center">
+        <div className="w-full min-h-[60vh] grid place-items-center">
           <div className="max-w-2xl text-center">
             <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
             <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
@@ -902,7 +1036,7 @@ function handleManualContinue() {
 
   // ---- Get Ready ----
   if (phase === "get_ready") {
-    const firstEx = day?.exercises?.[0] || null;
+const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
     if (firstEx?.steps && Array.isArray(firstEx.steps)) {
@@ -912,8 +1046,7 @@ function handleManualContinue() {
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() { transitionLockRef.current = false;
-    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
+    function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
 
     return (
       <Shell
