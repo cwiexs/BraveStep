@@ -79,6 +79,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
 const stepTokenRef = useRef(0);
+const enteredFromGetReadyRef = useRef(false);
 
   const timeoutsRef = useRef([]);
 
@@ -542,16 +543,10 @@ const stepTokenRef = useRef(0);
         lastSpokenRef.current = null;
 
         if (phase === "get_ready") {
-          try {
-            const firstEx = day?.exercises?.[0];
-            if (firstEx) {
-              const idx = findFirstExerciseIndex(firstEx);
-              setCurrentExerciseIndex(0);
-              setCurrentStepIndex(idx);
-            }
-          } catch {}
-          setPhase("exercise");
+          enterFirstExerciseFromGetReady();
           return;
+        }
+
         }
 
         setStepFinished(true);
@@ -631,6 +626,8 @@ vibe([40, 40]);
   // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
     if (phase !== "exercise") return;
+    // If we just synchronously entered from get_ready and a timer started, do not reset it
+    if (enteredFromGetReadyRef.current && deadlineRef.current) { enteredFromGetReadyRef.current = false; return; }
     cancelRaf();
     stopAllScheduled();
     deadlineRef.current = null;
@@ -696,7 +693,8 @@ vibe([40, 40]);
   
   // Robust transition from get_ready -> exercise (avoids iOS/Android first-run freeze)
   function enterFirstExerciseFromGetReady() {
-    try {
+    enteredFromGetReadyRef.current = true;
+      try {
       const firstEx = day?.exercises?.[0];
       let idx = 0;
       if (firstEx) {
