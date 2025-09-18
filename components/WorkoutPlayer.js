@@ -514,27 +514,35 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
   
-  /* universal timer watchdog */
-  useEffect(() => {
-    if (paused) return;
-    const timed = phase === "get_ready" || (phase === "exercise" && getTimedSeconds(step) > 0);
-    if (!timed) return;
-    if (secondsLeft > 0) return;
-    // step identity token
-    const key = `${phase}:${currentExerciseIndex}:${currentStepIndex}:${getTimedSeconds(step)}`;
-    if (lastAdvancedRef.current === key) return;
-    lastAdvancedRef.current = key;
-    // advance safely
-    try {
-      if (transitionLockRef.current) transitionLockRef.current = false;
-      handlePhaseComplete();
-    } catch {}
-  }, [secondsLeft, phase, currentExerciseIndex, currentStepIndex, step, paused]);
-// TIMER
-  const cancelRaf = () => {
-    if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
-    tickRafRef.current = null;
-  };
+// universal timer watchdog
+useEffect(() => {
+  if (paused) return;
+
+  const timed =
+    phase === "get_ready" ||
+    (phase === "exercise" && getTimedSeconds(step) > 0);
+
+  if (!timed) return;
+  if (secondsLeft > 0) return;
+
+  const key = `${phase}:${currentExerciseIndex}:${currentStepIndex}:${getTimedSeconds(step)}`;
+  if (lastAdvancedRef.current === key) return;
+
+  // 🔒 Apsauga nuo dvigubo perjungimo
+  if (transitionLockRef.current) return;
+  transitionLockRef.current = true;
+
+  lastAdvancedRef.current = key;
+  handlePhaseComplete();
+}, [
+  secondsLeft,
+  phase,
+  currentExerciseIndex,
+  currentStepIndex,
+  step,
+  paused,
+]);
+
 
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
