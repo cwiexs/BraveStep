@@ -98,41 +98,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   
 
   
-  // Single, gated advancement to avoid double-switch and skips
-  function advanceOnce(reason = "") {
-    if (transitionLockRef.current) return;
-    transitionLockRef.current = true;
-
-    cancelRaf();
-    stopAllScheduled();
-    lastSpokenRef.current = null;
-
-    if (phase === "get_ready") {
-      const firstEx = day?.exercises?.[0];
-      if (firstEx) {
-        const idx = findFirstExerciseIndex(firstEx);
-        setCurrentExerciseIndex(0);
-        setCurrentStepIndex(idx);
-      }
-      setPhase("exercise");
-      return;
-    }
-
-    if (exercise && step && currentStepIndex + 1 < (exercise.steps?.length || 0)) {
-      setCurrentStepIndex((prev) => prev + 1);
-      return;
-    }
-    if (day && currentExerciseIndex + 1 < (day.exercises?.length || 0)) {
-      setCurrentExerciseIndex((prev) => prev + 1);
-      setCurrentStepIndex(0);
-      return;
-    }
-    setPhase("summary");
-  }
-
-  function handlePhaseComplete() {
-    advanceOnce("legacy");
-  }
+  
 
   return () => {
       if (isIOS) unlockBodyScroll();
@@ -799,6 +765,43 @@ function handleManualContinue() {
     const duration = getTimedSeconds(step);
     if (duration > 0) startTimedStep(duration);
   }
+
+  // Single, gated advancement to avoid double-switch and skips
+  function advanceOnce(reason = "") {
+    if (transitionLockRef.current) return;
+    transitionLockRef.current = true;
+
+    cancelRaf();
+    stopAllScheduled();
+    lastSpokenRef.current = null;
+
+    if (phase === "get_ready") {
+      const firstEx = day?.exercises?.[0];
+      if (firstEx) {
+        const idx = findFirstExerciseIndex(firstEx);
+        setCurrentExerciseIndex(0);
+        setCurrentStepIndex(idx);
+      }
+      setPhase("exercise");
+      return;
+    }
+
+    if (exercise && step && currentStepIndex + 1 < (exercise.steps?.length || 0)) {
+      setCurrentStepIndex((prev) => prev + 1);
+      return;
+    }
+    if (day && currentExerciseIndex + 1 < (day.exercises?.length || 0)) {
+      setCurrentExerciseIndex((prev) => prev + 1);
+      setCurrentStepIndex(0);
+      return;
+    }
+    setPhase("summary");
+  }
+
+  function handlePhaseComplete() {
+    advanceOnce("legacy");
+  }
+
 
   // ============== UI ==============
   const HeaderBar = () => (
