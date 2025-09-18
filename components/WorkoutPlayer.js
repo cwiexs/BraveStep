@@ -95,6 +95,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (inputActive) lockBodyScroll();
     else unlockBodyScroll();
     
+  
+
+  
   // Single, gated advancement to avoid double-switch and skips
   function advanceOnce(reason = "") {
     if (transitionLockRef.current) return;
@@ -105,14 +108,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     lastSpokenRef.current = null;
 
     if (phase === "get_ready") {
-      try {
-        const firstEx = day?.exercises?.[0];
-        if (firstEx) {
-          const idx = findFirstExerciseIndex(firstEx);
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(idx);
-        }
-      } catch {}
+      const firstEx = day?.exercises?.[0];
+      if (firstEx) {
+        const idx = findFirstExerciseIndex(firstEx);
+        setCurrentExerciseIndex(0);
+        setCurrentStepIndex(idx);
+      }
       setPhase("exercise");
       return;
     }
@@ -129,7 +130,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     setPhase("summary");
   }
 
-  // Legacy alias
   function handlePhaseComplete() {
     advanceOnce("legacy");
   }
@@ -577,7 +577,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               setCurrentExerciseIndex(0);
               setCurrentStepIndex(idx);
             }
-          } catch {}
           setPhase("exercise");
           return;
         }
@@ -745,7 +744,6 @@ function handleManualContinue() {
 
   // Single, gated advancement to avoid double-switch and skips
   
-      } catch {}
       setPhase("exercise");
       return;
     }
