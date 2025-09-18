@@ -629,12 +629,13 @@ useEffect(() => {
             const now = performance.now ? performance.now() : Date.now();
             if (now < dl - 10) return; // dar ne laikas
             if (transitionLockRef.current) return;
+            // Vietoj handlePhaseComplete kvietimo – tik saugiai sustabdom
             transitionLockRef.current = true;
             cancelRaf();
-            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
-            try { handlePhaseComplete(); } catch {}
+            setStepFinished(true);
           } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
+
         scheduledTimeoutsRef.current.push(wd);
       }
     } catch {}
