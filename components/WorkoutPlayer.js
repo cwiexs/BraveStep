@@ -87,7 +87,8 @@ const pageYRef = useRef(0);
   const caretRef = useRef({ start: null, end: null });
   const commentRef = useRef("");
   const fallbackTORef = useRef(null);
-const stepRunIdRef = useRef(0); // fallback timeout for leading break
+const stepRunIdRef = useRef(0);
+const lastStartRef = useRef({ key: null, ts: 0 }); // fallback timeout for leading break
 
 
   // Timer
@@ -554,7 +555,7 @@ const stepTokenRef = useRef(0);
       }
 
       if (msLeft <= 0) {
-        if (leadingModeRef.current) { dbg("tick<=0: END leadingBreak"); setLeadingBreakActive(false); leadingModeRef.current = false; setSecondsLeft(0); return; }
+        if (leadingModeRef.current) { dbg("tick<=0: END leadingBreak"); setLeadingBreakActive(false); leadingModeRef.current = false; lastStartRef.current = {key:null, ts:0}; setSecondsLeft(0); return; }
 
         if (transitionLockRef.current) { cancelRaf(); return; }
         transitionLockRef.current = true;
@@ -576,7 +577,7 @@ const stepTokenRef = useRef(0);
 
         setStepFinished(true);
         dbg("tick: ZERO -> handlePhaseComplete", {phase, ex: currentExerciseIndex, st: currentStepIndex});
-        handlePhaseComplete();
+        lastStartRef.current = { key: null, ts: 0 }; handlePhaseComplete();
         return;
       }
 
@@ -585,7 +586,15 @@ const stepTokenRef = useRef(0);
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
-  const startTimedStep = (durationSec, isLeading = false) => { leadingModeRef.current = !!isLeading; dbg('startTimedStep', { durationSec, leadingBreakActive });
+  const startTimedStep = (durationSec, isLeading = false) => { leadingModeRef.current = !!isLeading;
+  try {
+    const key = `${phase}|${currentExerciseIndex}|${currentStepIndex}|${isLeading?'L':'N'}|${durationSec}`;
+    const now = Date.now();
+    const last = lastStartRef.current || {key:null,ts:0};
+    if (last.key === key && (now - last.ts) < 500) { dbg('startTimedStep: SKIP duplicate', {key}); return; }
+    lastStartRef.current = { key, ts: now };
+  } catch {}
+ dbg('startTimedStep', { durationSec, leadingBreakActive });
     transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
@@ -620,7 +629,7 @@ const stepTokenRef = useRef(0);
             cancelRaf();
             // Leiskime eiti ta pačia logika kaip rAF pabaigoje
             try { dbg("tick: ZERO -> handlePhaseComplete", {phase, ex: currentExerciseIndex, st: currentStepIndex});
-        handlePhaseComplete(); } catch {}
+        lastStartRef.current = { key: null, ts: 0 }; handlePhaseComplete(); } catch {}
           } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
         scheduledTimeoutsRef.current.push(wd);
@@ -769,7 +778,7 @@ function handleManualContinue() {
     } else if (phase === "exercise") {
       setStepFinished(true);
       dbg("tick: ZERO -> handlePhaseComplete", {phase, ex: currentExerciseIndex, st: currentStepIndex});
-        handlePhaseComplete();
+        lastStartRef.current = { key: null, ts: 0 }; handlePhaseComplete();
     } else if (phase === "summary") {
       onClose?.();
     }
