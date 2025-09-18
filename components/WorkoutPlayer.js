@@ -433,17 +433,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return null;
   }, [day, currentExerciseIndex, currentStepIndex]);
 
-function cancelRaf() {
-  if (tickRafRef.current) {
-    cancelAnimationFrame(tickRafRef.current);
-    tickRafRef.current = null;
-  }
-}
-
-
-
-
-
   // WakeLock
   useEffect(() => {
     if ("wakeLock" in navigator) {
@@ -525,35 +514,27 @@ function cancelRaf() {
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
   
-// universal timer watchdog
-useEffect(() => {
-  if (paused) return;
-
-  const timed =
-    phase === "get_ready" ||
-    (phase === "exercise" && getTimedSeconds(step) > 0);
-
-  if (!timed) return;
-  if (secondsLeft > 0) return;
-
-  const key = `${phase}:${currentExerciseIndex}:${currentStepIndex}:${getTimedSeconds(step)}`;
-  if (lastAdvancedRef.current === key) return;
-
-  // 🔒 Apsauga nuo dvigubo perjungimo
-  if (transitionLockRef.current) return;
-  transitionLockRef.current = true;
-
-  lastAdvancedRef.current = key;
-  handlePhaseComplete();
-}, [
-  secondsLeft,
-  phase,
-  currentExerciseIndex,
-  currentStepIndex,
-  step,
-  paused,
-]);
-
+  /* universal timer watchdog */
+  useEffect(() => {
+    if (paused) return;
+    const timed = phase === "get_ready" || (phase === "exercise" && getTimedSeconds(step) > 0);
+    if (!timed) return;
+    if (secondsLeft > 0) return;
+    // step identity token
+    const key = `${phase}:${currentExerciseIndex}:${currentStepIndex}:${getTimedSeconds(step)}`;
+    if (lastAdvancedRef.current === key) return;
+    lastAdvancedRef.current = key;
+    // advance safely
+    try {
+      if (transitionLockRef.current) transitionLockRef.current = false;
+      handlePhaseComplete();
+    } catch {}
+  }, [secondsLeft, phase, currentExerciseIndex, currentStepIndex, step, paused]);
+// TIMER
+  const cancelRaf = () => {
+    if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
+    tickRafRef.current = null;
+  };
 
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
@@ -589,7 +570,7 @@ useEffect(() => {
         }
 
         setStepFinished(true);
-        handlePhaseComplete(); 
+        handlePhaseComplete();
         return;
       }
 
@@ -629,13 +610,12 @@ useEffect(() => {
             const now = performance.now ? performance.now() : Date.now();
             if (now < dl - 10) return; // dar ne laikas
             if (transitionLockRef.current) return;
-            // Vietoj handlePhaseComplete kvietimo – tik saugiai sustabdom
             transitionLockRef.current = true;
             cancelRaf();
-            setStepFinished(true);
+            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
+            try { handlePhaseComplete(); } catch {}
           } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
-
         scheduledTimeoutsRef.current.push(wd);
       }
     } catch {}
