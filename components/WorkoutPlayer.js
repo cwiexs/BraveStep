@@ -570,7 +570,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }
 
         setStepFinished(true);
-        handlePhaseComplete();
+        // handlePhaseComplete(); -- pasalinam dviguba perjungima
         return;
       }
 
