@@ -37,147 +37,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [phase, setPhase] = useState("intro"); // intro | exercise | summary
+  const [phase, setPhase] = useState("intro"); // intro | get_ready | exercise | summary
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
   const [stepFinished, setStepFinished] = useState(false);
-// --- Audio preloading state/refs ---
-const [audioReady, setAudioReady] = useState(false);
-const [preloadingAudio, setPreloadingAudio] = useState(false);
-const audioMapRef = useRef(new Map()); // url -> HTMLAudioElement
-const audioUnlockedRef = useRef(false);
-  // --- AUDIO PRELOAD STATE ---
-  const [audioReady, setAudioReady] = useState(false);
-  const [preloadingAudio, setPreloadingAudio] = useState(false);
-  const audioMapRef = useRef(new Map()); // url -> HTMLAudioElement
-  const audioUnlockedRef = useRef(false);
-
-
-  // Idle preload while on intro (non-blocking). iOS might still require user gesture to actually play.
-useEffect(() => {
-  if (phase !== "intro" || audioReady || preloadingAudio) return;
-  const cb = () => { preloadAllSounds(); };
-  if (typeof window !== "undefined" && "requestIdleCallback" in window) {
-    const id = window.requestIdleCallback(cb, { timeout: 1500 });
-    return () => { try { window.cancelIdleCallback(id); } catch {} };
-  } else {
-    const t = setTimeout(cb, 300);
-    return () => clearTimeout(t);
-  }
-}, [phase, audioReady, preloadingAudio]);
-
-useEffect(() => { dbg("phase →", phase); }, [phase]);
-  useEffect(() => { dbg("index →", { ex: currentExerciseIndex, st: currentStepIndex }); }, [currentExerciseIndex, currentStepIndex]);
-  // --- AUDIO UNLOCK & PRELOAD HELPERS ---
-  function unlockAudioOnce() {
-    if (audioUnlockedRef.current) return;
-    try {
-      const a = new Audio();
-      a.muted = true;
-      // Minimal data-uri silent sound is optional; just calling play() may be enough
-      a.play().catch(() => {}).finally(() => {
-        try { a.pause(); } catch {}
-        audioUnlockedRef.current = true;
-        dbg("audio unlocked");
-      });
-    } catch {}
-  }
-
-  function preloadAudio(url) {
-    return new Promise((resolve) => {
-      if (!url) return resolve();
-      if (audioMapRef.current.has(url)) return resolve();
-      try {
-        const el = new Audio();
-        el.preload = "auto";
-        el.src = url;
-        const done = () => {
-          try {
-            el.removeEventListener("canplaythrough", done);
-            el.removeEventListener("error", done);
-          } catch {}
-          audioMapRef.current.set(url, el);
-          resolve();
-        };
-        el.addEventListener("canplaythrough", done, { once: true });
-        el.addEventListener("error", done, { once: true });
-        try { el.load(); } catch {}
-        // Fallback: resolve after 2.5s to avoid blocking
-        setTimeout(done, 2500);
-      } catch {
-        resolve();
-      }
-    });
-  }
-
-  async function preloadAllSounds() {
-    if (audioReady || preloadingAudio) return;
-    setPreloadingAudio(true);
-    try {
-      // Collect possible sound URLs (customize as needed)
-      const urls = [
-        workoutData?.sounds?.beep3,
-        workoutData?.sounds?.beepFinal,
-        workoutData?.sounds?.restStart,
-        workoutData?.sounds?.exerciseStart,
-        workoutData?.sounds?.transition,
-        workoutData?.sounds?.intro,
-      ].filter(Boolean);
-      const unique = Array.from(new Set(urls));
-      dbg("preloading sounds", unique);
-      await Promise.all(unique.map(preloadAudio));
-      setAudioReady(true);
-      dbg("audio ready");
-    } finally {
-      setPreloadingAudio(false);
-    }
-  }
-
-  function playCached(url) {
-    if (!url) return;
-    const el = audioMapRef.current.get(url);
-    if (el) {
-      try {
-        el.currentTime = 0;
-        el.play().catch(() => {});
-      } catch {}
-    } else {
-      // As a fallback, try lazy-create (but this shouldn't happen if preloaded)
-      try {
-        const a = new Audio(url);
-        a.play().catch(() => {});
-      } catch {}
-    }
-  }
-
-  // Unified starter that unlocks+preloads before launching Get Ready / Exercise
-  async function startWorkoutWithPreload() {
-    try {
-      unlockAudioOnce();
-      if (!audioReady) {
-        await preloadAllSounds();
-      }
-    } catch {}
-    try {
-      // Determine your first phase: if you have an explicit get ready, start it; else jump to exercise
-      const gr = Number(getReadySeconds) || 0;
-      stopAllScheduled?.();
-      if (gr > 0) {
-        setPhase("exercise"); // treat GR as first timed step inside exercise phase if that's your model
-        startTimedStep?.(gr);
-      } else {
-        // no get-ready, just go
-        setPhase("exercise");
-        // If step is timed, start it; your existing logic likely handles this on phase render
-      }
-      dbg("startWorkoutWithPreload -> started", { gr });
-    } catch (e) {
-      dbg("startWorkoutWithPreload error", e?.message || e);
-    }
-  }
-
-
 
   const [rating, setRating] = useState(3);
   const [submitted, setSubmitted] = useState(false);
@@ -189,12 +53,7 @@ useEffect(() => { dbg("phase →", phase); }, [phase]);
   const [fxEnabled, setFxEnabled] = useState(true);
   const [fxTrack, setFxTrack] = useState("beep");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
-
-  /* ios default voice off */
-  useEffect(() => { if (isIOS) try { setVoiceEnabled(false); } catch {} }, []);
   const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
-  const [getReadySeconds, setGetReadySeconds] = useState(10);
-  const [getReadySecondsStr, setGetReadySecondsStr] = useState("10");
   const [vibrationSupported, setVibrationSupported] = useState(false);
 
   // Apsauga: kai aktyvus įvesties laukas – neleidžiam „Power“
@@ -213,7 +72,7 @@ useEffect(() => { dbg("phase →", phase); }, [phase]);
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
-const stepTokenRef = useRef(0);
+  const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
 
@@ -225,94 +84,6 @@ const stepTokenRef = useRef(0);
     const el = scrollRef.current;
     if (el) el.scrollTop = y;
   };
-  // --- DEBUG scaffolding (toggle via ?debugPlayer=1 or localStorage.DEBUG_PLAYER="1") ---
-  const DEBUG_PLAYER = (typeof window !== "undefined") && (
-    (typeof window.location !== "undefined" && window.location.search.includes("debugPlayer=1")) ||
-    (typeof localStorage !== "undefined" && localStorage.DEBUG_PLAYER === "1")
-  );
-  const dbgBufRef = useRef([]);
-  const lastPrintedSecRef = useRef(null);
-  const dbg = (...args) => {
-// --- Audio unlock & preload helpers ---
-function unlockAudioOnce() {
-  if (audioUnlockedRef.current) return;
-  try {
-    const a = new Audio();
-    a.muted = true;
-    // Not strictly necessary to set a src; the goal is to get a user-gesture 'play()' to unlock.
-    a.play().catch(() => {}).finally(() => {
-      try { a.pause(); } catch {}
-      audioUnlockedRef.current = true;
-    });
-  } catch {}
-}
-
-function preloadAudio(url) {
-  return new Promise((resolve) => {
-    if (!url) return resolve();
-    if (audioMapRef.current.has(url)) return resolve();
-    try {
-      const el = new Audio();
-      el.preload = "auto";
-      el.src = url;
-      const done = () => {
-        try {
-          el.removeEventListener("canplaythrough", done);
-          el.removeEventListener("error", done);
-        } catch {}
-        audioMapRef.current.set(url, el);
-        resolve();
-      };
-      el.addEventListener("canplaythrough", done, { once: true });
-      el.addEventListener("error", done, { once: true });
-      try { el.load(); } catch {}
-    } catch {
-      // ignore, still resolve to avoid blocking
-      resolve();
-    }
-  });
-}
-
-async function preloadAllSounds() {
-  if (audioReady) return;
-  setPreloadingAudio(true);
-  try {
-    // Collect the URLs you use; extend this list if you introduce more sounds.
-    const urls = [
-      workoutData?.sounds?.beep3,
-      workoutData?.sounds?.beepFinal,
-      workoutData?.sounds?.restStart,
-      workoutData?.sounds?.exerciseStart,
-    ].filter(Boolean);
-    const unique = Array.from(new Set(urls));
-    await Promise.all(unique.map(preloadAudio));
-    setAudioReady(true);
-  } finally {
-    setPreloadingAudio(false);
-  }
-}
-
-function playCached(url) {
-  if (!url) return;
-  const el = audioMapRef.current.get(url);
-  if (el) {
-    try {
-      el.currentTime = 0;
-      el.play().catch(() => {});
-    } catch {}
-  }
-}
-    if (!DEBUG_PLAYER) return;
-    try {
-      const ts = new Date().toISOString();
-      dbgBufRef.current.push([ts, ...args]);
-      if (dbgBufRef.current.length > 400) dbgBufRef.current.shift();
-      // eslint-disable-next-line no-console
-      console.log("[WP]", ...args);
-      if (typeof window !== "undefined") window.__WP_LOGS = dbgBufRef.current;
-    } catch {}
-  };
-
   useEffect(() => {
     if (!isIOS) return;
     if (inputActive) lockBodyScroll();
@@ -359,10 +130,12 @@ function playCached(url) {
 
   // i18n labels
   const restLabel = t("player.rest", { defaultValue: "Poilsis" });
+  const getReadyLabel = t("player.getReady", { defaultValue: "Pasiruošk" });
   const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
   const setWord = t("player.setWord", { defaultValue: "Serija" });
   const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
   const startWorkoutLabel = t("player.startWorkout", { defaultValue: "Pradėti treniruotę" });
+  const startNowLabel = t("player.startNow", { defaultValue: "Pradėti dabar" });
   const doneLabel = t("player.done", { defaultValue: "Atlikta" });
   const prevLabel = t("player.prev", { defaultValue: "Atgal" });
   const nextLabel = t("player.next", { defaultValue: "Toliau" });
@@ -454,11 +227,6 @@ function playCached(url) {
     return `${n} reps`;
   }
 
-  function clearAllTimeouts() {
-    timeoutsRef.current.forEach((id) => clearTimeout(id));
-    timeoutsRef.current = [];
-  }
-
   // --------- AUDIO (WebAudio + fallback) ----------
   async function ensureWAContext() {
     if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
@@ -471,7 +239,7 @@ function playCached(url) {
 
   async function loadWABuffer(name, url) {
     try {
-      const ctx = ensureWAContext();
+      const ctx = await ensureWAContext();
       if (!ctx) return false;
       if (audioRef.current.wa.buffers.has(name)) return true;
       const res = await fetch(url);
@@ -485,8 +253,6 @@ function playCached(url) {
   }
 
   function playWABuffer(name, when = 0) {
-    // Disable WebAudio on iOS to avoid post-gesture mutes
-    if (isIOS) return false;
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
       if (!ctx) return false;
@@ -509,19 +275,21 @@ function playCached(url) {
   }
 
   function stopAllScheduledAudio() {
-    const { scheduled } = audioRef.current.wa;
-    scheduled.forEach((s) => {
-      try {
-        s.source.stop(0);
-      } catch {}
-    });
-    audioRef.current.wa.scheduled = [];
+    try {
+      const { scheduled } = audioRef.current.wa;
+      scheduled.forEach((s) => {
+        try {
+          s.source.stop(0);
+        } catch {}
+      });
+      audioRef.current.wa.scheduled = [];
+    } catch {}
   }
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
-    const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch{}
-    const silence = new Audio("/silence.mp3");
+    const beep = new Audio("/beep.wav");
+    const silence = new Audio("/silance.mp3");
     const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
@@ -563,9 +331,9 @@ function playCached(url) {
   }
 
   async function primeIOSAudio() {
-    const ctx = ensureWAContext();
+    const ctx = await ensureWAContext();
     try {
-      try { ctx?.resume?.(); } catch {}
+      await ctx?.resume();
     } catch {}
 
     await Promise.all([
@@ -576,16 +344,13 @@ function playCached(url) {
       loadWABuffer("4", "/4.mp3"),
       loadWABuffer("5", "/5.mp3"),
     ]);
-    try { ensureHTMLAudioLoaded(); } catch {}
-    try { unlockHTMLAudio(); } catch {}
-
 
     ensureHTMLAudioLoaded();
     try {
       const s = audioRef.current.html.silence;
       s.volume = 0.01;
       s.currentTime = 0;
-      try { s.play().catch(() => {}); } catch {}
+      await s.play().catch(() => {});
       setTimeout(() => {
         try {
           s.pause();
@@ -596,14 +361,12 @@ function playCached(url) {
   }
 
   function ping() {
-    if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
   }
 
   function speakNumber(n) {
-    if (isIOS) { if (!playHTML(String(n))) ping(); return; }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -622,7 +385,6 @@ function playCached(url) {
   }
 
   function stopAllScheduled() {
-    try { stopAllScheduledAudio(); } catch {}
     try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
   }
@@ -659,6 +421,17 @@ function playCached(url) {
     return null;
   }, [day, currentExerciseIndex, currentStepIndex]);
 
+  const firstExerciseInfo = useMemo(() => {
+    if (!day) return null;
+    const ex = day.exercises?.[0];
+    if (!ex) return null;
+    const idx = findFirstExerciseIndex(ex);
+    const st = ex.steps?.[idx];
+    const totalSets = ex.steps?.filter((s) => s.type === "exercise").length || 0;
+    const setNo = st?.set ?? null;
+    return { ex, st, totalSets, setNo };
+  }, [day]);
+
   // WakeLock
   useEffect(() => {
     if ("wakeLock" in navigator) {
@@ -683,8 +456,6 @@ function playCached(url) {
       if (vo != null) setVoiceEnabled(vo === "true");
       const de = localStorage.getItem("bs_descriptions_enabled");
       if (de != null) setDescriptionsEnabled(de === "true");
-      const gr = localStorage.getItem("bs_getready_seconds");
-      if (gr != null) { const n = parseInt(gr, 10); if (Number.isFinite(n)) setGetReadySeconds(Math.max(0, Math.min(120, n))); }
     } catch {}
   }, []);
   useEffect(() => {
@@ -713,19 +484,7 @@ function playCached(url) {
     } catch {}
   }, [descriptionsEnabled]);
 
-  useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
-
-  // After switching from get_ready to exercise, ensure timer initializes
-  useEffect(() => {
-    if (phase === "exercise") {
-      // kick the timer setup effect by nudging step state if needed
-      setTimeout(() => {
-        try { setCurrentStepIndex((v) => v); } catch {}
-      }, 0);
-    }
-  }, [phase]);
-
-  // Ensure exercise timer starts when we enter exercise (after get_ready)
+  // Ensure exercise timer starts when we enter exercise
   useEffect(() => {
     if (phase !== "exercise") return;
     const d = getTimedSeconds(step);
@@ -737,62 +496,44 @@ function playCached(url) {
     }
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
-  useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
-// TIMER (watchdog removed)
-
+  // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
   };
 
   const tick = (nowMs) => {
-  if (!deadlineRef.current) return;
+    if (!deadlineRef.current) return;
+    if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
+      const msLeft = Math.max(0, deadlineRef.current - nowMs);
+      const secs = Math.ceil(msLeft / 1000);
+      setSecondsLeft((prev) => (prev !== secs ? secs : prev));
 
-  // DEBUG: log once per second
-  if (DEBUG_PLAYER) {
-    try {
-      const _msLeft = Math.max(0, (deadlineRef.current || 0) - nowMs);
-      const sec = Math.max(0, Math.ceil(_msLeft / 1000));
-      if (lastPrintedSecRef.current !== sec) {
-        lastPrintedSecRef.current = sec;
-        dbg("tick", { sec, msLeft: _msLeft, phase, ex: currentExerciseIndex, st: currentStepIndex, paused, lock: transitionLockRef.current });
+      if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
+        if (lastSpokenRef.current !== secs) {
+          speakNumber(secs);
+          lastSpokenRef.current = secs;
+        }
       }
-    } catch {}
-  }
 
-  if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
-    const msLeft = Math.max(0, deadlineRef.current - nowMs);
-    const secs = Math.ceil(msLeft / 1000);
-    setSecondsLeft((prev) => (prev !== secs ? secs : prev));
-
-    if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
-      if (lastSpokenRef.current !== secs) {
-        speakNumber(secs);
-        lastSpokenRef.current = secs;
+      if (msLeft <= 0) {
+        if (transitionLockRef.current) {
+          cancelRaf();
+          return;
+        }
+        transitionLockRef.current = true;
+        cancelRaf();
+        lastSpokenRef.current = null;
+        setStepFinished(true);
+        handlePhaseComplete();
+        return;
       }
+      lastTickRef.current = nowMs;
     }
-
-    { 
-      transitionLockRef.current = true;
-      setSecondsLeft(0);
-      try {
-        Promise.resolve().then(() => handlePhaseComplete());
-      setTimeout(() => { try { handlePhaseComplete(); } catch {} }, 0);
-       } finally {}
-      return;
-    }
-
-    lastTickRef.current = nowMs;
-  }
-
-  tickRafRef.current = requestAnimationFrame(tick);
-};
-;
+    tickRafRef.current = requestAnimationFrame(tick);
+  };
 
   const startTimedStep = (durationSec) => {
-
-    dbg("startTimedStep()", { durationSec, phase, ex: currentExerciseIndex, st: currentStepIndex, paused });
-
     transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
@@ -812,7 +553,6 @@ function playCached(url) {
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-    
     try {
       if (durationSec > 0) {
         const wd = setTimeout(() => {
@@ -825,14 +565,14 @@ function playCached(url) {
             if (transitionLockRef.current) return;
             transitionLockRef.current = true;
             cancelRaf();
-            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
             try { handlePhaseComplete(); } catch {}
           } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
         scheduledTimeoutsRef.current.push(wd);
       }
     } catch {}
-vibe([40, 40]);
+
+    vibe([40, 40]);
     ping();
 
     tickRafRef.current = requestAnimationFrame(tick);
@@ -911,6 +651,7 @@ vibe([40, 40]);
       timeoutsRef.current.forEach((id) => clearTimeout(id));
       cancelRaf();
       stopAllScheduled();
+      stopAllScheduledAudio();
     };
   }, []);
 
@@ -922,42 +663,24 @@ vibe([40, 40]);
   }, [phase, day, exercise, step]);
 
   // Navigation
-  
-  function commitGetReady() {
-    const raw = (getReadySecondsStr ?? "").toString().trim();
-    const v = parseInt(raw, 10);
-    const clamped = Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : getReadySeconds;
-    if (clamped !== getReadySeconds) setGetReadySeconds(clamped);
-    setGetReadySecondsStr(String(clamped));
-  }
-async function handleManualContinue() {
-    dbg("handleManualContinue()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
+  async function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
-      await primeIOSAudio();
-      // Preselect first exercise step
-      try {
-        const firstEx = day?.exercises?.[0];
-        if (firstEx) {
-          const idx = findFirstExerciseIndex(firstEx);
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(idx);
-        } else {
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(0);
-        }
-      } catch {}
+      // Pasiruošimo fazė po garso užkrovimo
+      setSecondsLeft(10);
+      setWaitingForUser(false);
       setPhase("get_ready");
-      const gr = Number(getReadySeconds) || 0;
-      if (gr > 0) {
-        startTimedStep(gr);
-
-      } else {
-        setSecondsLeft(0);
-        setWaitingForUser(false);
-        setPhase("exercise");
-      }
+      try {
+        await primeIOSAudio();
+      } catch {}
+      // garantuojam vieną laikmatį
+      cancelRaf();
+      stopAllScheduled();
+      startTimedStep(10);
+    } else if (phase === "get_ready") {
+      // leidžiam praleisti pasiruošimą
+      goToFirstExerciseStep();
     } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
@@ -966,23 +689,29 @@ async function handleManualContinue() {
     }
   }
 
-  function handlePhaseComplete() {
-    dbg("handlePhaseComplete()", { phase, ex: currentExerciseIndex, st: currentStepIndex, isTerminal });
-    if (phase === "get_ready") {
-      try {
-        const firstEx = day?.exercises?.[0];
-        if (firstEx) {
-          const idx = findFirstExerciseIndex(firstEx);
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(idx);
-        }
-      } catch {}
-      setPhase("exercise");
-      return;
-    }
-
+  function goToFirstExerciseStep() {
     cancelRaf();
     stopAllScheduled();
+    try {
+      const firstEx = day?.exercises?.[0];
+      const idx = findFirstExerciseIndex(firstEx);
+      setCurrentExerciseIndex(0);
+      setCurrentStepIndex(idx || 0);
+    } catch {}
+    setSecondsLeft(0);
+    setWaitingForUser(false);
+    setPhase("exercise");
+  }
+
+  function handlePhaseComplete() {
+    cancelRaf();
+    stopAllScheduled();
+
+    if (phase === "get_ready") {
+      // Baigėsi pasiruošimo laikmatis – pradedame treniruotę
+      goToFirstExerciseStep();
+      return;
+    }
 
     if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex((prev) => prev + 1);
@@ -997,9 +726,12 @@ async function handleManualContinue() {
   }
 
   function goToPrevious() {
-    dbg("goToPrevious()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
     cancelRaf();
     stopAllScheduled();
+    if (phase === "get_ready") {
+      // nieko – likti pasiruošime
+      return;
+    }
     if (step && currentStepIndex > 0) {
       setCurrentStepIndex((prev) => prev - 1);
     } else if (exercise && currentExerciseIndex > 0) {
@@ -1010,9 +742,12 @@ async function handleManualContinue() {
     }
   }
   function goToNext() {
-    dbg("goToNext()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
     cancelRaf();
     stopAllScheduled();
+    if (phase === "get_ready") {
+      goToFirstExerciseStep();
+      return;
+    }
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
       // dar yra žingsnių tame pačiame pratime
       setCurrentStepIndex((prev) => prev + 1);
@@ -1026,9 +761,12 @@ async function handleManualContinue() {
     }
   }
   function restartCurrentStep() {
-    dbg("restartCurrentStep()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
     cancelRaf();
     stopAllScheduled();
+    if (phase === "get_ready") {
+      startTimedStep(secondsLeft > 0 ? secondsLeft : 10);
+      return;
+    }
     const duration = getTimedSeconds(step);
     if (duration > 0) startTimedStep(duration);
   }
@@ -1078,28 +816,6 @@ async function handleManualContinue() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden">
             <h3 className="text-xl font-bold mb-6">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
 
-            {/* Get ready seconds */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-              <div className="min-w-[220px]">
-                <p className="font-medium">
-                  {t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}
-                </p>
-              </div>
-              <input
-                type="number"
-                min="0"
-                max="120"
-                value={getReadySecondsStr}
-                onChange={(e) => { setGetReadySecondsStr(e.target.value); }}
-                onBlur={commitGetReady}
-                onKeyDown={(e) => { if (e.key === 'Enter') commitGetReady(); }}
-                className="w-24 h-9 border rounded px-2 text-sm text-right"
-              />
-            </div>
-
             {/* Vibracija */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="min-w-[220px]">
@@ -1137,7 +853,7 @@ async function handleManualContinue() {
                 <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Takelis:" })}</label>
                 <select value={fxTrack} onChange={(e) => setFxTrack(e.target.value)} className="border rounded px-2 py-1 text-sm">
                   <option value="beep">beep.wav</option>
-                  <option value="silence">silence.mp3</option>
+                  <option value="silence">silance.mp3</option>
                 </select>
                 <button onClick={() => { ping(); }} className="px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200">
                   {t("player.testFx", { defaultValue: "Išbandyti" })}
@@ -1174,14 +890,14 @@ async function handleManualContinue() {
             </div>
 
             <div className="flex justify-end gap-2">
-              <button onClick={() => { commitGetReady(); setShowSettings(false); }} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+              <button onClick={() => { setShowSettings(false); }} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
                 {t("common.close", { defaultValue: "Uždaryti" })}
               </button>
             </div>
           </div>
         </div>
       )}
-{/* Confirm Exit modal */}
+      {/* Confirm Exit modal */}
       {showConfirmExit && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 max-h-[85vh] overflow-y-auto">
@@ -1202,7 +918,7 @@ async function handleManualContinue() {
               </button>
               <button
                 onClick={() => {
-                  try { cancelRaf(); stopAllScheduled(); } catch {}
+                  try { cancelRaf(); stopAllScheduled(); stopAllScheduledAudio(); } catch {}
                   setShowConfirmExit(false);
                   onClose?.();
                 }}
@@ -1223,13 +939,13 @@ async function handleManualContinue() {
       <Shell
         footer={
           <div className="flex flex-col items-center gap-3">
-            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold" onClick={async () = disabled={preloadingAudio}> { await startWorkoutWithPreload(); }}>
-              {preloadingAudio ? (i18n?.language?.startsWith?.('lt') ? 'Kraunama...' : 'Loading...') : startWorkoutLabel}
+            <button className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-semibold" onClick={handleManualContinue}>
+              {startWorkoutLabel}
             </button>
           </div>
         }
       >
-        <div className="w-full min-h-[60vh] grid place-items-center">
+        <div className="w-full min-h_[60vh] grid place-items-center">
           <div className="max-w-2xl text-center">
             <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
             <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
@@ -1239,73 +955,59 @@ async function handleManualContinue() {
     );
   }
 
-  // ---- Get Ready ----
+  // ---- Get Ready (10s) ----
   if (phase === "get_ready") {
-const firstEx = day?.exercises?.[0] || null;
-    let firstSt = null;
-    let totalSets = 0;
-    if (firstEx?.steps && Array.isArray(firstEx.steps)) {
-      totalSets = firstEx.steps.filter((s) => s.type === "exercise").length || 0;
-      firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
-    }
-    const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
-    const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
-
-    function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
-
+    const info = firstExerciseInfo;
     return (
       <Shell
         footer={
-          <>
-            <div className="flex items-center justify-center gap-4">
-              <button onClick={() => { cancelRaf(); stopAllScheduled(); setPhase("intro"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
-                <SkipBack className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
-                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-              </button>
-              <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
-                <RotateCcw className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
-                <SkipForward className="w-6 h-6 text-gray-800" />
-              </button>
-            </div>
-          </>
+          <div className="flex items-center justify-center gap-4">
+            <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
+              {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+            </button>
+            <button onClick={handleManualContinue} className="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+              {startNowLabel}
+            </button>
+          </div>
         }
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
-          {/* GET_READY_HEADING */}
-          <h2 className="text-2xl font-extrabold mb-2 text-yellow-500">
-            {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
-          </h2>
-          <p className="text-6xl font-extrabold text-yellow-500 mt-6">
+          <h2 className="text-2xl font-extrabold mb-2 text-yellow-600">{getReadyLabel}</h2>
+          <p className="text-6xl font-extrabold text-yellow-600 mt-6">
             {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
           </p>
-          {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
-          {firstEx && (
-            <div className="mt-6 text-left inline-block text-start">
-              <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
-              <p className="text-base font-bold text-gray-900">{firstEx.title || firstEx.name || t("player.exercise", { defaultValue: "Exercise" })}</p>
-              {firstSt && (
-                <>
-                  {(() => {
-                    const repsText = getRepsText(firstSt);
-                    if (repsText) return <p className="text-sm text-gray-900 mt-1">{repsText}</p>;
-                    const secs = getTimedSeconds(firstSt);
-                    const timedText = secs > 0 ? `${secs} ${secShort}` : "";
-                    return timedText ? <p className="text-sm text-gray-900 mt-1">{timedText}</p> : null;
-                  })()}
-                  {firstSt.set != null && totalSets > 0 && (
-                    <p className="text-sm text-gray-800 mt-1">{setWord} 1/{totalSets}</p>
-                  )}
-                  {firstEx.description && (
-                    <p className="text-sm text-gray-700 italic mt-2">{firstEx.description}</p>
-                  )}
-                </>
-              )}
-            </div>
-          )}
+
+          <div className="mt-6 text-left inline-block text-start">
+            <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
+            {info ? (
+              <>
+                <p className="text-base font-bold text-gray-900">{info.ex?.name}</p>
+                {(() => {
+                  const repsText = getRepsText(info.st);
+                  const secs = getTimedSeconds(info.st);
+                  const timedText = secs > 0 ? `${secs} ${secShort}` : "";
+                  const effort = repsText || timedText;
+                  return effort ? (
+                    <p className="text-sm text-gray-900 mt-1">{effort}</p>
+                  ) : null;
+                })()}
+                {info.setNo != null && (
+                  <p className="text-sm text-gray-800 mt-1">
+                    {setWord} {info.setNo}/{info.totalSets}
+                  </p>
+                )}
+                {info.ex?.description && (
+                  <p className="text-sm text-gray-700 italic mt-2">{info.ex.description}</p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-gray-600 italic">
+                {t("player.almostFinished", { defaultValue: i18n.language?.startsWith("lt") ? "Netoli pabaigos..." : "Almost finished..." })}
+              </p>
+            )}
+          </div>
+
+          {paused && <p className="text-red-600 font-semibold mt-4">{pausedLabel}</p>}
         </div>
       </Shell>
     );
@@ -1338,27 +1040,27 @@ const firstEx = day?.exercises?.[0] || null;
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
-</>
+          </>
         }
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
           <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
             {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
+          </h2>
 
           {/* Description under title (toggleable) */}
           {!isRestPhase && descriptionsEnabled && exercise?.description && (
-            <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2"><Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" /><span className="font-normal">{exercise.description}</span></div>
+            <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2">
+              <Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" />
+              <span className="font-normal">{exercise.description}</span>
+            </div>
           )}
-
-          </h2>
 
           {!isRestPhase && step?.type === "exercise" && (
             <p className="text-lg font-semibold text-gray-900 mb-2">
               {setWord} {seriesIdx}/{seriesTotal}
             </p>
           )}
-
-          
 
           {getTimedSeconds(step) > 0 && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
@@ -1376,7 +1078,7 @@ const firstEx = day?.exercises?.[0] || null;
 
           {waitingForUser && step?.type === "exercise" && (
             <div className="mt-6">
-              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold" onClick={async () => { unlockAudioOnce(); if (!audioReady) { await preloadAllSounds(); } handleManualContinue(); }}>
+              <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold" onClick={handleManualContinue}>
                 {doneLabel}
               </button>
             </div>
