@@ -65,6 +65,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [inputActive, setInputActive] = useState(false);
   const [showConfirmExit, setShowConfirmExit] = useState(false);
 
+  // Leading rest before the first exercise (replaces old GET_READY)
+  const [leadingBreakActive, setLeadingBreakActive] = useState(false);
+
   // ---- Refs ----
   const wakeLockRef = useRef(null);
   const textareaRef = useRef(null);
@@ -509,7 +512,12 @@ const stepTokenRef = useRef(0);
       setSecondsLeft(0);
       setWaitingForUser(step?.type === "exercise");
     }
-  }, [phase, currentExerciseIndex, currentStepIndex, step]);
+  }, [phase, currentExerciseIndex, currentStepIndex, leadingBreakActive])
+
+  // patched deps
+  useEffect(() => { /* noop to keep structure */ }, [])
+
+//StepIndex, step]);
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 // TIMER (watchdog removed)
@@ -633,7 +641,6 @@ vibe([40, 40]);
   // --- TIMER SETUP / STEP SWITCH ---
   useEffect(() => {
     if (phase !== "exercise") return;
-    if (leadingBreakActive) return;
     cancelRaf();
     stopAllScheduled();
     deadlineRef.current = null;
@@ -667,7 +674,7 @@ vibe([40, 40]);
       setSecondsLeft(0);
       setWaitingForUser(step?.type === "exercise");
     }
-  }, [phase, step, currentExerciseIndex, currentStepIndex, isTerminal, isRestAfter, leadingBreakActive]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase, step, currentExerciseIndex, currentStepIndex, isTerminal, isRestAfter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // automatinė pauzė atidarius nustatymus ar išeities patvirtinimą
   useEffect(() => {
@@ -723,18 +730,13 @@ function handleManualContinue() {
         }
       } catch {}
       setPhase("exercise");
-      // start a leading rest as a normal REST timer (no special get_ready phase)
-      setLeadingBreakActive((Number(getReadySeconds) || 0) > 0);
-      const _gr = Number(getReadySeconds) || 0;
-      if (_gr > 0) { startTimedStep(_gr); }
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
+        setLeadingBreakActive(true);
         startTimedStep(gr);
-
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
-        setPhase("exercise");
       }
     } else if (phase === "exercise") {
       setStepFinished(true);
