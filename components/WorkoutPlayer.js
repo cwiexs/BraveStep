@@ -77,7 +77,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
-  const lastAdvancedRef = useRef(null);
   const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
@@ -94,8 +93,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (!isIOS) return;
     if (inputActive) lockBodyScroll();
     else unlockBodyScroll();
-
-  return () => {
+    return () => {
       if (isIOS) unlockBodyScroll();
     };
   }, [isIOS, inputActive]);
@@ -113,6 +111,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         const { start, end } = caretRef.current || {};
         if (start != null && end != null) el.setSelectionRange(start, end);
       } catch {}
+    }
   }, [inputActive]);
 
   // AUDIO
@@ -161,7 +160,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (!ex || !Array.isArray(ex.steps)) return 0;
     for (let i = 0; i < ex.steps.length; i++) {
       if (ex.steps[i]?.type === "exercise") return i;
+    }
     return 0;
+  }
 
   function getTimedSeconds(st) {
     const n1 = Number(st?.durationTime);
@@ -176,7 +177,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const digits = Array.from(s).filter((ch) => ch >= "0" && ch <= "9").join("");
       const v = parseInt(digits, 10);
       if (Number.isFinite(v) && v > 0) return v;
+    }
     return 0;
+  }
 
   function getReps(st) {
     const cand = st?.durationQuantity ?? st?.reps ?? st?.repeat ?? st?.repetitions ?? st?.count ?? st?.quantity;
@@ -199,11 +202,15 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         const vBefore = parseInt(beforeDigits, 10);
         if (Number.isFinite(vAfter)) v = vAfter;
         else if (Number.isFinite(vBefore)) v = vBefore;
+      }
       if (!Number.isFinite(v)) {
         const digits = Array.from(s).filter((ch) => ch >= "0" && ch <= "9").join("");
         v = parseInt(digits, 10);
+      }
       if (Number.isFinite(v) && v > 0) return v;
+    }
     return null;
+  }
 
   // Show reps text as it is in AI text, if available
   function getRepsText(st) {
@@ -214,15 +221,19 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     for (const s of preferred) {
       if (typeof s !== "string") continue;
       if (s.includes(String(n))) return s.trim();
+    }
 
     if (i18n?.language?.startsWith("lt")) {
       const form = n === 1 ? "kartą" : "kartų";
       return `${n} ${form}`;
+    }
     return `${n} reps`;
+  }
 
   function clearAllTimeouts() {
     timeoutsRef.current.forEach((id) => clearTimeout(id));
     timeoutsRef.current = [];
+  }
 
   // --------- AUDIO (WebAudio + fallback) ----------
   async function ensureWAContext() {
@@ -232,6 +243,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     const ctx = new Ctx();
     audioRef.current.wa.ctx = ctx;
     return ctx;
+  }
 
   async function loadWABuffer(name, url) {
     try {
@@ -245,6 +257,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       return true;
     } catch {
       return false;
+    }
+  }
 
   function playWABuffer(name, when = 0) {
     // Disable WebAudio on iOS to avoid post-gesture mutes
@@ -267,6 +281,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       return true;
     } catch {
       return false;
+    }
+  }
 
   function stopAllScheduledAudio() {
     const { scheduled } = audioRef.current.wa;
@@ -276,6 +292,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       } catch {}
     });
     audioRef.current.wa.scheduled = [];
+  }
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
@@ -297,6 +314,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       });
     } catch {}
     audioRef.current.html = { loaded: true, beep, silence, nums };
+  }
 
   function playHTML(name) {
     ensureHTMLAudioLoaded();
@@ -308,6 +326,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         beep.play();
       } catch {}
       return true;
+    }
     if (["1", "2", "3", "4", "5"].includes(name)) {
       const a = nums[Number(name)];
       try {
@@ -315,7 +334,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         a.play();
       } catch {}
       return true;
+    }
     return false;
+  }
 
   function primeIOSAudio() {
     const ctx = ensureWAContext();
@@ -345,12 +366,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         } catch {}
       }, 120);
     } catch {}
+  }
 
   function ping() {
     if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
+  }
 
   function speakNumber(n) {
     if (isIOS) { if (!playHTML(String(n))) ping(); return; }
@@ -368,18 +391,23 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       } catch {}
     } else {
       ping();
+    }
+  }
 
   function stopAllScheduled() {
     try { stopAllScheduledAudio(); } catch {}
     try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
+  }
 
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
     try {
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         navigator.vibrate(pattern);
+      }
     } catch {}
+  }
 
   const nextExerciseInfo = useMemo(() => {
     if (!day) return null;
@@ -395,9 +423,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
           const totalSets = ex.steps?.filter((s) => s.type === "exercise").length || 0;
           const setNo = st?.set ?? null;
           return { ex, st, totalSets, setNo };
+        }
         stIdx++;
+      }
       exIdx++;
       stIdx = 0;
+    }
     return null;
   }, [day, currentExerciseIndex, currentStepIndex]);
 
@@ -405,6 +436,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => {
     if ("wakeLock" in navigator) {
       navigator.wakeLock.request("screen").then((lock) => (wakeLockRef.current = lock)).catch(() => {});
+    }
     return () => {
       if (wakeLockRef.current) wakeLockRef.current.release();
     };
@@ -456,6 +488,16 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
+  // After switching from get_ready to exercise, ensure timer initializes
+  useEffect(() => {
+    if (phase === "exercise") {
+      // kick the timer setup effect by nudging step state if needed
+      setTimeout(() => {
+        try { setCurrentStepIndex((v) => v); } catch {}
+      }, 0);
+    }
+  }, [phase]);
+
   // Ensure exercise timer starts when we enter exercise (after get_ready)
   useEffect(() => {
     if (phase !== "exercise") return;
@@ -465,11 +507,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     } else {
       setSecondsLeft(0);
       setWaitingForUser(step?.type === "exercise");
+    }
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
-  // TIMER
+  
+  /* universal timer // TIMER: removed buggy universal timer watchdog
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
@@ -486,8 +530,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         if (lastSpokenRef.current !== secs) {
           speakNumber(secs);
           lastSpokenRef.current = secs;
+        }
+      }
 
-      if (msLeft <= 0) { advanceOnce("tick"); return; }
+      if (msLeft <= 0) {
+        if (transitionLockRef.current) { cancelRaf(); return; }
         transitionLockRef.current = true;
         cancelRaf();
         lastSpokenRef.current = null;
@@ -499,14 +546,19 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
               const idx = findFirstExerciseIndex(firstEx);
               setCurrentExerciseIndex(0);
               setCurrentStepIndex(idx);
+            }
+          } catch {}
           setPhase("exercise");
           return;
+        }
 
         setStepFinished(true);
-        advanceOnce("call");
+        handlePhaseComplete();
         return;
+      }
 
       lastTickRef.current = nowMs;
+    }
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
@@ -522,6 +574,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       setSecondsLeft(0);
       setWaitingForUser(true);
       return;
+    }
     setWaitingForUser(false);
     setPaused(false);
 
@@ -529,7 +582,27 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-    vibe([40, 40]);
+    
+    try {
+      if (durationSec > 0) {
+        const wd = setTimeout(() => {
+          try {
+            if (__token !== stepTokenRef.current) return;
+            const dl = deadlineRef.current;
+            if (!dl) return;
+            const now = performance.now ? performance.now() : Date.now();
+            if (now < dl - 10) return; // dar ne laikas
+            if (transitionLockRef.current) return;
+            transitionLockRef.current = true;
+            cancelRaf();
+            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
+            try { handlePhaseComplete(); } catch {}
+          } catch {}
+        }, Math.max(0, Math.round(durationSec * 1000) + 350));
+        scheduledTimeoutsRef.current.push(wd);
+      }
+    } catch {}
+vibe([40, 40]);
     ping();
 
     tickRafRef.current = requestAnimationFrame(tick);
@@ -550,6 +623,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       lastSpokenRef.current = null;
       deadlineRef.current = performance.now() + remainMsRef.current;
       tickRafRef.current = requestAnimationFrame(tick);
+    }
   };
 
   // --- TIMER SETUP / STEP SWITCH ---
@@ -563,6 +637,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       setSecondsLeft(0);
       setWaitingForUser(false);
       return;
+    }
 
     const duration = getTimedSeconds(step);
 
@@ -576,7 +651,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         setSecondsLeft(0);
         setWaitingForUser(false);
         setTimeout(() => setPhase("summary"), 0);
+      }
       return;
+    }
 
     // Įprasta eiga: timed -> timeris; reps -> „Atlikta“
     if (duration > 0) {
@@ -584,6 +661,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     } else {
       setSecondsLeft(0);
       setWaitingForUser(step?.type === "exercise");
+    }
   }, [phase, step, currentExerciseIndex, currentStepIndex, isTerminal, isRestAfter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // automatinė pauzė atidarius nustatymus ar išeities patvirtinimą
@@ -610,6 +688,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   useEffect(() => {
     if (phase === "exercise") {
       if (!day || !exercise || !step) setPhase("summary");
+    }
   }, [phase, day, exercise, step]);
 
   // Navigation
@@ -620,6 +699,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     const clamped = Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : getReadySeconds;
     if (clamped !== getReadySeconds) setGetReadySeconds(clamped);
     setGetReadySecondsStr(String(clamped));
+  }
 function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
@@ -635,6 +715,7 @@ function handleManualContinue() {
         } else {
           setCurrentExerciseIndex(0);
           setCurrentStepIndex(0);
+        }
       } catch {}
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
@@ -645,13 +726,28 @@ function handleManualContinue() {
         setSecondsLeft(0);
         setWaitingForUser(false);
         setPhase("exercise");
-    } else if (phase === "exercise") { setStepFinished(true); advanceOnce("manual"); } else if (phase === "summary") {
+      }
+    } else if (phase === "exercise") {
+      setStepFinished(true);
+      handlePhaseComplete();
+    } else if (phase === "summary") {
       onClose?.();
+    }
+  }
 
-  // Single, gated advancement to avoid double-switch and skips
-  
+  function handlePhaseComplete() {
+    if (phase === "get_ready") {
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        }
+      } catch {}
       setPhase("exercise");
       return;
+    }
 
     cancelRaf();
     stopAllScheduled();
@@ -659,14 +755,16 @@ function handleManualContinue() {
     if (exercise && step && currentStepIndex + 1 < exercise.steps.length) {
       setCurrentStepIndex((prev) => prev + 1);
       return;
+    }
     if (day && currentExerciseIndex + 1 < day.exercises.length) {
       setCurrentExerciseIndex((prev) => prev + 1);
       setCurrentStepIndex(0);
       return;
+    }
     setPhase("summary");
+  }
 
   function goToPrevious() {
-    transitionLockRef.current = false;
     cancelRaf();
     stopAllScheduled();
     if (step && currentStepIndex > 0) {
@@ -676,8 +774,9 @@ function handleManualContinue() {
       setCurrentExerciseIndex(prevIdx);
       const prevEx = day?.exercises?.[prevIdx];
       setCurrentStepIndex(prevEx?.steps?.length ? prevEx.steps.length - 1 : 0);
+    }
+  }
   function goToNext() {
-    transitionLockRef.current = false;
     cancelRaf();
     stopAllScheduled();
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
@@ -690,42 +789,14 @@ function handleManualContinue() {
     } else {
       // nebėra nei žingsnių, nei pratimų — einame į apibendrinimą
       setPhase("summary");
+    }
+  }
   function restartCurrentStep() {
-    transitionLockRef.current = false;
     cancelRaf();
     stopAllScheduled();
     const duration = getTimedSeconds(step);
     if (duration > 0) startTimedStep(duration);
-
-  // Single, gated advancement to avoid double-switch and skips
-  function advanceOnce(reason = "") {
-    if (transitionLockRef.current) return;
-    transitionLockRef.current = true;
-
-    cancelRaf();
-    stopAllScheduled();
-    lastSpokenRef.current = null;
-
-    if (phase === "get_ready") {
-      const firstEx = day?.exercises?.[0];
-      if (firstEx) {
-        const idx = findFirstExerciseIndex(firstEx);
-        setCurrentExerciseIndex(0);
-        setCurrentStepIndex(idx);
-      setPhase("exercise");
-      return;
-
-    if (exercise && step && currentStepIndex + 1 < (exercise.steps?.length || 0)) {
-      setCurrentStepIndex((prev) => prev + 1);
-      return;
-    if (day && currentExerciseIndex + 1 < (day.exercises?.length || 0)) {
-      setCurrentExerciseIndex((prev) => prev + 1);
-      setCurrentStepIndex(0);
-      return;
-    setPhase("summary");
-
-  function handlePhaseComplete() {
-    advanceOnce("legacy");
+  }
 
   // ============== UI ==============
   const HeaderBar = () => (
@@ -921,6 +992,7 @@ function handleManualContinue() {
               {startWorkoutLabel}
             </button>
           </div>
+        }
       >
         <div className="w-full min-h-[60vh] grid place-items-center">
           <div className="max-w-2xl text-center">
@@ -930,6 +1002,7 @@ function handleManualContinue() {
         </div>
       </Shell>
     );
+  }
 
   // ---- Get Ready ----
   if (phase === "get_ready") {
@@ -939,6 +1012,7 @@ const firstEx = day?.exercises?.[0] || null;
     if (firstEx?.steps && Array.isArray(firstEx.steps)) {
       totalSets = firstEx.steps.filter((s) => s.type === "exercise").length || 0;
       firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
+    }
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
@@ -958,11 +1032,12 @@ const firstEx = day?.exercises?.[0] || null;
               <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
                 <RotateCcw className="w-6 h-6 text-gray-800" />
               </button>
-              <button onClick={() => { advanceOnce("skip"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
           </>
+        }
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
           {/* GET_READY_HEADING */}
@@ -999,6 +1074,7 @@ const firstEx = day?.exercises?.[0] || null;
         </div>
       </Shell>
     );
+  }
 
   // ---- Exercise / Rest ----
   if (phase === "exercise") {
@@ -1028,6 +1104,7 @@ const firstEx = day?.exercises?.[0] || null;
               </button>
             </div>
 </>
+        }
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
           <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
@@ -1045,6 +1122,8 @@ const firstEx = day?.exercises?.[0] || null;
               {setWord} {seriesIdx}/{seriesTotal}
             </p>
           )}
+
+          
 
           {getTimedSeconds(step) > 0 && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
@@ -1103,6 +1182,7 @@ const firstEx = day?.exercises?.[0] || null;
         </div>
       </Shell>
     );
+  }
 
   // ---- Summary ----
   if (phase === "summary") {
@@ -1138,6 +1218,7 @@ const firstEx = day?.exercises?.[0] || null;
                       try {
                         unlockBodyScroll();
                       } catch {}
+                    }
                     const rsp = await fetch("/api/complete-plan", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -1158,6 +1239,7 @@ const firstEx = day?.exercises?.[0] || null;
                     // optionally show toast
                   } finally {
                     setSubmitting(false);
+                  }
                 }}
                 disabled={submitting}
               >
@@ -1175,6 +1257,7 @@ const firstEx = day?.exercises?.[0] || null;
               <span className="text-green-600">{thanksForFeedback}</span>
             )}
           </div>
+        }
       >
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-2xl font-bold mb-2 text-center">🎉 {workoutCompletedLabel}</h2>
@@ -1244,7 +1327,9 @@ const firstEx = day?.exercises?.[0] || null;
                       ta.focus({ preventScroll: true });
                       const c = caretRef.current || {};
                       if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end);
+                    }
                   } catch {}
+                }
                 restoreScroll(y);
               });
             }}
@@ -1269,7 +1354,9 @@ const firstEx = day?.exercises?.[0] || null;
                       ta.focus({ preventScroll: true });
                       const c = caretRef.current || {};
                       if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end);
+                    }
                   } catch {}
+                }
                 restoreScroll(y);
               });
             }}
@@ -1278,6 +1365,7 @@ const firstEx = day?.exercises?.[0] || null;
         </div>
       </Shell>
     );
+  }
 
   return null;
 }
