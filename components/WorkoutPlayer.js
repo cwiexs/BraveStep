@@ -77,7 +77,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
-  const stepTokenRef = useRef(0);
+const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
 
@@ -511,9 +511,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
+// TIMER (watchdog removed)
 
-  
-  /* universal timer // TIMER: removed buggy universal timer watchdog
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
