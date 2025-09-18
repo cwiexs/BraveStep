@@ -589,7 +589,7 @@ useEffect(() => {
         }
 
         setStepFinished(true);
-        // handlePhaseComplete(); -- pasalinam dviguba perjungima
+        handlePhaseComplete(); 
         return;
       }
 
