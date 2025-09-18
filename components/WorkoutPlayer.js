@@ -168,26 +168,26 @@ const stepTokenRef = useRef(0);
   const isRestAfter = step?.type === "rest_after";
 
   // i18n labels
-  const restLabel = t("player.rest", { defaultValue: "Poilsis" });
-  const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
-  const setWord = t("player.setWord", { defaultValue: "Serija" });
+  const restLabel = t("player.rest", { defaultValue: "Rest" });
+  const upNextLabel = t("player.upNext", { defaultValue: "Up next:" });
+  const setWord = t("player.setWord", { defaultValue: "Set" });
   const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
-  const startWorkoutLabel = t("player.startWorkout", { defaultValue: "Pradėti treniruotę" });
-  const doneLabel = t("player.done", { defaultValue: "Atlikta" });
-  const prevLabel = t("player.prev", { defaultValue: "Atgal" });
-  const nextLabel = t("player.next", { defaultValue: "Toliau" });
-  const pausePlayLabel = t("player.pausePlay", { defaultValue: "Pauzė / Tęsti" });
-  const restartStepLabel = t("player.restartStep", { defaultValue: "Perkrauti žingsnį" });
-  const endSessionLabel = t("player.endSession", { defaultValue: "Baigti sesiją" });
-  const pausedLabel = t("player.paused", { defaultValue: "Pauzė" });
-  const workoutCompletedLabel = t("player.workoutCompleted", { defaultValue: "Treniruotė užbaigta!" });
-  const thanksForWorkingOut = t("player.thanksForWorkingOut", { defaultValue: "Ačiū už treniruotę!" });
-  const howWasDifficulty = t("player.howWasDifficulty", { defaultValue: "Kaip vertini sunkumą?" });
-  const commentPlaceholder = t("player.commentPlaceholder", { defaultValue: "Komentaras (nebūtina)..." });
-  const finishWorkout = t("player.finishWorkout", { defaultValue: "Užbaigti ir išsiųsti įvertinimą" });
-  const thanksForFeedback = t("player.thanksForFeedback", { defaultValue: "Ačiū už grįžtamąjį ryšį!" });
-  const exerciseLabel = t("player.exercise", { defaultValue: "Pratimas" });
-  const motivationTitle = t("player.motivationTitle", { defaultValue: "Motyvacija" });
+  const startWorkoutLabel = t("player.startWorkout", { defaultValue: "Start workout" });
+  const doneLabel = t("player.done", { defaultValue: "Done" });
+  const prevLabel = t("player.prev", { defaultValue: "Back" });
+  const nextLabel = t("player.next", { defaultValue: "Next" });
+  const pausePlayLabel = t("player.pausePlay", { defaultValue: "Pause / Play" });
+  const restartStepLabel = t("player.restartStep", { defaultValue: "Restart step" });
+  const endSessionLabel = t("player.endSession", { defaultValue: "End session" });
+  const pausedLabel = t("player.paused", { defaultValue: "Paused" });
+  const workoutCompletedLabel = t("player.workoutCompleted", { defaultValue: "Workout completed!" });
+  const thanksForWorkingOut = t("player.thanksForWorkingOut", { defaultValue: "Thanks for working out!" });
+  const howWasDifficulty = t("player.howWasDifficulty", { defaultValue: "How would you rate the difficulty?" });
+  const commentPlaceholder = t("player.commentPlaceholder", { defaultValue: "Comment (optional)..." });
+  const finishWorkout = t("player.finishWorkout", { defaultValue: "Finish workout" });
+  const thanksForFeedback = t("player.thanksForFeedback", { defaultValue: "Thanks for your feedback!" });
+  const exerciseLabel = t("player.exercise", { defaultValue: "Exercise" });
+  const motivationTitle = t("player.motivationTitle", { defaultValue: "Motivation" });
 
   // ---- Utils ----
   function findFirstExerciseIndex(ex) {
@@ -843,8 +843,8 @@ function handleManualContinue() {
       <button
         onClick={() => setShowSettings(true)}
         className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow"
-        aria-label={t("common.settings", { defaultValue: "Nustatymai" })}
-        title={t("common.settings", { defaultValue: "Nustatymai" })}
+        aria-label={t("player.settings.title", { defaultValue: "Settings" })}
+        title={t("player.settings.title", { defaultValue: "Settings" })}
       >
         <Settings className="w-5 h-5" />
       </button>
@@ -853,8 +853,8 @@ function handleManualContinue() {
           if (!inputActive) setShowConfirmExit(true);
         }}
         className={`p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow ${inputActive ? "pointer-events-none opacity-50" : ""}`}
-        aria-label={t("common.close", { defaultValue: "Uždaryti" })}
-        title={t("common.close", { defaultValue: "Uždaryti" })}
+        aria-label={t("close", { defaultValue: "Close" })}
+        title={t("close", { defaultValue: "Close" })}
       >
         <Power className="w-5 h-5" />
       </button>
@@ -880,7 +880,7 @@ function handleManualContinue() {
       {showSettings && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden">
-            <h3 className="text-xl font-bold mb-6">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
+            <h3 className="text-xl font-bold mb-6">{t("player.settings.title", { defaultValue: "Settings" })}</h3>
 
             {/* Get ready seconds */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -907,19 +907,19 @@ function handleManualContinue() {
             {/* Vibracija */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="min-w-[220px]">
-                <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
-                <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
+                <p className="font-medium">{t("player.vibration", { defaultValue: "Vibration" })}</p>
+                <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibrate when switching exercise/rest." })}</p>
               </div>
               <button
                 onClick={() => setVibrationEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
-                {vibrationEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+                {vibrationEnabled ? t("on", { defaultValue: "On" }) : t("off", { defaultValue: "Off" })}
               </button>
             </div>
             {!vibrationSupported && (
               <div className="text-xs text-amber-600 mb-5">
-                {t("player.vibrationNotSupported", { defaultValue: "Šiame įrenginyje naršyklė vibracijos nepalaiko." })}
+                {t("player.vibrationNotSupported", { defaultValue: "This browser or device does not support vibration." })}
               </div>
             )}
 
@@ -927,24 +927,24 @@ function handleManualContinue() {
             <div className="mb-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-[220px]">
-                  <p className="font-medium">{t("player.fx", { defaultValue: "Perjungimo garsas" })}</p>
-                  <p className="text-sm text-gray-500">{t("player.fxDesc", { defaultValue: "Skambėti keičiantis pratimą / poilsį." })}</p>
+                  <p className="font-medium">{t("player.settings.soundFx", { defaultValue: "Sound FX" })}</p>
+                  <p className="text-sm text-gray-500">{t("player.fxDesc", { defaultValue: "Play a short sound when the phase changes." })}</p>
                 </div>
                 <button
                   onClick={() => setFxEnabled((v) => !v)}
                   className={`px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
                 >
-                  {fxEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+                  {fxEnabled ? t("on", { defaultValue: "On" }) : t("off", { defaultValue: "Off" })}
                 </button>
               </div>
               <div className="mt-3 flex items-center flex-wrap gap-2">
-                <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Takelis:" })}</label>
+                <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Track:" })}</label>
                 <select value={fxTrack} onChange={(e) => setFxTrack(e.target.value)} className="border rounded px-2 py-1 text-sm">
                   <option value="beep">beep.wav</option>
                   <option value="silence">silence.mp3</option>
                 </select>
                 <button onClick={() => { ping(); }} className="px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200">
-                  {t("player.testFx", { defaultValue: "Išbandyti" })}
+                  {t("player.testFx", { defaultValue: "Test" })}
                 </button>
               </div>
             </div>
@@ -952,14 +952,14 @@ function handleManualContinue() {
             {/* Balso skaičiavimas (5..1) */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="min-w-[220px]">
-                <p className="font-medium">{t("player.voice", { defaultValue: "Balso skaičiavimas" })}</p>
-                <p className="text-sm text-gray-500">{t("player.voiceDescShort", { defaultValue: "Skaičiuoti 5,4,3,2,1 paskutinėmis sekundėmis." })}</p>
+                <p className="font-medium">{t("player.settings.voiceCountdown", { defaultValue: "Voice countdown" })}</p>
+                <p className="text-sm text-gray-500">{t("player.settings.voiceDescShort", { defaultValue: "Count down 5,4,3,2,1 in the final seconds." })}</p>
               </div>
               <button
                 onClick={() => setVoiceEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${voiceEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
-                {voiceEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+                {voiceEnabled ? t("on", { defaultValue: "On" }) : t("off", { defaultValue: "Off" })}
               </button>
             </div>
 
@@ -967,19 +967,19 @@ function handleManualContinue() {
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <div className="min-w-[220px]">
                 <p className="font-medium">{t("player.descriptions", { defaultValue: "Pratimų aprašymai" })}</p>
-                <p className="text-sm text-gray-500">{t("player.descriptionsDescShort", { defaultValue: "Rodyti aprašymą po pavadinimu." })}</p>
+                <p className="text-sm text-gray-500">{t("player.descriptionsDescShort", { defaultValue: "Show description below the title." })}</p>
               </div>
               <button
                 onClick={() => setDescriptionsEnabled(v => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${descriptionsEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
-                {descriptionsEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+                {descriptionsEnabled ? t("on", { defaultValue: "On" }) : t("off", { defaultValue: "Off" })}
               </button>
             </div>
 
             <div className="flex justify-end gap-2">
               <button onClick={() => { commitGetReady(); setShowSettings(false); }} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
-                {t("common.close", { defaultValue: "Uždaryti" })}
+                {t("close", { defaultValue: "Close" })}
               </button>
             </div>
           </div>
@@ -990,7 +990,7 @@ function handleManualContinue() {
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 max-h-[85vh] overflow-y-auto">
             <h3 className="text-xl font-bold mb-3">
-              {t("player.confirmExitTitle", { defaultValue: "Išeiti iš treniruotės?" })}
+              {t("player.confirmExitTitle", { defaultValue: "Exit workout?" })}
             </h3>
             <p className="text-sm text-gray-700 mb-5">
               {t("player.confirmExitBody", {
@@ -1002,7 +1002,7 @@ function handleManualContinue() {
                 onClick={() => setShowConfirmExit(false)}
                 className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"
               >
-                {t("common.cancel", { defaultValue: "Atšaukti" })}
+                {t("player.common.cancel", { defaultValue: "Cancel" })}
               </button>
               <button
                 onClick={() => {
@@ -1012,7 +1012,7 @@ function handleManualContinue() {
                 }}
                 className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
               >
-                {t("player.confirmExitCta", { defaultValue: "Išeiti" })}
+                {t("player.confirmExitCta", { defaultValue: "Exit" })}
               </button>
             </div>
           </div>
@@ -1053,7 +1053,7 @@ const firstEx = day?.exercises?.[0] || null;
       firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
     }
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
-    const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
+    const upNextLabel = t("player.upNext", { defaultValue: "Up next:" });
 
     function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
 
