@@ -94,11 +94,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (!isIOS) return;
     if (inputActive) lockBodyScroll();
     else unlockBodyScroll();
-    
-  
-
-  
-  
 
   return () => {
       if (isIOS) unlockBodyScroll();
@@ -509,7 +504,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
-  
   // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
@@ -577,7 +571,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-    
     vibe([40, 40]);
     ping();
 
@@ -727,7 +720,6 @@ function handleManualContinue() {
       return;
     }
     setPhase("summary");
-  }
 
   function goToPrevious() {
     transitionLockRef.current = false;
@@ -801,7 +793,6 @@ function handleManualContinue() {
   function handlePhaseComplete() {
     advanceOnce("legacy");
   }
-
 
   // ============== UI ==============
   const HeaderBar = () => (
@@ -1128,8 +1119,6 @@ const firstEx = day?.exercises?.[0] || null;
             </p>
           )}
 
-          
-
           {getTimedSeconds(step) > 0 && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
               {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
@@ -1373,4 +1362,3 @@ const firstEx = day?.exercises?.[0] || null;
   }
 
   return null;
-}
