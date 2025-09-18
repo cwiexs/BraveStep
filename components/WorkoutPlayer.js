@@ -3,6 +3,11 @@ import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
 
+// === DEBUG SWITCH ===
+const DEBUG = typeof window !== "undefined" && (new URLSearchParams(window.location.search).get("debug") === "1");
+function dbg(...args) { if (DEBUG) { try { console.log("[PLAYER]", ...args); } catch {} } }
+
+
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
@@ -504,7 +509,6 @@ const stepTokenRef = useRef(0);
   // Ensure exercise timer starts when we enter exercise (after get_ready)
   useEffect(() => {
     if (phase !== "exercise") return;
-    if (leadingBreakActive) return;
     const d = getTimedSeconds(step);
     if (Number.isFinite(d) && d > 0) {
       startTimedStep(d);
@@ -512,12 +516,7 @@ const stepTokenRef = useRef(0);
       setSecondsLeft(0);
       setWaitingForUser(step?.type === "exercise");
     }
-  }, [phase, currentExerciseIndex, currentStepIndex, leadingBreakActive])
-
-  // patched deps
-  useEffect(() => { /* noop to keep structure */ }, [])
-
-//StepIndex, step]);
+  }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 // TIMER (watchdog removed)
@@ -547,10 +546,6 @@ const stepTokenRef = useRef(0);
         cancelRaf();
         lastSpokenRef.current = null;
 
-        if (leadingBreakActive) {
-          setLeadingBreakActive(false);
-          return;
-        }
         if (phase === "get_ready") {
           try {
             const firstEx = day?.exercises?.[0];
@@ -565,6 +560,7 @@ const stepTokenRef = useRef(0);
         }
 
         setStepFinished(true);
+        dbg("tick: ZERO -> handlePhaseComplete", {phase, ex: currentExerciseIndex, st: currentStepIndex});
         handlePhaseComplete();
         return;
       }
@@ -608,7 +604,8 @@ const stepTokenRef = useRef(0);
             transitionLockRef.current = true;
             cancelRaf();
             // Leiskime eiti ta pačia logika kaip rAF pabaigoje
-            try { handlePhaseComplete(); } catch {}
+            try { dbg("tick: ZERO -> handlePhaseComplete", {phase, ex: currentExerciseIndex, st: currentStepIndex});
+        handlePhaseComplete(); } catch {}
           } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
         scheduledTimeoutsRef.current.push(wd);
@@ -729,29 +726,27 @@ function handleManualContinue() {
           setCurrentStepIndex(0);
         }
       } catch {}
-      setPhase("exercise");
+      setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
-        setLeadingBreakActive(true);
         startTimedStep(gr);
+
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
+        setPhase("exercise");
       }
     } else if (phase === "exercise") {
       setStepFinished(true);
-      handlePhaseComplete();
+      dbg("tick: ZERO -> handlePhaseComplete", {phase, ex: currentExerciseIndex, st: currentStepIndex});
+        handlePhaseComplete();
     } else if (phase === "summary") {
       onClose?.();
     }
   }
 
   function handlePhaseComplete() {
-    if (leadingBreakActive) {
-          setLeadingBreakActive(false);
-          return;
-        }
-        if (phase === "get_ready") {
+    if (phase === "get_ready") {
       try {
         const firstEx = day?.exercises?.[0];
         if (firstEx) {
@@ -1020,11 +1015,7 @@ function handleManualContinue() {
   }
 
   // ---- Get Ready ----
-  if (leadingBreakActive) {
-          setLeadingBreakActive(false);
-          return;
-        }
-        if (phase === "get_ready") {
+  if (phase === "get_ready") {
 const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
@@ -1097,7 +1088,7 @@ const firstEx = day?.exercises?.[0] || null;
 
   // ---- Exercise / Rest ----
   if (phase === "exercise") {
-    const isRestPhase = leadingBreakActive || step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
+    const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
     const seriesTotal = exercise?.steps?.filter((s) => s.type === "exercise").length || 0;
     const seriesIdx = step?.type === "exercise" ? step?.set : null;
 
@@ -1144,7 +1135,7 @@ const firstEx = day?.exercises?.[0] || null;
 
           
 
-          {((leadingBreakActive ? (Number(getReadySeconds)||0) : getTimedSeconds(step)) > 0) && (
+          {getTimedSeconds(step) > 0 && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
               {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
             </p>
