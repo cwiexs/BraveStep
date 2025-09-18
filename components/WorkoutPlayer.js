@@ -125,10 +125,10 @@ const enteredFromGetReadyRef = useRef(false);
 
   // Derived
   const day = workoutData?.days?.[currentDay];
-  const exercise = day?.exercises?.[currentExerciseIndex];
+  const exercise = exercises?.[currentExerciseIndex];
   const step = exercise?.steps?.[currentStepIndex];
 
-  const isLastExerciseInDay = !!day && currentExerciseIndex === (day?.exercises?.length || 1) - 1;
+  const isLastExerciseInDay = !!day && currentExerciseIndex === (exercises?.length || 1) - 1;
   const isLastStepInExercise = !!exercise && currentStepIndex === (exercise?.steps?.length || 1) - 1;
 
   // nauji aiškūs indikatoriai pabaigai
@@ -416,8 +416,8 @@ const enteredFromGetReadyRef = useRef(false);
     let exIdx = currentExerciseIndex;
     let stIdx = currentStepIndex + 1;
 
-    while (exIdx < (day.exercises?.length || 0)) {
-      const ex = day.exercises?.[exIdx];
+    while (exIdx < (exercises?.length || 0)) {
+      const ex = exercises?.[exIdx];
       if (!ex) break;
       while (stIdx < (ex.steps?.length || 0)) {
         const st = ex.steps?.[stIdx];
@@ -493,12 +493,7 @@ const enteredFromGetReadyRef = useRef(false);
   
   // Ensure GET_READY timer always starts (in case batched updates swallowed the start)
   useEffect(() => {
-    if (phase === "get_ready") {
-      if (!deadlineRef.current) {
-        const gr = Number(getReadySeconds) || 0;
-        if (gr > 0) {
-          startTimedStep(gr);
-        } else {
+    /* get_ready handled as a REST step now */ else {
           setSecondsLeft(0);
           setWaitingForUser(false);
           setPhase("exercise");
@@ -558,10 +553,7 @@ const enteredFromGetReadyRef = useRef(false);
         cancelRaf();
         lastSpokenRef.current = null;
 
-        if (phase === "get_ready") {
-          enterFirstExerciseFromGetReady();
-          return;
-        }
+        /* get_ready handled as a REST step now */
 
 
         setStepFinished(true);
@@ -710,7 +702,7 @@ vibe([40, 40]);
   function enterFirstExerciseFromGetReady() {
     enteredFromGetReadyRef.current = true;
       try {
-      const firstEx = day?.exercises?.[0];
+      const firstEx = exercises?.[0];
       let idx = 0;
       if (firstEx) {
         idx = findFirstExerciseIndex(firstEx);
@@ -764,7 +756,7 @@ function handleManualContinue() {
       primeIOSAudio();
       // Preselect first exercise step
       try {
-        const firstEx = day?.exercises?.[0];
+        const firstEx = exercises?.[0];
         if (firstEx) {
           const idx = findFirstExerciseIndex(firstEx);
           setCurrentExerciseIndex(0);
@@ -774,7 +766,7 @@ function handleManualContinue() {
           setCurrentStepIndex(0);
         }
       } catch {}
-      setPhase("get_ready");
+      setCurrentExerciseIndex(0); setCurrentStepIndex(0); setPhase("exercise");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
         startTimedStep(gr);
@@ -793,10 +785,7 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") {
-      enterFirstExerciseFromGetReady();
-      return;
-    }
+    /* get_ready handled as a REST step now */
 
     cancelRaf();
     stopAllScheduled();
@@ -805,7 +794,7 @@ function handleManualContinue() {
       setCurrentStepIndex((prev) => prev + 1);
       return;
     }
-    if (day && currentExerciseIndex + 1 < day.exercises.length) {
+    if (day && currentExerciseIndex + 1 < exercises.length) {
       setCurrentExerciseIndex((prev) => prev + 1);
       setCurrentStepIndex(0);
       return;
@@ -821,7 +810,7 @@ function handleManualContinue() {
     } else if (exercise && currentExerciseIndex > 0) {
       const prevIdx = currentExerciseIndex - 1;
       setCurrentExerciseIndex(prevIdx);
-      const prevEx = day?.exercises?.[prevIdx];
+      const prevEx = exercises?.[prevIdx];
       setCurrentStepIndex(prevEx?.steps?.length ? prevEx.steps.length - 1 : 0);
     }
   }
@@ -831,7 +820,7 @@ function handleManualContinue() {
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
       // dar yra žingsnių tame pačiame pratime
       setCurrentStepIndex((prev) => prev + 1);
-    } else if (day && currentExerciseIndex + 1 < day.exercises.length) {
+    } else if (day && currentExerciseIndex + 1 < exercises.length) {
       // žingsnių nebėra, bet yra kitas pratimas
       setCurrentExerciseIndex((prev) => prev + 1);
       setCurrentStepIndex(0);
@@ -1054,18 +1043,11 @@ function handleManualContinue() {
   }
 
   // ---- Get Ready ----
-  if (phase === "get_ready") {
-const firstEx = day?.exercises?.[0] || null;
-    let firstSt = null;
-    let totalSets = 0;
-    if (firstEx?.steps && Array.isArray(firstEx.steps)) {
-      totalSets = firstEx.steps.filter((s) => s.type === "exercise").length || 0;
-      firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
-    }
+  /* get_ready handled as a REST step now */
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
+    function restartCurrentStep() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
 
     return (
       <Shell
@@ -1081,7 +1063,7 @@ const firstEx = day?.exercises?.[0] || null;
               <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
                 <RotateCcw className="w-6 h-6 text-gray-800" />
               </button>
-              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+              <button onClick={() => { setStepFinished(true); try { const firstEx = exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
@@ -1157,7 +1139,7 @@ const firstEx = day?.exercises?.[0] || null;
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
           <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
-            {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
+            {(step?.__isGetReady ? (i18n?.language?.startsWith?.("lt") ? "Pasiruoškite" : "Get ready") : (isRestPhase ? restLabel : (exercise?.name || exerciseLabel)))}
 
           {/* Description under title (toggleable) */}
           {!isRestPhase && descriptionsEnabled && exercise?.description && (
