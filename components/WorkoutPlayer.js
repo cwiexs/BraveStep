@@ -43,6 +43,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [paused, setPaused] = useState(false);
   const [stepFinished, setStepFinished] = useState(false);
 
+  useEffect(() => { dbg("phase →", phase); }, [phase]);
+  useEffect(() => { dbg("index →", { ex: currentExerciseIndex, st: currentStepIndex }); }, [currentExerciseIndex, currentStepIndex]);
+
+
   const [rating, setRating] = useState(3);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -89,6 +93,25 @@ const stepTokenRef = useRef(0);
     const el = scrollRef.current;
     if (el) el.scrollTop = y;
   };
+  // --- DEBUG scaffolding (toggle via ?debugPlayer=1 or localStorage.DEBUG_PLAYER="1") ---
+  const DEBUG_PLAYER = (typeof window !== "undefined") && (
+    (typeof window.location !== "undefined" && window.location.search.includes("debugPlayer=1")) ||
+    (typeof localStorage !== "undefined" && localStorage.DEBUG_PLAYER === "1")
+  );
+  const dbgBufRef = useRef([]);
+  const lastPrintedSecRef = useRef(null);
+  const dbg = (...args) => {
+    if (!DEBUG_PLAYER) return;
+    try {
+      const ts = new Date().toISOString();
+      dbgBufRef.current.push([ts, ...args]);
+      if (dbgBufRef.current.length > 400) dbgBufRef.current.shift();
+      // eslint-disable-next-line no-console
+      console.log("[WP]", ...args);
+      if (typeof window !== "undefined") window.__WP_LOGS = dbgBufRef.current;
+    } catch {}
+  };
+
   useEffect(() => {
     if (!isIOS) return;
     if (inputActive) lockBodyScroll();
@@ -519,6 +542,58 @@ const stepTokenRef = useRef(0);
   };
 
   const tick = (nowMs) => {
+  if (!deadlineRef.current) return;
+
+  // DEBUG: log once per second
+  if (DEBUG_PLAYER) {
+    try {
+      const _msLeft = Math.max(0, (deadlineRef.current || 0) - nowMs);
+      const sec = Math.max(0, Math.ceil(_msLeft / 1000));
+      if (lastPrintedSecRef.current !== sec) {
+        lastPrintedSecRef.current = sec;
+        dbg("tick", { sec, msLeft: _msLeft, phase, ex: currentExerciseIndex, st: currentStepIndex, paused, lock: transitionLockRef.current });
+      }
+    } catch {}
+  }
+
+  if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
+    const msLeft = Math.max(0, deadlineRef.current - nowMs);
+    const secs = Math.ceil(msLeft / 1000);
+    setSecondsLeft((prev) => (prev !== secs ? secs : prev));
+
+    if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
+      if (lastSpokenRef.current !== secs) {
+        speakNumber(secs);
+        lastSpokenRef.current = secs;
+      }
+    }
+
+    if (msLeft <= 0 && !transitionLockRef.current) {
+      transitionLockRef.current = true;
+      setSecondsLeft(0);
+      try {
+        handlePhaseComplete();
+      } finally {}
+      return;
+    }
+
+    lastTickRef.current = nowMs;
+  }
+
+  tickRafRef.current = requestAnimationFrame(tick);
+};
+nowMs) => {
+    const _dl = deadlineRef.current;
+    const _now = Date.now();
+    const _msLeft = (_dl ? _dl - _now : null);
+    if (DEBUG_PLAYER && _msLeft != null) {
+      const sec = Math.max(0, Math.ceil(_msLeft / 1000));
+      if (lastPrintedSecRef.current !== sec) {
+        lastPrintedSecRef.current = sec;
+        dbg("tick", { sec, msLeft: _msLeft, phase, ex: currentExerciseIndex, st: currentStepIndex, paused, lock: transitionLockRef.current });
+      }
+    }
+
     if (!deadlineRef.current) return;
     if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
       const msLeft = Math.max(0, deadlineRef.current - nowMs);
@@ -562,6 +637,9 @@ const stepTokenRef = useRef(0);
   };
 
   const startTimedStep = (durationSec) => {
+
+    dbg("startTimedStep()", { durationSec, phase, ex: currentExerciseIndex, st: currentStepIndex, paused });
+
     transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
@@ -699,7 +777,10 @@ vibe([40, 40]);
     if (clamped !== getReadySeconds) setGetReadySeconds(clamped);
     setGetReadySecondsStr(String(clamped));
   }
-function handleManualContinue() {
+function handleManualContinue(
+
+    dbg("handleManualContinue()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
+) {
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
@@ -734,7 +815,10 @@ function handleManualContinue() {
     }
   }
 
-  function handlePhaseComplete() {
+  function handlePhaseComplete(
+
+    dbg("handlePhaseComplete()", { phase, ex: currentExerciseIndex, st: currentStepIndex, isTerminal });
+) {
     if (phase === "get_ready") {
       try {
         const firstEx = day?.exercises?.[0];
@@ -763,7 +847,10 @@ function handleManualContinue() {
     setPhase("summary");
   }
 
-  function goToPrevious() {
+  function goToPrevious(
+
+    dbg("goToPrevious()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
+) {
     cancelRaf();
     stopAllScheduled();
     if (step && currentStepIndex > 0) {
@@ -775,7 +862,10 @@ function handleManualContinue() {
       setCurrentStepIndex(prevEx?.steps?.length ? prevEx.steps.length - 1 : 0);
     }
   }
-  function goToNext() {
+  function goToNext(
+
+    dbg("goToNext()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
+) {
     cancelRaf();
     stopAllScheduled();
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
@@ -790,7 +880,10 @@ function handleManualContinue() {
       setPhase("summary");
     }
   }
-  function restartCurrentStep() {
+  function restartCurrentStep(
+
+    dbg("restartCurrentStep()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
+) {
     cancelRaf();
     stopAllScheduled();
     const duration = getTimedSeconds(step);
