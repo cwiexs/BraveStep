@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
+import { flushSync } from "react-dom";
 import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
@@ -501,6 +502,8 @@ const stepTokenRef = useRef(0);
   // Ensure exercise timer starts when we enter exercise (after get_ready)
   useEffect(() => {
     if (phase !== "exercise") return;
+    // If a timer is already running (e.g., we started it synchronously on transition), skip
+    if (deadlineRef.current) return;
     const d = getTimedSeconds(step);
     if (Number.isFinite(d) && d > 0) {
       startTimedStep(d);
@@ -690,7 +693,49 @@ vibe([40, 40]);
     }
   }, [phase, day, exercise, step]);
 
-  // Navigation
+  
+  // Robust transition from get_ready -> exercise (avoids iOS/Android first-run freeze)
+  function enterFirstExerciseFromGetReady() {
+    try {
+      const firstEx = day?.exercises?.[0];
+      let idx = 0;
+      if (firstEx) {
+        idx = findFirstExerciseIndex(firstEx);
+      }
+      const firstSt = firstEx?.steps?.[idx];
+      const d = getTimedSeconds(firstSt);
+
+      // Clean any pending timers/schedules from get_ready before switching
+      cancelRaf();
+      stopAllScheduled();
+      deadlineRef.current = null;
+      transitionLockRef.current = false;
+
+      try {
+        flushSync(() => {
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+          setPhase("exercise");
+        });
+      } catch {
+        setCurrentExerciseIndex(0);
+        setCurrentStepIndex(idx);
+        setPhase("exercise");
+      }
+
+      // Start the first exercise timer immediately (don't rely only on effects)
+      if (d > 0) {
+        startTimedStep(d);
+      } else {
+        setSecondsLeft(0);
+        setWaitingForUser(firstSt?.type === "exercise");
+      }
+    } catch {
+      // Fallback: at least enter exercise phase
+      setPhase("exercise");
+    }
+  }
+// Navigation
   
   function commitGetReady() {
     const raw = (getReadySecondsStr ?? "").toString().trim();
@@ -736,15 +781,7 @@ function handleManualContinue() {
 
   function handlePhaseComplete() {
     if (phase === "get_ready") {
-      try {
-        const firstEx = day?.exercises?.[0];
-        if (firstEx) {
-          const idx = findFirstExerciseIndex(firstEx);
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(idx);
-        }
-      } catch {}
-      setPhase("exercise");
+      enterFirstExerciseFromGetReady();
       return;
     }
 
