@@ -43,10 +43,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [paused, setPaused] = useState(false);
   const [stepFinished, setStepFinished] = useState(false);
 
-  useEffect(() => { dbg("phase →", phase); }, [phase]);
-  useEffect(() => { dbg("index →", { ex: currentExerciseIndex, st: currentStepIndex }); }, [currentExerciseIndex, currentStepIndex]);
-
-
   const [rating, setRating] = useState(3);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -57,12 +53,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [fxEnabled, setFxEnabled] = useState(true);
   const [fxTrack, setFxTrack] = useState("beep");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
-
-  /* ios default voice off */
-  useEffect(() => { if (isIOS) try { setVoiceEnabled(false); } catch {} }, []);
   const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
-  const [getReadySeconds, setGetReadySeconds] = useState(10);
-  const [getReadySecondsStr, setGetReadySecondsStr] = useState("10");
   const [vibrationSupported, setVibrationSupported] = useState(false);
 
   // Apsauga: kai aktyvus įvesties laukas – neleidžiam „Power“
@@ -81,7 +72,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
-const stepTokenRef = useRef(0);
+  const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
 
@@ -93,25 +84,6 @@ const stepTokenRef = useRef(0);
     const el = scrollRef.current;
     if (el) el.scrollTop = y;
   };
-  // --- DEBUG scaffolding (toggle via ?debugPlayer=1 or localStorage.DEBUG_PLAYER="1") ---
-  const DEBUG_PLAYER = (typeof window !== "undefined") && (
-    (typeof window.location !== "undefined" && window.location.search.includes("debugPlayer=1")) ||
-    (typeof localStorage !== "undefined" && localStorage.DEBUG_PLAYER === "1")
-  );
-  const dbgBufRef = useRef([]);
-  const lastPrintedSecRef = useRef(null);
-  const dbg = (...args) => {
-    if (!DEBUG_PLAYER) return;
-    try {
-      const ts = new Date().toISOString();
-      dbgBufRef.current.push([ts, ...args]);
-      if (dbgBufRef.current.length > 400) dbgBufRef.current.shift();
-      // eslint-disable-next-line no-console
-      console.log("[WP]", ...args);
-      if (typeof window !== "undefined") window.__WP_LOGS = dbgBufRef.current;
-    } catch {}
-  };
-
   useEffect(() => {
     if (!isIOS) return;
     if (inputActive) lockBodyScroll();
@@ -253,11 +225,6 @@ const stepTokenRef = useRef(0);
     return `${n} reps`;
   }
 
-  function clearAllTimeouts() {
-    timeoutsRef.current.forEach((id) => clearTimeout(id));
-    timeoutsRef.current = [];
-  }
-
   // --------- AUDIO (WebAudio + fallback) ----------
   async function ensureWAContext() {
     if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
@@ -270,7 +237,7 @@ const stepTokenRef = useRef(0);
 
   async function loadWABuffer(name, url) {
     try {
-      const ctx = ensureWAContext();
+      const ctx = await ensureWAContext();
       if (!ctx) return false;
       if (audioRef.current.wa.buffers.has(name)) return true;
       const res = await fetch(url);
@@ -284,8 +251,6 @@ const stepTokenRef = useRef(0);
   }
 
   function playWABuffer(name, when = 0) {
-    // Disable WebAudio on iOS to avoid post-gesture mutes
-    if (isIOS) return false;
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
       if (!ctx) return false;
@@ -308,19 +273,21 @@ const stepTokenRef = useRef(0);
   }
 
   function stopAllScheduledAudio() {
-    const { scheduled } = audioRef.current.wa;
-    scheduled.forEach((s) => {
-      try {
-        s.source.stop(0);
-      } catch {}
-    });
-    audioRef.current.wa.scheduled = [];
+    try {
+      const { scheduled } = audioRef.current.wa;
+      scheduled.forEach((s) => {
+        try {
+          s.source.stop(0);
+        } catch {}
+      });
+      audioRef.current.wa.scheduled = [];
+    } catch {}
   }
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
-    const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch{}
-    const silence = new Audio("/silence.mp3");
+    const beep = new Audio("/beep.wav");
+    const silence = new Audio("/silance.mp3");
     const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
@@ -361,13 +328,13 @@ const stepTokenRef = useRef(0);
     return false;
   }
 
-  function primeIOSAudio() {
-    const ctx = ensureWAContext();
+  async function primeIOSAudio() {
+    const ctx = await ensureWAContext();
     try {
-      try { ctx?.resume?.(); } catch {}
+      await ctx?.resume();
     } catch {}
 
-    Promise.all([
+    await Promise.all([
       loadWABuffer("beep", "/beep.wav"),
       loadWABuffer("1", "/1.mp3"),
       loadWABuffer("2", "/2.mp3"),
@@ -381,7 +348,7 @@ const stepTokenRef = useRef(0);
       const s = audioRef.current.html.silence;
       s.volume = 0.01;
       s.currentTime = 0;
-      try { s.play().catch(() => {}); } catch {}
+      await s.play().catch(() => {});
       setTimeout(() => {
         try {
           s.pause();
@@ -392,14 +359,12 @@ const stepTokenRef = useRef(0);
   }
 
   function ping() {
-    if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
   }
 
   function speakNumber(n) {
-    if (isIOS) { if (!playHTML(String(n))) ping(); return; }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -418,7 +383,6 @@ const stepTokenRef = useRef(0);
   }
 
   function stopAllScheduled() {
-    try { stopAllScheduledAudio(); } catch {}
     try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
   }
@@ -479,8 +443,6 @@ const stepTokenRef = useRef(0);
       if (vo != null) setVoiceEnabled(vo === "true");
       const de = localStorage.getItem("bs_descriptions_enabled");
       if (de != null) setDescriptionsEnabled(de === "true");
-      const gr = localStorage.getItem("bs_getready_seconds");
-      if (gr != null) { const n = parseInt(gr, 10); if (Number.isFinite(n)) setGetReadySeconds(Math.max(0, Math.min(120, n))); }
     } catch {}
   }, []);
   useEffect(() => {
@@ -509,19 +471,7 @@ const stepTokenRef = useRef(0);
     } catch {}
   }, [descriptionsEnabled]);
 
-  useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
-
-  // After switching from get_ready to exercise, ensure timer initializes
-  useEffect(() => {
-    if (phase === "exercise") {
-      // kick the timer setup effect by nudging step state if needed
-      setTimeout(() => {
-        try { setCurrentStepIndex((v) => v); } catch {}
-      }, 0);
-    }
-  }, [phase]);
-
-  // Ensure exercise timer starts when we enter exercise (after get_ready)
+  // Ensure exercise timer starts when we enter exercise
   useEffect(() => {
     if (phase !== "exercise") return;
     const d = getTimedSeconds(step);
@@ -533,61 +483,44 @@ const stepTokenRef = useRef(0);
     }
   }, [phase, currentExerciseIndex, currentStepIndex, step]);
 
-  useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
-// TIMER (watchdog removed)
-
+  // TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
   };
 
   const tick = (nowMs) => {
-  if (!deadlineRef.current) return;
+    if (!deadlineRef.current) return;
+    if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
+      const msLeft = Math.max(0, deadlineRef.current - nowMs);
+      const secs = Math.ceil(msLeft / 1000);
+      setSecondsLeft((prev) => (prev !== secs ? secs : prev));
 
-  // DEBUG: log once per second
-  if (DEBUG_PLAYER) {
-    try {
-      const _msLeft = Math.max(0, (deadlineRef.current || 0) - nowMs);
-      const sec = Math.max(0, Math.ceil(_msLeft / 1000));
-      if (lastPrintedSecRef.current !== sec) {
-        lastPrintedSecRef.current = sec;
-        dbg("tick", { sec, msLeft: _msLeft, phase, ex: currentExerciseIndex, st: currentStepIndex, paused, lock: transitionLockRef.current });
+      if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
+        if (lastSpokenRef.current !== secs) {
+          speakNumber(secs);
+          lastSpokenRef.current = secs;
+        }
       }
-    } catch {}
-  }
 
-  if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
-    const msLeft = Math.max(0, deadlineRef.current - nowMs);
-    const secs = Math.ceil(msLeft / 1000);
-    setSecondsLeft((prev) => (prev !== secs ? secs : prev));
-
-    if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
-      if (lastSpokenRef.current !== secs) {
-        speakNumber(secs);
-        lastSpokenRef.current = secs;
-      }
-    }
-
-    if (msLeft <= 0 && !transitionLockRef.current) {
-      transitionLockRef.current = true;
-      setSecondsLeft(0);
-      try {
+      if (msLeft <= 0) {
+        if (transitionLockRef.current) {
+          cancelRaf();
+          return;
+        }
+        transitionLockRef.current = true;
+        cancelRaf();
+        lastSpokenRef.current = null;
+        setStepFinished(true);
         handlePhaseComplete();
-      } finally {}
-      return;
+        return;
+      }
+      lastTickRef.current = nowMs;
     }
-
-    lastTickRef.current = nowMs;
-  }
-
-  tickRafRef.current = requestAnimationFrame(tick);
-};
-;
+    tickRafRef.current = requestAnimationFrame(tick);
+  };
 
   const startTimedStep = (durationSec) => {
-
-    dbg("startTimedStep()", { durationSec, phase, ex: currentExerciseIndex, st: currentStepIndex, paused });
-
     transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
@@ -607,7 +540,6 @@ const stepTokenRef = useRef(0);
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-    
     try {
       if (durationSec > 0) {
         const wd = setTimeout(() => {
@@ -620,14 +552,14 @@ const stepTokenRef = useRef(0);
             if (transitionLockRef.current) return;
             transitionLockRef.current = true;
             cancelRaf();
-            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
             try { handlePhaseComplete(); } catch {}
           } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
         scheduledTimeoutsRef.current.push(wd);
       }
     } catch {}
-vibe([40, 40]);
+
+    vibe([40, 40]);
     ping();
 
     tickRafRef.current = requestAnimationFrame(tick);
@@ -706,6 +638,7 @@ vibe([40, 40]);
       timeoutsRef.current.forEach((id) => clearTimeout(id));
       cancelRaf();
       stopAllScheduled();
+      stopAllScheduledAudio();
     };
   }, []);
 
@@ -717,16 +650,7 @@ vibe([40, 40]);
   }, [phase, day, exercise, step]);
 
   // Navigation
-  
-  function commitGetReady() {
-    const raw = (getReadySecondsStr ?? "").toString().trim();
-    const v = parseInt(raw, 10);
-    const clamped = Number.isFinite(v) ? Math.max(0, Math.min(120, v)) : getReadySeconds;
-    if (clamped !== getReadySeconds) setGetReadySeconds(clamped);
-    setGetReadySecondsStr(String(clamped));
-  }
-function handleManualContinue() {
-    dbg("handleManualContinue()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
+  function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
@@ -743,16 +667,9 @@ function handleManualContinue() {
           setCurrentStepIndex(0);
         }
       } catch {}
-      setPhase("get_ready");
-      const gr = Number(getReadySeconds) || 0;
-      if (gr > 0) {
-        startTimedStep(gr);
-
-      } else {
-        setSecondsLeft(0);
-        setWaitingForUser(false);
-        setPhase("exercise");
-      }
+      setSecondsLeft(0);
+      setWaitingForUser(false);
+      setPhase("exercise");
     } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
@@ -762,20 +679,6 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    dbg("handlePhaseComplete()", { phase, ex: currentExerciseIndex, st: currentStepIndex, isTerminal });
-    if (phase === "get_ready") {
-      try {
-        const firstEx = day?.exercises?.[0];
-        if (firstEx) {
-          const idx = findFirstExerciseIndex(firstEx);
-          setCurrentExerciseIndex(0);
-          setCurrentStepIndex(idx);
-        }
-      } catch {}
-      setPhase("exercise");
-      return;
-    }
-
     cancelRaf();
     stopAllScheduled();
 
@@ -792,7 +695,6 @@ function handleManualContinue() {
   }
 
   function goToPrevious() {
-    dbg("goToPrevious()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
     cancelRaf();
     stopAllScheduled();
     if (step && currentStepIndex > 0) {
@@ -805,7 +707,6 @@ function handleManualContinue() {
     }
   }
   function goToNext() {
-    dbg("goToNext()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
     cancelRaf();
     stopAllScheduled();
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
@@ -821,7 +722,6 @@ function handleManualContinue() {
     }
   }
   function restartCurrentStep() {
-    dbg("restartCurrentStep()", { phase, ex: currentExerciseIndex, st: currentStepIndex });
     cancelRaf();
     stopAllScheduled();
     const duration = getTimedSeconds(step);
@@ -873,28 +773,6 @@ function handleManualContinue() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden">
             <h3 className="text-xl font-bold mb-6">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
 
-            {/* Get ready seconds */}
-            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
-              <div className="min-w-[220px]">
-                <p className="font-medium">
-                  {t("common.getReadyTime", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruošimo laikas (sekundėmis)" : "Get ready (seconds)" })}
-                </p>
-                <p className="text-sm text-gray-500">
-                  {t("common.getReadyHint", { defaultValue: i18n.language?.startsWith("lt") ? "Atgalinis skaičiavimas prieš treniruotės pradžią." : "Countdown before workout starts." })}
-                </p>
-              </div>
-              <input
-                type="number"
-                min="0"
-                max="120"
-                value={getReadySecondsStr}
-                onChange={(e) => { setGetReadySecondsStr(e.target.value); }}
-                onBlur={commitGetReady}
-                onKeyDown={(e) => { if (e.key === 'Enter') commitGetReady(); }}
-                className="w-24 h-9 border rounded px-2 text-sm text-right"
-              />
-            </div>
-
             {/* Vibracija */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="min-w-[220px]">
@@ -932,7 +810,7 @@ function handleManualContinue() {
                 <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Takelis:" })}</label>
                 <select value={fxTrack} onChange={(e) => setFxTrack(e.target.value)} className="border rounded px-2 py-1 text-sm">
                   <option value="beep">beep.wav</option>
-                  <option value="silence">silence.mp3</option>
+                  <option value="silence">silance.mp3</option>
                 </select>
                 <button onClick={() => { ping(); }} className="px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200">
                   {t("player.testFx", { defaultValue: "Išbandyti" })}
@@ -969,14 +847,14 @@ function handleManualContinue() {
             </div>
 
             <div className="flex justify-end gap-2">
-              <button onClick={() => { commitGetReady(); setShowSettings(false); }} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+              <button onClick={() => { setShowSettings(false); }} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
                 {t("common.close", { defaultValue: "Uždaryti" })}
               </button>
             </div>
           </div>
         </div>
       )}
-{/* Confirm Exit modal */}
+      {/* Confirm Exit modal */}
       {showConfirmExit && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 max-h-[85vh] overflow-y-auto">
@@ -997,7 +875,7 @@ function handleManualContinue() {
               </button>
               <button
                 onClick={() => {
-                  try { cancelRaf(); stopAllScheduled(); } catch {}
+                  try { cancelRaf(); stopAllScheduled(); stopAllScheduledAudio(); } catch {}
                   setShowConfirmExit(false);
                   onClose?.();
                 }}
@@ -1024,83 +902,11 @@ function handleManualContinue() {
           </div>
         }
       >
-        <div className="w-full min-h-[60vh] grid place-items-center">
+        <div className="w-full min-h_[60vh] grid place-items-center">
           <div className="max-w-2xl text-center">
             <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
             <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
           </div>
-        </div>
-      </Shell>
-    );
-  }
-
-  // ---- Get Ready ----
-  if (phase === "get_ready") {
-const firstEx = day?.exercises?.[0] || null;
-    let firstSt = null;
-    let totalSets = 0;
-    if (firstEx?.steps && Array.isArray(firstEx.steps)) {
-      totalSets = firstEx.steps.filter((s) => s.type === "exercise").length || 0;
-      firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
-    }
-    const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
-    const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
-
-    function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
-
-    return (
-      <Shell
-        footer={
-          <>
-            <div className="flex items-center justify-center gap-4">
-              <button onClick={() => { cancelRaf(); stopAllScheduled(); setPhase("intro"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
-                <SkipBack className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
-                {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
-              </button>
-              <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
-                <RotateCcw className="w-6 h-6 text-gray-800" />
-              </button>
-              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
-                <SkipForward className="w-6 h-6 text-gray-800" />
-              </button>
-            </div>
-          </>
-        }
-      >
-        <div className="max-w-2xl mx-auto text-center mt-6">
-          {/* GET_READY_HEADING */}
-          <h2 className="text-2xl font-extrabold mb-2 text-yellow-500">
-            {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
-          </h2>
-          <p className="text-6xl font-extrabold text-yellow-500 mt-6">
-            {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
-          </p>
-          {paused && <p className="text-red-600 font-semibold mt-2">{pausedLabel}</p>}
-          {firstEx && (
-            <div className="mt-6 text-left inline-block text-start">
-              <p className="text-sm font-semibold text-gray-700 mb-1">{upNextLabel}</p>
-              <p className="text-base font-bold text-gray-900">{firstEx.title || firstEx.name || t("player.exercise", { defaultValue: "Exercise" })}</p>
-              {firstSt && (
-                <>
-                  {(() => {
-                    const repsText = getRepsText(firstSt);
-                    if (repsText) return <p className="text-sm text-gray-900 mt-1">{repsText}</p>;
-                    const secs = getTimedSeconds(firstSt);
-                    const timedText = secs > 0 ? `${secs} ${secShort}` : "";
-                    return timedText ? <p className="text-sm text-gray-900 mt-1">{timedText}</p> : null;
-                  })()}
-                  {firstSt.set != null && totalSets > 0 && (
-                    <p className="text-sm text-gray-800 mt-1">{setWord} 1/{totalSets}</p>
-                  )}
-                  {firstEx.description && (
-                    <p className="text-sm text-gray-700 italic mt-2">{firstEx.description}</p>
-                  )}
-                </>
-              )}
-            </div>
-          )}
         </div>
       </Shell>
     );
@@ -1133,27 +939,27 @@ const firstEx = day?.exercises?.[0] || null;
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
-</>
+          </>
         }
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
           <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
             {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
+          </h2>
 
           {/* Description under title (toggleable) */}
           {!isRestPhase && descriptionsEnabled && exercise?.description && (
-            <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2"><Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" /><span className="font-normal">{exercise.description}</span></div>
+            <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2">
+              <Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" />
+              <span className="font-normal">{exercise.description}</span>
+            </div>
           )}
-
-          </h2>
 
           {!isRestPhase && step?.type === "exercise" && (
             <p className="text-lg font-semibold text-gray-900 mb-2">
               {setWord} {seriesIdx}/{seriesTotal}
             </p>
           )}
-
-          
 
           {getTimedSeconds(step) > 0 && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
