@@ -545,7 +545,7 @@ const stepTokenRef = useRef(0);
       }
 
       if (msLeft <= 0) {
-        if (leadingBreakActive) { setLeadingBreakActive(false); setSecondsLeft(0); return; }
+        if (leadingBreakActive) { dbg("tick<=0: END leadingBreak"); setLeadingBreakActive(false); setSecondsLeft(0); return; }
 
         if (transitionLockRef.current) { cancelRaf(); return; }
         transitionLockRef.current = true;
@@ -576,7 +576,7 @@ const stepTokenRef = useRef(0);
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
-  const startTimedStep = (durationSec) => {
+  const startTimedStep = (durationSec) => { dbg('startTimedStep', { durationSec, leadingBreakActive });
     transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
@@ -749,6 +749,7 @@ function handleManualContinue() {
       } catch {}
       setPhase("exercise");
       const gr = Number(getReadySeconds) || 0;
+      dbg("[intro->exercise] gr=", gr);
       if (gr > 0) {
         setLeadingBreakActive(true);
         setSecondsLeft(gr);
