@@ -53,6 +53,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [fxEnabled, setFxEnabled] = useState(true);
   const [fxTrack, setFxTrack] = useState("beep");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+
+  /* ios default voice off */
+  useEffect(() => { if (isIOS) try { setVoiceEnabled(false); } catch {} }, []);
   const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
   const [getReadySeconds, setGetReadySeconds] = useState(10);
   const [getReadySecondsStr, setGetReadySecondsStr] = useState("10");
@@ -74,6 +77,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
+  const lastAdvancedRef = useRef(null);
   const stepTokenRef = useRef(0);
 
   const timeoutsRef = useRef([]);
@@ -244,7 +248,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   async function loadWABuffer(name, url) {
     try {
-      const ctx = await ensureWAContext();
+      const ctx = ensureWAContext();
       if (!ctx) return false;
       if (audioRef.current.wa.buffers.has(name)) return true;
       const res = await fetch(url);
@@ -258,6 +262,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function playWABuffer(name, when = 0) {
+    // Disable WebAudio on iOS to avoid post-gesture mutes
+    if (isIOS) return false;
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
       if (!ctx) return false;
@@ -279,7 +285,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
   }
 
-  function stopAllScheduled() {
+  function stopAllScheduledAudio() {
     const { scheduled } = audioRef.current.wa;
     scheduled.forEach((s) => {
       try {
@@ -291,8 +297,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
-    const beep = new Audio("/beep.wav");
-    const silence = new Audio("/silance.mp3");
+    const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch{}
+    const silence = new Audio("/silence.mp3");
     const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
@@ -333,13 +339,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return false;
   }
 
-  async function primeIOSAudio() {
-    const ctx = await ensureWAContext();
+  function primeIOSAudio() {
+    const ctx = ensureWAContext();
     try {
-      await ctx?.resume();
+      try { ctx?.resume?.(); } catch {}
     } catch {}
 
-    await Promise.all([
+    Promise.all([
       loadWABuffer("beep", "/beep.wav"),
       loadWABuffer("1", "/1.mp3"),
       loadWABuffer("2", "/2.mp3"),
@@ -353,7 +359,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       const s = audioRef.current.html.silence;
       s.volume = 0.01;
       s.currentTime = 0;
-      await s.play().catch(() => {});
+      try { s.play().catch(() => {}); } catch {}
       setTimeout(() => {
         try {
           s.pause();
@@ -364,12 +370,14 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function ping() {
+    if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
   }
 
   function speakNumber(n) {
+    if (isIOS) { if (!playHTML(String(n))) ping(); return; }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -388,6 +396,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   function stopAllScheduled() {
+    try { stopAllScheduledAudio(); } catch {}
     try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
   }
@@ -476,7 +485,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     try {
       localStorage.setItem("bs_descriptions_enabled", String(descriptionsEnabled));
     } catch {}
-  }, [voiceEnabled]);
+  }, [descriptionsEnabled]);
 
   useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
@@ -504,7 +513,24 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 
-  // TIMER
+  
+  /* universal timer watchdog */
+  useEffect(() => {
+    if (paused) return;
+    const timed = phase === "get_ready" || (phase === "exercise" && getTimedSeconds(step) > 0);
+    if (!timed) return;
+    if (secondsLeft > 0) return;
+    // step identity token
+    const key = `${phase}:${currentExerciseIndex}:${currentStepIndex}:${getTimedSeconds(step)}`;
+    if (lastAdvancedRef.current === key) return;
+    lastAdvancedRef.current = key;
+    // advance safely
+    try {
+      if (transitionLockRef.current) transitionLockRef.current = false;
+      handlePhaseComplete();
+    } catch {}
+  }, [secondsLeft, phase, currentExerciseIndex, currentStepIndex, step, paused]);
+// TIMER
   const cancelRaf = () => {
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     tickRafRef.current = null;
@@ -524,14 +550,30 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
         }
       }
 
-      if (msLeft <= 0) { if (transitionLockRef.current) { cancelRaf(); return; } transitionLockRef.current = true;
-      if (phase === "get_ready") { cancelRaf(); setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+      if (msLeft <= 0) {
+        if (transitionLockRef.current) { cancelRaf(); return; }
+        transitionLockRef.current = true;
         cancelRaf();
         lastSpokenRef.current = null;
+
+        if (phase === "get_ready") {
+          try {
+            const firstEx = day?.exercises?.[0];
+            if (firstEx) {
+              const idx = findFirstExerciseIndex(firstEx);
+              setCurrentExerciseIndex(0);
+              setCurrentStepIndex(idx);
+            }
+          } catch {}
+          setPhase("exercise");
+          return;
+        }
+
         setStepFinished(true);
         handlePhaseComplete();
         return;
       }
+
       lastTickRef.current = nowMs;
     }
     tickRafRef.current = requestAnimationFrame(tick);
@@ -696,10 +738,7 @@ function handleManualContinue() {
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
         startTimedStep(gr);
-        try {
-          const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60));
-          scheduledTimeoutsRef.current.push(id);
-        } catch {}
+
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
@@ -714,7 +753,19 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") { try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); return; }
+    if (phase === "get_ready") {
+      try {
+        const firstEx = day?.exercises?.[0];
+        if (firstEx) {
+          const idx = findFirstExerciseIndex(firstEx);
+          setCurrentExerciseIndex(0);
+          setCurrentStepIndex(idx);
+        }
+      } catch {}
+      setPhase("exercise");
+      return;
+    }
+
     cancelRaf();
     stopAllScheduled();
 
@@ -868,7 +919,7 @@ function handleManualContinue() {
                 <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Takelis:" })}</label>
                 <select value={fxTrack} onChange={(e) => setFxTrack(e.target.value)} className="border rounded px-2 py-1 text-sm">
                   <option value="beep">beep.wav</option>
-                  <option value="silence">silance.mp3</option>
+                  <option value="silence">silence.mp3</option>
                 </select>
                 <button onClick={() => { ping(); }} className="px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200">
                   {t("player.testFx", { defaultValue: "Išbandyti" })}
@@ -960,7 +1011,7 @@ function handleManualContinue() {
           </div>
         }
       >
-        <div className="w-full min-h_[60vh] grid place-items-center">
+        <div className="w-full min-h-[60vh] grid place-items-center">
           <div className="max-w-2xl text-center">
             <h2 className="text-3xl font-extrabold mb-4">💡 {motivationTitle}</h2>
             <p className="text-base whitespace-pre-wrap leading-relaxed">{workoutData?.days?.[0]?.motivationStart || ""}</p>
@@ -972,7 +1023,7 @@ function handleManualContinue() {
 
   // ---- Get Ready ----
   if (phase === "get_ready") {
-    const firstEx = day?.exercises?.[0] || null;
+const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
     if (firstEx?.steps && Array.isArray(firstEx.steps)) {
@@ -982,8 +1033,7 @@ function handleManualContinue() {
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
     const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
 
-    function restartGetReady() { transitionLockRef.current = false;
-    const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); if (gr > 0) { try { const id = setTimeout(() => { try { setPhase("exercise"); } catch {} }, Math.max(0, gr * 1000 + 60)); scheduledTimeoutsRef.current.push(id); } catch {} } }
+    function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
 
     return (
       <Shell
