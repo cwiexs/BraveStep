@@ -582,59 +582,7 @@ const stepTokenRef = useRef(0);
 
   tickRafRef.current = requestAnimationFrame(tick);
 };
-nowMs) => {
-    const _dl = deadlineRef.current;
-    const _now = Date.now();
-    const _msLeft = (_dl ? _dl - _now : null);
-    if (DEBUG_PLAYER && _msLeft != null) {
-      const sec = Math.max(0, Math.ceil(_msLeft / 1000));
-      if (lastPrintedSecRef.current !== sec) {
-        lastPrintedSecRef.current = sec;
-        dbg("tick", { sec, msLeft: _msLeft, phase, ex: currentExerciseIndex, st: currentStepIndex, paused, lock: transitionLockRef.current });
-      }
-    }
-
-    if (!deadlineRef.current) return;
-    if (!lastTickRef.current || nowMs - lastTickRef.current > 80) {
-      const msLeft = Math.max(0, deadlineRef.current - nowMs);
-      const secs = Math.ceil(msLeft / 1000);
-      setSecondsLeft((prev) => (prev !== secs ? secs : prev));
-
-      if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
-        if (lastSpokenRef.current !== secs) {
-          speakNumber(secs);
-          lastSpokenRef.current = secs;
-        }
-      }
-
-      if (msLeft <= 0) {
-        if (transitionLockRef.current) { cancelRaf(); return; }
-        transitionLockRef.current = true;
-        cancelRaf();
-        lastSpokenRef.current = null;
-
-        if (phase === "get_ready") {
-          try {
-            const firstEx = day?.exercises?.[0];
-            if (firstEx) {
-              const idx = findFirstExerciseIndex(firstEx);
-              setCurrentExerciseIndex(0);
-              setCurrentStepIndex(idx);
-            }
-          } catch {}
-          setPhase("exercise");
-          return;
-        }
-
-        setStepFinished(true);
-        handlePhaseComplete();
-        return;
-      }
-
-      lastTickRef.current = nowMs;
-    }
-    tickRafRef.current = requestAnimationFrame(tick);
-  };
+;
 
   const startTimedStep = (durationSec) => {
 
