@@ -547,7 +547,6 @@ const enteredFromGetReadyRef = useRef(false);
           return;
         }
 
-        }
 
         setStepFinished(true);
         handlePhaseComplete();
