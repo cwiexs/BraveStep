@@ -433,6 +433,17 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     return null;
   }, [day, currentExerciseIndex, currentStepIndex]);
 
+function cancelRaf() {
+  if (tickRafRef.current) {
+    cancelAnimationFrame(tickRafRef.current);
+    tickRafRef.current = null;
+  }
+}
+
+
+
+
+
   // WakeLock
   useEffect(() => {
     if ("wakeLock" in navigator) {
