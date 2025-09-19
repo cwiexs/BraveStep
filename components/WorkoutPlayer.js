@@ -153,11 +153,13 @@ const stepTokenRef = useRef(0);
   });
   const lastSpokenRef = useRef(null);
 
-  // One-time gesture unlock for iOS/Safari
+  // One-time gesture unlock
   useEffect(() => {
     const onTap = () => { try { primeAudio(); } catch (e) {} };
-    window.addEventListener("pointerdown", onTap, { once: true });
-    window.addEventListener("touchend", onTap, { once: true });
+    if (typeof window !== "undefined") {
+      window.addEventListener("pointerdown", onTap, { once: true });
+      window.addEventListener("touchend", onTap, { once: true });
+    }
     return () => {};
   }, []);
 
@@ -285,9 +287,7 @@ const stepTokenRef = useRef(0);
     return ctx;
   }
 
-  async function loadWABuffer(name, url) {
-    try {
-      const ctx = ensureWAContext();
+  async function loadWABuffer(name, url) { try { const ctx = ensureWAContext();
       if (!ctx) return false;
       if (audioRef.current.wa.buffers.has(name)) return true;
       const res = await fetch(url);
@@ -318,22 +318,8 @@ const stepTokenRef = useRef(0);
         if (i >= 0) scheduled.splice(i, 1);
       };
       return true;
-    } catch { return false; }
-    try {
-      const { ctx, buffers, scheduled } = audioRef.current.wa;
-      if (!ctx) return false;
-      const buf = buffers.get(name);
-      if (!buf) return false;
-      const src = ctx.createBufferSource();
-      src.buffer = buf;
-      src.connect(ctx.destination);
-      const startAt = ctx.currentTime + Math.max(0, when);
-      src.start(startAt);
-      scheduled.push({ source: src, when: startAt });
-      src.onended = () => {
-        const i = scheduled.findIndex((s) => s.source === src);
-        if (i >= 0) scheduled.splice(i, 1);
-      };
+    } catch (e) { return false; }
+  };
       return true;
     } catch {
       return false;
@@ -396,25 +382,8 @@ const stepTokenRef = useRef(0);
 
   function primeAudio() {
     const ctx = ensureWAContext();
-    try { if (ctx && ctx.state === "suspended") { ctx.resume(); } } catch (e) {}
-    // Preload WA buffers
-    Promise.all([
-      loadWABuffer("beep", "/beep.wav"),
-      loadWABuffer("1", "/1.mp3"),
-      loadWABuffer("2", "/2.mp3"),
-      loadWABuffer("3", "/3.mp3"),
-      loadWABuffer("4", "/4.mp3"),
-      loadWABuffer("5", "/5.mp3"),
-    ]).catch(()=>{});
-    // Warm up HTML audio (iOS autoplay policy)
     try {
-      ensureHTMLAudioLoaded();
-      const s = audioRef.current.html.silence;
-      s.volume = 0.01; s.currentTime = 0;
-      const p = s.play(); if (p && p.catch) { p.catch(()=>{}); }
-      setTimeout(() => { try { s.pause(); s.currentTime = 0; } catch (e) {} }, 120);
-    } catch (e) {}
-  } catch (e) {}
+      try { ctx?.resume?.(); } catch (e) {}
     } catch (e) {}
 
     Promise.all([
@@ -668,7 +637,7 @@ const stepTokenRef = useRef(0);
             // Leiskime eiti ta pačia logika kaip rAF pabaigoje
             try { handlePhaseComplete(); } catch (e) {}
           } catch (e) {}
-        }, Math.max(0, Math.round(durationSec * 1000) + (isIOS ? 600 : 350)));
+        }, Math.max(0, Math.round(durationSec * 1000) + 350));
         scheduledTimeoutsRef.current.push(wd);
       }
     } catch (e) {}
@@ -806,8 +775,7 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    const __phaseNow = phaseRef.current;
-    if (__phaseNow === "get_ready") {
+    if (phaseRef.current === "get_ready") {
       try {
         const firstEx = day?.exercises?.[0];
         if (firstEx) {
