@@ -281,7 +281,7 @@ const stepTokenRef = useRef(0);
 
   async function loadWABuffer(name, url) {
     try {
-      const ctx = ensureWAContext();
+      const ctx = await ensureWAContext();
       if (!ctx) return false;
       if (audioRef.current.wa.buffers.has(name)) return true;
       const res = await fetch(url);
@@ -372,13 +372,13 @@ const stepTokenRef = useRef(0);
     return false;
   }
 
-  function primeIOSAudio() {
-    const ctx = ensureWAContext();
+  async function primeIOSAudio() {
+    const ctx = await ensureWAContext();
     try {
-      try { ctx?.resume?.(); } catch {}
+      await ctx?.resume();
     } catch {}
 
-    Promise.all([
+    await Promise.all([
       loadWABuffer("beep", "/beep.wav"),
       loadWABuffer("1", "/1.mp3"),
       loadWABuffer("2", "/2.mp3"),
@@ -392,7 +392,7 @@ const stepTokenRef = useRef(0);
       const s = audioRef.current.html.silence;
       s.volume = 0.01;
       s.currentTime = 0;
-      try { s.play().catch(() => {}); } catch {}
+      try { await s.play().catch(() => {}); } catch {}
       setTimeout(() => {
         try {
           s.pause();
@@ -403,14 +403,12 @@ const stepTokenRef = useRef(0);
   }
 
   function ping() {
-    if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
   }
 
   function speakNumber(n) {
-    if (isIOS) { if (!playHTML(String(n))) ping(); return; }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
