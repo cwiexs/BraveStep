@@ -112,7 +112,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
 const stepTokenRef = useRef(0);
-const timerSigRef = useRef("");
 
   const timeoutsRef = useRef([]);
 
@@ -271,6 +270,16 @@ const timerSigRef = useRef("");
   }
 
   // --------- AUDIO (WebAudio + fallback) ----------
+  function getOrCreateWAContextSync() {
+    try {
+      if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      const ctx = new Ctx();
+      audioRef.current.wa.ctx = ctx;
+      return ctx;
+    } catch { return null; }
+  }
   async function ensureWAContext() {
     if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -282,7 +291,7 @@ const timerSigRef = useRef("");
 
   async function loadWABuffer(name, url) {
     try {
-      const ctx = await ensureWAContext();
+      const ctx = ensureWAContext();
       if (!ctx) return false;
       if (audioRef.current.wa.buffers.has(name)) return true;
       const res = await fetch(url);
@@ -296,6 +305,8 @@ const timerSigRef = useRef("");
   }
 
   function playWABuffer(name, when = 0) {
+    // Disable WebAudio on iOS to avoid post-gesture mutes
+    if (isIOS) return false;
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
       if (!ctx) return false;
@@ -331,6 +342,7 @@ const timerSigRef = useRef("");
     if (audioRef.current.html.loaded) return;
     const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch{}
     const silence = new Audio("/silence.mp3");
+    let silenceAlt = null; try { silenceAlt = new Audio("/silance.mp3"); } catch {}
     const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
@@ -346,7 +358,7 @@ const timerSigRef = useRef("");
         } catch {}
       });
     } catch {}
-    audioRef.current.html = { loaded: true, beep, silence, nums };
+    audioRef.current.html = { loaded: true, beep, silence, silenceAlt, nums };
   }
 
   function playHTML(name) {
@@ -371,50 +383,47 @@ const timerSigRef = useRef("");
     return false;
   }
 
-  async function primeIOSAudio() {
-    const ctx = await ensureWAContext();
-    try { await ctx?.resume(); } catch {}
-
-    await Promise.all([
-      loadWABuffer("beep", "/beep.wav"),
-      loadWABuffer("1", "/1.mp3"),
-      loadWABuffer("2", "/2.mp3"),
-      loadWABuffer("3", "/3.mp3"),
-      loadWABuffer("4", "/4.mp3"),
-      loadWABuffer("5", "/5.mp3"),
-    ]);
-
+  function primeIOSAudio() {
+    // Create/Resume WebAudio synchronously within user gesture
+    const ctx = getOrCreateWAContextSync();
+    try { ctx?.resume?.(); } catch {}
     try {
-      const silentBuf = ctx.createBuffer(1, 1, ctx.sampleRate);
-      const silentSrc = ctx.createBufferSource();
-      silentSrc.buffer = silentBuf;
-      silentSrc.connect(ctx.destination);
-      silentSrc.start(0);
+      // silent WA tick (oscillator) to mark audio as user-activated
+      if (ctx) {
+        const g = ctx.createGain(); g.gain.value = 0.00001;
+        const o = ctx.createOscillator(); o.connect(g).connect(ctx.destination);
+        o.start(0);
+        try { o.stop(ctx.currentTime + 0.05); } catch {}
+      }
     } catch {}
 
+    // Prepare HTMLAudio and attempt immediate silent play (no await)
     ensureHTMLAudioLoaded();
     try {
-      const s = audioRef.current.html.silence;
-      s.volume = 0.01;
-      s.currentTime = 0;
-      try { await s.play(); } catch {}
-      setTimeout(() => { try { s.pause(); s.currentTime = 0; } catch {} }, 120);
+      const h = audioRef.current.html;
+      const tryPlay = (el) => { try { if (!el) return; el.volume = 0.01; el.currentTime = 0; const p = el.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); setTimeout(()=>{ try { el.pause(); el.currentTime = 0; } catch {} }, 150); } catch {} };
+      tryPlay(h.silence);
+      if (h.silenceAlt) tryPlay(h.silenceAlt);
     } catch {}
-    try {
-      // Fallback for projects where the file was named 'silance.mp3'
-      const alt = new Audio('/silance.mp3');
-      alt.volume = 0.01; alt.currentTime = 0;
-      try { await alt.play(); } catch {}
-      setTimeout(() => { try { alt.pause(); alt.currentTime = 0; } catch {} }, 120);
-    } catch {}}
+
+    // Fire-and-forget preloads (no await so we stay in gesture)
+    try { loadWABuffer("beep", "/beep.wav"); } catch {}
+    try { loadWABuffer("1", "/1.mp3"); } catch {}
+    try { loadWABuffer("2", "/2.mp3"); } catch {}
+    try { loadWABuffer("3", "/3.mp3"); } catch {}
+    try { loadWABuffer("4", "/4.mp3"); } catch {}
+    try { loadWABuffer("5", "/5.mp3"); } catch {}
+  }
 
   function ping() {
+    if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
   }
 
   function speakNumber(n) {
+    if (isIOS) { if (!playHTML(String(n))) ping(); return; }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -526,6 +535,28 @@ const timerSigRef = useRef("");
 
   useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
+  // After switching from get_ready to exercise, ensure timer initializes
+  useEffect(() => {
+    if (phase === "exercise") {
+      // kick the timer setup effect by nudging step state if needed
+      setTimeout(() => {
+        try { setCurrentStepIndex((v) => v); } catch {}
+      }, 0);
+    }
+  }, [phase]);
+
+  // Ensure exercise timer starts when we enter exercise (after get_ready)
+  useEffect(() => {
+    if (phase !== "exercise") return;
+    const d = getTimedSeconds(step);
+    if (Number.isFinite(d) && d > 0) {
+      startTimedStep(d);
+    } else {
+      setSecondsLeft(0);
+      setWaitingForUser(step?.type === "exercise");
+    }
+  }, [phase, currentExerciseIndex, currentStepIndex, step]);
+
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 // TIMER (watchdog removed)
 
@@ -580,10 +611,7 @@ if (transitionLockRef.current) { cancelRaf(); return; }
   };
 
   const startTimedStep = (durationSec) => {
-        const sig = `${phaseRef?.current||phase}|${currentExerciseIndex}|${currentStepIndex}|${Number(durationSec)||0}`;
-    if (timerSigRef.current === sig && tickRafRef.current) { return; }
-    timerSigRef.current = sig;
-transitionLockRef.current = false;
+    transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
     cancelRaf();
@@ -723,11 +751,11 @@ vibe([40, 40]);
     if (clamped !== getReadySeconds) setGetReadySeconds(clamped);
     setGetReadySecondsStr(String(clamped));
   }
-async function handleManualContinue() {
+function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
-      await primeIOSAudio();
+      primeIOSAudio();
       // Preselect first exercise step
       try {
         const firstEx = day?.exercises?.[0];
