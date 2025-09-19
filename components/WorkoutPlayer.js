@@ -279,50 +279,51 @@ const stepTokenRef = useRef(0);
 
   // --------- AUDIO (WebAudio + fallback) ----------
   function ensureWAContext() {
-    if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
-    const Ctx = window.AudioContext || window.webkitAudioContext;
-    if (!Ctx) return null;
-    const ctx = new Ctx();
-    audioRef.current.wa.ctx = ctx;
-    return ctx;
-  }
+  if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
+  const Ctx = window.AudioContext || window.webkitAudioContext;
+  if (!Ctx) return null;
+  const ctx = new Ctx();
+  audioRef.current.wa.ctx = ctx;
+  return ctx;
+}
 
-  async function loadWABuffer(name, url) { try { const ctx = ensureWAContext();
-      if (!ctx) return false;
-      if (audioRef.current.wa.buffers.has(name)) return true;
-      const res = await fetch(url);
-      const arr = await res.arrayBuffer();
-      const buf = await ctx.decodeAudioData(arr);
-      audioRef.current.wa.buffers.set(name, buf);
-      return true;
-    } catch {
-      return false;
-    }
+  async function loadWABuffer(name, url) {
+  try {
+    const ctx = ensureWAContext();
+    if (!ctx) return false;
+    if (audioRef.current.wa.buffers.has(name)) return true;
+    const res = await fetch(url);
+    const arr = await res.arrayBuffer();
+    const buf = await ctx.decodeAudioData(arr);
+    audioRef.current.wa.buffers.set(name, buf);
+    return true;
+  } catch (e) {
+    return false;
   }
+}
 
   function playWABuffer(name, when = 0) {
-    try {
-      const { ctx, buffers, scheduled } = audioRef.current.wa;
-      if (!ctx) return false;
-      if (ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
-      const buf = buffers.get(name);
-      if (!buf) return false;
-      const srcNode = ctx.createBufferSource();
-      srcNode.buffer = buf;
-      srcNode.connect(ctx.destination);
-      const startAt = ctx.currentTime + Math.max(0, when);
-      srcNode.start(startAt);
-      scheduled.push({ source: srcNode, when: startAt });
-      srcNode.onended = () => {
-        const i = scheduled.findIndex((s) => s.source === srcNode);
-        if (i >= 0) scheduled.splice(i, 1);
-      };
-      return true;
-    } catch (e) { return false; }
+  try {
+    const { ctx, buffers, scheduled } = audioRef.current.wa;
+    if (!ctx) return false;
+    if (ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
+    const buf = buffers.get(name);
+    if (!buf) return false;
+    const srcNode = ctx.createBufferSource();
+    srcNode.buffer = buf;
+    srcNode.connect(ctx.destination);
+    const startAt = ctx.currentTime + Math.max(0, when);
+    srcNode.start(startAt);
+    scheduled.push({ source: srcNode, when: startAt });
+    srcNode.onended = () => {
+      const i = scheduled.findIndex((s) => s.source === srcNode);
+      if (i >= 0) scheduled.splice(i, 1);
+    };
+    return true;
+  } catch (e) {
+    return false;
   }
-      return true;
-    } catch (e) { return false; }
-  };
+};
       return true;
     } catch {
       return false;
@@ -384,11 +385,13 @@ const stepTokenRef = useRef(0);
   }
 
   function primeAudio() {
-    const ctx = ensureWAContext();
-    try {
-      try { ctx?.resume?.(); } catch (e) {}
-    } catch (e) {}
+  const ctx = ensureWAContext();
+  try {
+    if (ctx && ctx.state === "suspended" && typeof ctx.resume === "function") ctx.resume();
+  } catch (e) {}
 
+  // Preload WA buffers (best-effort)
+  try {
     Promise.all([
       loadWABuffer("beep", "/beep.wav"),
       loadWABuffer("1", "/1.mp3"),
@@ -396,22 +399,25 @@ const stepTokenRef = useRef(0);
       loadWABuffer("3", "/3.mp3"),
       loadWABuffer("4", "/4.mp3"),
       loadWABuffer("5", "/5.mp3"),
-    ]);
+    ]).catch((e) => {});
+  } catch (e) {}
 
+  // Warm up HTML audio (iOS autoplay policy)
+  try {
     ensureHTMLAudioLoaded();
-    try {
-      const s = audioRef.current.html.silence;
-      s.volume = 0.01;
-      s.currentTime = 0;
-      try { s.play().catch((e) => {}); } catch (e) {}
-      setTimeout(() => {
-        try {
-          s.pause();
-          s.currentTime = 0;
-        } catch (e) {}
-      }, 120);
-    } catch (e) {}
-  }
+    const s = audioRef.current.html.silence;
+    s.volume = 0.01;
+    s.currentTime = 0;
+    const p = s.play();
+    if (p && p.catch) { p.catch((e) => {}); }
+    setTimeout(() => {
+      try {
+        s.pause();
+        s.currentTime = 0;
+      } catch (e) {}
+    }, 120);
+  } catch (e) {}
+}
 
   function ping() {
     if (!fxEnabled) return;
@@ -575,7 +581,10 @@ const stepTokenRef = useRef(0);
         }
       }
 
-      if (msLeft <= 0) { cancelRaf(); if (transitionLockRef.current) { return; } transitionLockRef.current = true;
+      if (msLeft <= 0) { cancelRaf();
+        if (transitionLockRef.current) { cancelRaf(); return; }
+        transitionLockRef.current = true;
+        cancelRaf();
         lastSpokenRef.current = null;
 
         if (phase === "get_ready") {
@@ -759,7 +768,7 @@ function handleManualContinue() {
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
-        startTimedStep(gr); try { ping(); } catch (e) {}
+        startTimedStep(gr);
 
       } else {
         setSecondsLeft(0);
