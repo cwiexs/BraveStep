@@ -11,7 +11,6 @@ const DEBUG = (typeof window !== "undefined") && (() => {
     if (localStorage.getItem("debug") === "1") return true;
     if (window.__PLAYER_DEBUG_ON__ === true) return true;      // per Console
   } catch (_) {}
-  return false;
 })();
 
 // Boot log (visada, kad pamatytume ar modulis kraunasi)
@@ -319,13 +318,11 @@ const stepTokenRef = useRef(0);
       const i = scheduled.findIndex((s) => s.source === srcNode);
       if (i >= 0) scheduled.splice(i, 1);
     };
-    return true;
   } catch (e) {
     return false;
   }
 };
-      return true;
-    } catch {
+    } catch (e) {
       return false;
     }
   }
@@ -371,7 +368,6 @@ const stepTokenRef = useRef(0);
         beep.volume = 0.75;
         beep.play();
       } catch (e) {}
-      return true;
     }
     if (["1", "2", "3", "4", "5"].includes(name)) {
       const a = nums[Number(name)];
@@ -379,9 +375,7 @@ const stepTokenRef = useRef(0);
         a.currentTime = 0;
         a.play();
       } catch (e) {}
-      return true;
     }
-    return false;
   }
 
   function primeAudio() {
@@ -587,7 +581,7 @@ const stepTokenRef = useRef(0);
         cancelRaf();
         lastSpokenRef.current = null;
 
-        if (phase === "get_ready") {
+        if (phaseRef.current === "get_ready") {
           try {
             const firstEx = day?.exercises?.[0];
             if (firstEx) {
