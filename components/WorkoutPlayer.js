@@ -1011,8 +1011,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   if (phase === "exercise") {
     const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
     const seriesTotal = exercise?.steps?.filter((s) => s.type === "exercise").length || 0;
-    const seriesIdx = step?.type === "exercise" ? step?.set : null;
-
     // Compute info about the next upcoming exercise step (for Rest 'Up next' card)
     const nextExerciseInfo = (() => {
       try {
