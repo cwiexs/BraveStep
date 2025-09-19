@@ -112,7 +112,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
 const stepTokenRef = useRef(0);
-  const timerSigRef = useRef("");
+const timerSigRef = useRef("");
 
   const timeoutsRef = useRef([]);
 
@@ -373,9 +373,7 @@ const stepTokenRef = useRef(0);
 
   async function primeIOSAudio() {
     const ctx = await ensureWAContext();
-    try {
-      await ctx?.resume();
-    } catch {}
+    try { await ctx?.resume(); } catch {}
 
     await Promise.all([
       loadWABuffer("beep", "/beep.wav"),
@@ -386,20 +384,29 @@ const stepTokenRef = useRef(0);
       loadWABuffer("5", "/5.mp3"),
     ]);
 
+    try {
+      const silentBuf = ctx.createBuffer(1, 1, ctx.sampleRate);
+      const silentSrc = ctx.createBufferSource();
+      silentSrc.buffer = silentBuf;
+      silentSrc.connect(ctx.destination);
+      silentSrc.start(0);
+    } catch {}
+
     ensureHTMLAudioLoaded();
     try {
       const s = audioRef.current.html.silence;
       s.volume = 0.01;
       s.currentTime = 0;
-      try { await s.play().catch(() => {}); } catch {}
-      setTimeout(() => {
-        try {
-          s.pause();
-          s.currentTime = 0;
-        } catch {}
-      }, 120);
+      try { await s.play(); } catch {}
+      setTimeout(() => { try { s.pause(); s.currentTime = 0; } catch {} }, 120);
     } catch {}
-  }
+    try {
+      // Fallback for projects where the file was named 'silance.mp3'
+      const alt = new Audio('/silance.mp3');
+      alt.volume = 0.01; alt.currentTime = 0;
+      try { await alt.play(); } catch {}
+      setTimeout(() => { try { alt.pause(); alt.currentTime = 0; } catch {} }, 120);
+    } catch {}}
 
   function ping() {
     if (!fxEnabled) return;
@@ -573,7 +580,7 @@ if (transitionLockRef.current) { cancelRaf(); return; }
   };
 
   const startTimedStep = (durationSec) => {
-        const sig = `${phaseRef.current}|${currentExerciseIndex}|${currentStepIndex}|${Number(durationSec)||0}`;
+        const sig = `${phaseRef?.current||phase}|${currentExerciseIndex}|${currentStepIndex}|${Number(durationSec)||0}`;
     if (timerSigRef.current === sig && tickRafRef.current) { return; }
     timerSigRef.current = sig;
 transitionLockRef.current = false;
@@ -716,11 +723,11 @@ vibe([40, 40]);
     if (clamped !== getReadySeconds) setGetReadySeconds(clamped);
     setGetReadySecondsStr(String(clamped));
   }
-function handleManualContinue() {
+async function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
-      primeIOSAudio();
+      await primeIOSAudio();
       // Preselect first exercise step
       try {
         const firstEx = day?.exercises?.[0];
