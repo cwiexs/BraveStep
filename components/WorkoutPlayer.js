@@ -277,51 +277,48 @@ const stepTokenRef = useRef(0);
   }
 
   // --------- AUDIO (WebAudio + fallback) ----------
+  // --------- AUDIO (WebAudio + fallback) ----------
   function ensureWAContext() {
-  if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
-  const Ctx = window.AudioContext || window.webkitAudioContext;
-  if (!Ctx) return null;
-  const ctx = new Ctx();
-  audioRef.current.wa.ctx = ctx;
-  return ctx;
-}
+    if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    const ctx = new Ctx();
+    audioRef.current.wa.ctx = ctx;
+    return ctx;
+  }
 
   async function loadWABuffer(name, url) {
-  try {
-    const ctx = ensureWAContext();
-    if (!ctx) return false;
-    if (audioRef.current.wa.buffers.has(name)) return true;
-    const res = await fetch(url);
-    const arr = await res.arrayBuffer();
-    const buf = await ctx.decodeAudioData(arr);
-    audioRef.current.wa.buffers.set(name, buf);
-    return true;
-  } catch (e) {
-    return false;
+    try {
+      const ctx = ensureWAContext();
+      if (!ctx) return false;
+      if (audioRef.current.wa.buffers.has(name)) return true;
+      const res = await fetch(url);
+      const arr = await res.arrayBuffer();
+      const buf = await ctx.decodeAudioData(arr);
+      audioRef.current.wa.buffers.set(name, buf);
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
-}
 
   function playWABuffer(name, when = 0) {
-  try {
-    const { ctx, buffers, scheduled } = audioRef.current.wa;
-    if (!ctx) return false;
-    if (ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
-    const buf = buffers.get(name);
-    if (!buf) return false;
-    const srcNode = ctx.createBufferSource();
-    srcNode.buffer = buf;
-    srcNode.connect(ctx.destination);
-    const startAt = ctx.currentTime + Math.max(0, when);
-    srcNode.start(startAt);
-    scheduled.push({ source: srcNode, when: startAt });
-    srcNode.onended = () => {
-      const i = scheduled.findIndex((s) => s.source === srcNode);
-      if (i >= 0) scheduled.splice(i, 1);
-    };
-  } catch (e) {
-    return false;
-  }
-};
+    try {
+      const { ctx, buffers, scheduled } = audioRef.current.wa;
+      if (!ctx) return false;
+      if (ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
+      const buf = buffers.get(name);
+      if (!buf) return false;
+      const srcNode = ctx.createBufferSource();
+      srcNode.buffer = buf;
+      srcNode.connect(ctx.destination);
+      const startAt = ctx.currentTime + Math.max(0, when);
+      srcNode.start(startAt);
+      scheduled.push({ source: srcNode, when: startAt });
+      srcNode.onended = () => {
+        const i = scheduled.findIndex((s) => s.source === srcNode);
+        if (i >= 0) scheduled.splice(i, 1);
+      };
     } catch (e) {
       return false;
     }
@@ -336,6 +333,8 @@ const stepTokenRef = useRef(0);
     });
     audioRef.current.wa.scheduled = [];
   }
+
+
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
@@ -575,13 +574,10 @@ const stepTokenRef = useRef(0);
         }
       }
 
-      if (msLeft <= 0) { cancelRaf();
-        if (transitionLockRef.current) { cancelRaf(); return; }
-        transitionLockRef.current = true;
-        cancelRaf();
+      if (msLeft <= 0) { cancelRaf(); if (transitionLockRef.current) { return; } transitionLockRef.current = true;
         lastSpokenRef.current = null;
 
-        if (phaseRef.current === "get_ready") {
+        if (phase === "get_ready") {
           try {
             const firstEx = day?.exercises?.[0];
             if (firstEx) {
@@ -778,7 +774,7 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    if (phaseRef.current === "get_ready") {
+    if (phase === "get_ready") {
       try {
         const firstEx = day?.exercises?.[0];
         if (firstEx) {
@@ -1047,7 +1043,7 @@ function handleManualContinue() {
   }
 
   // ---- Get Ready ----
-  if (phaseRef.current === "get_ready") {
+  if (phase === "get_ready") {
 const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
