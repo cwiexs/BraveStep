@@ -320,11 +320,7 @@ const stepTokenRef = useRef(0);
       return true;
     } catch (e) { return false; }
   };
-      return true;
-    } catch {
-      return false;
-    }
-  }
+
 
   function stopAllScheduledAudio() {
     const { scheduled } = audioRef.current.wa;
