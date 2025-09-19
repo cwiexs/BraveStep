@@ -112,6 +112,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
 const stepTokenRef = useRef(0);
+  const timerSigRef = useRef("");
 
   const timeoutsRef = useRef([]);
 
@@ -295,8 +296,6 @@ const stepTokenRef = useRef(0);
   }
 
   function playWABuffer(name, when = 0) {
-    // Disable WebAudio on iOS to avoid post-gesture mutes
-    if (isIOS) return false;
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
       if (!ctx) return false;
@@ -520,28 +519,6 @@ const stepTokenRef = useRef(0);
 
   useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
-  // After switching from get_ready to exercise, ensure timer initializes
-  useEffect(() => {
-    if (phase === "exercise") {
-      // kick the timer setup effect by nudging step state if needed
-      setTimeout(() => {
-        try { setCurrentStepIndex((v) => v); } catch {}
-      }, 0);
-    }
-  }, [phase]);
-
-  // Ensure exercise timer starts when we enter exercise (after get_ready)
-  useEffect(() => {
-    if (phase !== "exercise") return;
-    const d = getTimedSeconds(step);
-    if (Number.isFinite(d) && d > 0) {
-      startTimedStep(d);
-    } else {
-      setSecondsLeft(0);
-      setWaitingForUser(step?.type === "exercise");
-    }
-  }, [phase, currentExerciseIndex, currentStepIndex, step]);
-
   useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
 // TIMER (watchdog removed)
 
@@ -596,7 +573,10 @@ if (transitionLockRef.current) { cancelRaf(); return; }
   };
 
   const startTimedStep = (durationSec) => {
-    transitionLockRef.current = false;
+        const sig = `${phaseRef.current}|${currentExerciseIndex}|${currentStepIndex}|${Number(durationSec)||0}`;
+    if (timerSigRef.current === sig && tickRafRef.current) { return; }
+    timerSigRef.current = sig;
+transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
     cancelRaf();
