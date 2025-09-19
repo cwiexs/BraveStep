@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useState, useRef, useMemo } from "react";
 import { useRouter } from "next/router";
 import { SkipBack, SkipForward, Pause, Play, RotateCcw, Settings, Power, Info } from "lucide-react";
 import { useTranslation } from "next-i18next";
+
 // === DEBUG SWITCH (robust) ===
 const DEBUG = (typeof window !== "undefined") && (() => {
   try {
@@ -14,24 +15,13 @@ const DEBUG = (typeof window !== "undefined") && (() => {
   return false;
 })();
 
-// Boot log (visada, kad pamatytume ar modulis kraunasi)
 try { console.log("[PLAYER] DEBUG_PATCH_LOADED", { DEBUG }); } catch {}
-
 if (typeof window !== "undefined") {
   try { window.__PLAYER_DEBUG_ON__ = DEBUG; } catch {}
-  window.__PLAYER_DEBUG_ENABLE__ = () => {
-    try { localStorage.setItem("player_debug", "1"); } catch {}
-    location.reload();
-  };
-  window.__PLAYER_DEBUG_DISABLE__ = () => {
-    try { localStorage.removeItem("player_debug"); localStorage.removeItem("debug"); } catch {}
-    location.reload();
-  };
+  window.__PLAYER_DEBUG_ENABLE__ = () => { try { localStorage.setItem("player_debug", "1"); } catch {}; location.reload(); };
+  window.__PLAYER_DEBUG_DISABLE__ = () => { try { localStorage.removeItem("player_debug"); localStorage.removeItem("debug"); } catch {}; location.reload(); };
 }
-
-// Vieninga log funkcija
 const dbg = (...args) => { if (DEBUG) console.log("[PLAYER]", ...args); };
-
 
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
@@ -67,11 +57,10 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [phase, setPhase] = useState("intro");
-  // Keep the latest phase in a ref to avoid stale-closure bugs in async timers
+  const [phase, setPhase] = useState("intro"); // intro | get_ready | exercise | summary
   const phaseRef = useRef("intro");
   useEffect(() => { phaseRef.current = phase; }, [phase]);
- // intro | exercise | summary
+
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -87,9 +76,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [fxEnabled, setFxEnabled] = useState(true);
   const [fxTrack, setFxTrack] = useState("beep");
   const [voiceEnabled, setVoiceEnabled] = useState(true);
-
-  /* ios default voice off */
-  useEffect(() => { if (isIOS) try { setVoiceEnabled(false); } catch {} }, []);
+  useEffect(() => { if (isIOS) try { setVoiceEnabled(false); } catch {} }, []); // iOS: default off for TTS fallback
   const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
   const [getReadySeconds, setGetReadySeconds] = useState(10);
   const [getReadySecondsStr, setGetReadySecondsStr] = useState("10");
@@ -111,32 +98,29 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const deadlineRef = useRef(null);
   const remainMsRef = useRef(null);
   const transitionLockRef = useRef(false);
-const stepTokenRef = useRef(0);
+  const stepTokenRef = useRef(0);
+  const timerSigRef = useRef("");
 
+  // Countdown helpers
+  const lastSpokenRef = useRef(null);
+  const countdownScheduledRef = useRef(false);
+
+  // Misc timeouts for cleanup
   const timeoutsRef = useRef([]);
 
   // Scroll
   const scrollRef = useRef(null);
   const lastYRef = useRef(0);
   const saveScroll = () => (scrollRef.current ? scrollRef.current.scrollTop : 0);
-  const restoreScroll = (y) => {
-    const el = scrollRef.current;
-    if (el) el.scrollTop = y;
-  };
+  const restoreScroll = (y) => { const el = scrollRef.current; if (el) el.scrollTop = y; };
   useEffect(() => {
     if (!isIOS) return;
     if (inputActive) lockBodyScroll();
     else unlockBodyScroll();
-    return () => {
-      if (isIOS) unlockBodyScroll();
-    };
+    return () => { if (isIOS) unlockBodyScroll(); };
   }, [isIOS, inputActive]);
 
-  useEffect(() => {
-    try {
-      commentRef.current = "";
-    } catch {}
-  }, []);
+  useEffect(() => { try { commentRef.current = ""; } catch {} }, []);
 
   useLayoutEffect(() => {
     if (inputActive && textareaRef.current) {
@@ -150,11 +134,9 @@ const stepTokenRef = useRef(0);
 
   // AUDIO
   const audioRef = useRef({
-    html: { loaded: false, beep: null, silence: null, nums: {} },
-    wa: { ctx: null, ready: false, buffers: new Map(), scheduled: [] },
+    html: { loaded: false, beep: null, silence: null, silenceAlt: null, nums: {} },
+    wa: { ctx: null, buffers: new Map(), scheduled: [] },
   });
-  const lastSpokenRef = useRef(null);
-  const countdownScheduledRef = useRef(false);
 
   // Derived
   const day = workoutData?.days?.[currentDay];
@@ -163,8 +145,6 @@ const stepTokenRef = useRef(0);
 
   const isLastExerciseInDay = !!day && currentExerciseIndex === (day?.exercises?.length || 1) - 1;
   const isLastStepInExercise = !!exercise && currentStepIndex === (exercise?.steps?.length || 1) - 1;
-
-  // nauji aiškūs indikatoriai pabaigai
   const isTerminal = isLastExerciseInDay && isLastStepInExercise;
   const isRestAfter = step?.type === "rest_after";
 
@@ -226,7 +206,7 @@ const stepTokenRef = useRef(0);
       if (typeof s !== "string") continue;
       const low = s.toLowerCase();
       const looksLikeReps = low.includes("kart") || low.includes("rep") || low.includes("x");
-      if (!looksLikeReps) continue;
+      if (!looksations) continue;
 
       let v = NaN;
       const idxX = low.indexOf("x");
@@ -247,17 +227,14 @@ const stepTokenRef = useRef(0);
     return null;
   }
 
-  // Show reps text as it is in AI text, if available
   function getRepsText(st) {
     const n = getReps(st);
     if (n == null) return "";
-
     const preferred = [st?.duration, st?.duration_label, st?.label, st?.description];
     for (const s of preferred) {
       if (typeof s !== "string") continue;
       if (s.includes(String(n))) return s.trim();
     }
-
     if (i18n?.language?.startsWith("lt")) {
       const form = n === 1 ? "kartą" : "kartų";
       return `${n} ${form}`;
@@ -271,6 +248,16 @@ const stepTokenRef = useRef(0);
   }
 
   // --------- AUDIO (WebAudio + fallback) ----------
+  function getOrCreateWAContextSync() {
+    try {
+      if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return null;
+      const ctx = new Ctx();
+      audioRef.current.wa.ctx = ctx;
+      return ctx;
+    } catch { return null; }
+  }
   async function ensureWAContext() {
     if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -282,7 +269,7 @@ const stepTokenRef = useRef(0);
 
   async function loadWABuffer(name, url) {
     try {
-      const ctx = ensureWAContext();
+      const ctx = await ensureWAContext();
       if (!ctx) return false;
       if (audioRef.current.wa.buffers.has(name)) return true;
       const res = await fetch(url);
@@ -295,8 +282,8 @@ const stepTokenRef = useRef(0);
     }
   }
 
+  // On iOS we prefer HTMLAudio for reliability; on others try WebAudio first
   function playWABuffer(name, when = 0) {
-    // Disable WebAudio on iOS to avoid post-gesture mutes
     if (isIOS) return false;
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
@@ -318,21 +305,17 @@ const stepTokenRef = useRef(0);
       return false;
     }
   }
-
   function stopAllScheduledAudio() {
     const { scheduled } = audioRef.current.wa;
-    scheduled.forEach((s) => {
-      try {
-        s.source.stop(0);
-      } catch {}
-    });
+    scheduled.forEach((s) => { try { s.source.stop(0); } catch {} });
     audioRef.current.wa.scheduled = [];
   }
 
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
-    const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch{}
+    const beep = new Audio("/beep.wav"); try { beep.preload = "auto"; } catch {}
     const silence = new Audio("/silence.mp3");
+    let silenceAlt = null; try { silenceAlt = new Audio("/silance.mp3"); } catch {}
     const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
@@ -342,36 +325,26 @@ const stepTokenRef = useRef(0);
     };
     try {
       beep.load();
-      Object.values(nums).forEach((a) => {
-        try {
-          a.load();
-        } catch {}
-      });
+      Object.values(nums).forEach((a) => { try { a.load(); } catch {} });
     } catch {}
-    audioRef.current.html = { loaded: true, beep, silence, nums };
+    audioRef.current.html = { loaded: true, beep, silence, silenceAlt, nums };
   }
 
   function playHTML(name) {
     ensureHTMLAudioLoaded();
     const { beep, nums } = audioRef.current.html;
     if (name === "beep") {
-      try {
-        beep.currentTime = 0;
-        beep.volume = 0.75;
-        beep.play();
-      } catch {}
+      try { beep.currentTime = 0; beep.volume = 0.75; beep.play(); } catch {}
       return true;
     }
     if (["1", "2", "3", "4", "5"].includes(name)) {
       const a = nums[Number(name)];
-      try {
-        a.currentTime = 0;
-        a.play();
-      } catch {}
+      try { a.currentTime = 0; a.play(); } catch {}
       return true;
     }
     return false;
-  
+  }
+
   function stopHTMLNumbers() {
     try {
       const html = audioRef.current.html || {};
@@ -381,53 +354,49 @@ const stepTokenRef = useRef(0);
       });
     } catch {}
   }
-}
 
   function primeIOSAudio() {
-    const ctx = ensureWAContext();
+    // Create/Resume WebAudio synchronously within user gesture
+    const ctx = getOrCreateWAContextSync();
+    try { ctx?.resume?.(); } catch {}
     try {
-      try { ctx?.resume?.(); } catch {}
+      if (ctx) {
+        const g = ctx.createGain(); g.gain.value = 0.00001;
+        const o = ctx.createOscillator(); o.connect(g).connect(ctx.destination);
+        o.start(0);
+        try { o.stop(ctx.currentTime + 0.05); } catch {}
+      }
     } catch {}
-
-    Promise.all([
-      loadWABuffer("beep", "/beep.wav"),
-      loadWABuffer("1", "/1.mp3"),
-      loadWABuffer("2", "/2.mp3"),
-      loadWABuffer("3", "/3.mp3"),
-      loadWABuffer("4", "/4.mp3"),
-      loadWABuffer("5", "/5.mp3"),
-    ]);
-
+    // Prepare HTMLAudio and attempt immediate silent play (no await)
     ensureHTMLAudioLoaded();
     try {
-      const s = audioRef.current.html.silence;
-      s.volume = 0.01;
-      s.currentTime = 0;
-      try { s.play().catch(() => {}); } catch {}
-      setTimeout(() => {
-        try {
-          s.pause();
-          s.currentTime = 0;
-        } catch {}
-      }, 120);
+      const h = audioRef.current.html;
+      const tryPlay = (el) => { try { if (!el) return; el.volume = 0.01; el.currentTime = 0; const p = el.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); setTimeout(()=>{ try { el.pause(); el.currentTime = 0; } catch {} }, 150); } catch {} };
+      tryPlay(h.silence);
+      if (h.silenceAlt) tryPlay(h.silenceAlt);
     } catch {}
+    // Fire-and-forget WA preloads
+    try { loadWABuffer("beep", "/beep.wav"); } catch {}
+    try { loadWABuffer("1", "/1.mp3"); } catch {}
+    try { loadWABuffer("2", "/2.mp3"); } catch {}
+    try { loadWABuffer("3", "/3.mp3"); } catch {}
+    try { loadWABuffer("4", "/4.mp3"); } catch {}
+    try { loadWABuffer("5", "/5.mp3"); } catch {}
   }
 
   function ping() {
-    if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
   }
 
   function speakNumber(n) {
-    if (isIOS) {
-      try { stopHTMLNumbers(); } catch {} if (!playHTML(String(n))) ping(); return; }
+    if (isIOS) { try { stopHTMLNumbers(); } catch {} }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
     if (ok2) return;
-    if (voiceEnabled && "speechSynthesis" in window) {
+    if (voiceEnabled && typeof window !== "undefined" && "speechSynthesis" in window) {
       try {
         const u = new SpeechSynthesisUtterance(String(n));
         u.lang = i18n.language?.startsWith("lt") ? "lt-LT" : "en-US";
@@ -448,121 +417,42 @@ const stepTokenRef = useRef(0);
 
   function vibe(pattern = [40, 40]) {
     if (!vibrationEnabled) return;
+    try { if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(pattern); } catch {}
+  }
+
+  function scheduleCountdown(durationSec, token) {
+    countdownScheduledRef.current = false;
     try {
-      if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-        navigator.vibrate(pattern);
+      if (!voiceEnabled) return;
+      if (!durationSec || durationSec <= 0) return;
+      if (!deadlineRef.current) return;
+      const now = (performance && performance.now) ? performance.now() : Date.now();
+      const dl = deadlineRef.current;
+      let scheduled = false;
+      for (let n = 5; n >= 1; n--) {
+        if (n > durationSec) continue; // step shorter than 5s
+        const whenMs = dl - n*1000;
+        const delay = Math.max(0, Math.round(whenMs - now - 60)); // 60ms early
+        if (whenMs - now < -300) continue; // already long past
+        try {
+          const id = setTimeout(() => {
+            try {
+              if (token != null && token !== stepTokenRef.current) return; // step changed
+              if (paused) return; // don't speak when paused
+              lastSpokenRef.current = n;
+              speakNumber(n);
+            } catch {}
+          }, delay);
+          scheduledTimeoutsRef.current.push(id);
+          scheduled = true;
+        } catch {}
       }
+      countdownScheduledRef.current = scheduled;
     } catch {}
   }
 
-  const nextExerciseInfo = useMemo(() => {
-    if (!day) return null;
-    let exIdx = currentExerciseIndex;
-    let stIdx = currentStepIndex + 1;
-
-    while (exIdx < (day.exercises?.length || 0)) {
-      const ex = day.exercises?.[exIdx];
-      if (!ex) break;
-      while (stIdx < (ex.steps?.length || 0)) {
-        const st = ex.steps?.[stIdx];
-        if (st?.type === "exercise") {
-          const totalSets = ex.steps?.filter((s) => s.type === "exercise").length || 0;
-          const setNo = st?.set ?? null;
-          return { ex, st, totalSets, setNo };
-        }
-        stIdx++;
-      }
-      exIdx++;
-      stIdx = 0;
-    }
-    return null;
-  }, [day, currentExerciseIndex, currentStepIndex]);
-
-  // WakeLock
-  useEffect(() => {
-    if ("wakeLock" in navigator) {
-      navigator.wakeLock.request("screen").then((lock) => (wakeLockRef.current = lock)).catch(() => {});
-    }
-    return () => {
-      if (wakeLockRef.current) wakeLockRef.current.release();
-    };
-  }, []);
-
-  // Persist settings
-  useEffect(() => {
-    try {
-      setVibrationSupported(typeof navigator !== "undefined" && "vibrate" in navigator);
-      const v = localStorage.getItem("bs_vibration_enabled");
-      if (v != null) setVibrationEnabled(v === "true");
-      const f = localStorage.getItem("bs_fx_enabled");
-      if (f != null) setFxEnabled(f === "true");
-      const ft = localStorage.getItem("bs_fx_track");
-      if (ft) setFxTrack(ft);
-      const vo = localStorage.getItem("bs_voice_enabled");
-      if (vo != null) setVoiceEnabled(vo === "true");
-      const de = localStorage.getItem("bs_descriptions_enabled");
-      if (de != null) setDescriptionsEnabled(de === "true");
-      const gr = localStorage.getItem("bs_getready_seconds");
-      if (gr != null) { const n = parseInt(gr, 10); if (Number.isFinite(n)) setGetReadySeconds(Math.max(0, Math.min(120, n))); }
-    } catch {}
-  }, []);
-  useEffect(() => {
-    try {
-      localStorage.setItem("bs_vibration_enabled", String(vibrationEnabled));
-    } catch {}
-  }, [vibrationEnabled]);
-  useEffect(() => {
-    try {
-      localStorage.setItem("bs_fx_enabled", String(fxEnabled));
-    } catch {}
-  }, [fxEnabled]);
-  useEffect(() => {
-    try {
-      localStorage.setItem("bs_fx_track", fxTrack);
-    } catch {}
-  }, [fxTrack]);
-  useEffect(() => {
-    try {
-      localStorage.setItem("bs_voice_enabled", String(voiceEnabled));
-    } catch {}
-  }, [voiceEnabled]);
-  useEffect(() => {
-    try {
-      localStorage.setItem("bs_descriptions_enabled", String(descriptionsEnabled));
-    } catch {}
-  }, [descriptionsEnabled]);
-
-  useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
-
-  // After switching from get_ready to exercise, ensure timer initializes
-  useEffect(() => {
-    if (phase === "exercise") {
-      // kick the timer setup effect by nudging step state if needed
-      setTimeout(() => {
-        try { setCurrentStepIndex((v) => v); } catch {}
-      }, 0);
-    }
-  }, [phase]);
-
-  // Ensure exercise timer starts when we enter exercise (after get_ready)
-  useEffect(() => {
-    if (phase !== "exercise") return;
-    const d = getTimedSeconds(step);
-    if (Number.isFinite(d) && d > 0) {
-      startTimedStep(d);
-    } else {
-      setSecondsLeft(0);
-      setWaitingForUser(step?.type === "exercise");
-    }
-  }, [phase, currentExerciseIndex, currentStepIndex, step]);
-
-  useEffect(() => { setGetReadySecondsStr(String(getReadySeconds)); }, [getReadySeconds]);
-// TIMER (watchdog removed)
-
-  const cancelRaf = () => {
-    if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
-    tickRafRef.current = null;
-  };
+  // TIMER
+  const cancelRaf = () => { if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current); tickRafRef.current = null; };
 
   const tick = (nowMs) => {
     if (!deadlineRef.current) return;
@@ -579,9 +469,8 @@ const stepTokenRef = useRef(0);
       }
 
       if (msLeft <= 0) {
-        
         try { dbg("tick:deadline-reached", { phase: phaseRef.current, msLeft, secs }); } catch {}
-if (transitionLockRef.current) { cancelRaf(); return; }
+        if (transitionLockRef.current) { cancelRaf(); return; }
         transitionLockRef.current = true;
         cancelRaf();
         lastSpokenRef.current = null;
@@ -608,44 +497,17 @@ if (transitionLockRef.current) { cancelRaf(); return; }
     }
     tickRafRef.current = requestAnimationFrame(tick);
   };
-  function scheduleCountdown(durationSec, token) {
-    countdownScheduledRef.current = false;
-    try {
-      if (!voiceEnabled) return;
-      if (!durationSec || durationSec <= 0) return;
-      if (!deadlineRef.current) return;
-      const now = (performance && performance.now) ? performance.now() : Date.now();
-      const dl = deadlineRef.current;
-      let scheduled = false;
-      for (let n = 5; n >= 1; n--) {
-        if (n > durationSec) continue; // step shorter than 5s
-        const whenMs = dl - n*1000; // exact boundary for 'n'
-        const delay = Math.max(0, Math.round(whenMs - now - 60)); // fire ~60ms early to avoid boundary jitter
-        if (whenMs - now < -300) continue; // already long past, skip
-        try {
-          const id = setTimeout(() => {
-            try {
-              if (token != null && token !== stepTokenRef.current) return; // step changed
-              if (paused) return; // don't speak when paused
-              lastSpokenRef.current = n;
-              speakNumber(n);
-            } catch {}
-          }, delay);
-          scheduledTimeoutsRef.current.push(id);
-          scheduled = true;
-        } catch {}
-      }
-      countdownScheduledRef.current = scheduled;
-    } catch {}
-  }
-
 
   const startTimedStep = (durationSec) => {
-        stepTokenRef.current = (stepTokenRef.current || 0) + 1;
-    const token = stepTokenRef.current;
-transitionLockRef.current = false;
+    transitionLockRef.current = false;
+    // Avoid restarting same timer signature
+    const sig = `${phaseRef.current}|${currentExerciseIndex}|${currentStepIndex}|${Number(durationSec)||0}`;
+    if (timerSigRef.current === sig && tickRafRef.current) { return; }
+    timerSigRef.current = sig;
+
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
+
     cancelRaf();
     stopAllScheduled();
     lastSpokenRef.current = null;
@@ -658,46 +520,44 @@ transitionLockRef.current = false;
     setWaitingForUser(false);
     setPaused(false);
 
-    const nowMs = performance.now();
+    const nowMs = (performance && performance.now) ? performance.now() : Date.now();
     deadlineRef.current = nowMs + durationSec * 1000;
     setSecondsLeft(durationSec);
 
-    
-    
     try { dbg("startTimedStep", { durationSec, phase: phaseRef.current, token: __token }); } catch {}
 
-try {
+    // Watchdog – jei rAF kažką „pramiega“, vis tiek užbaigiam žingsnį
+    try {
       if (durationSec > 0) {
         const wd = setTimeout(() => {
           try {
-            if (__token !== stepTokenRef.current) return;
+            if (__token !== stepTokenRef.current) return; // step changed
             const dl = deadlineRef.current;
             if (!dl) return;
-            const now = performance.now ? performance.now() : Date.now();
+            const now = (performance && performance.now) ? performance.now() : Date.now();
             if (now < dl - 10) return; // dar ne laikas
             if (transitionLockRef.current) return;
             transitionLockRef.current = true;
             cancelRaf();
-            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
             try { handlePhaseComplete(); } catch {}
           } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
         scheduledTimeoutsRef.current.push(wd);
       }
     } catch {}
-vibe([40, 40]);
-    ping();
-
-    tickRafRef.current = requestAnimationFrame(tick);
 
     // schedule robust 5..1 using timeouts (catch up if rAF janks)
     try { scheduleCountdown(durationSec, __token); } catch {}
+
+    vibe([40, 40]);
+    ping();
+    tickRafRef.current = requestAnimationFrame(tick);
   };
 
   const pauseTimer = () => {
     if (paused) return;
     setPaused(true);
-    if (deadlineRef.current) remainMsRef.current = Math.max(0, deadlineRef.current - performance.now());
+    if (deadlineRef.current) remainMsRef.current = Math.max(0, deadlineRef.current - (performance && performance.now ? performance.now() : Date.now()));
     cancelRaf();
     stopAllScheduled();
   };
@@ -707,7 +567,7 @@ vibe([40, 40]);
     setPaused(false);
     if (remainMsRef.current != null) {
       lastSpokenRef.current = null;
-      deadlineRef.current = performance.now() + remainMsRef.current;
+      deadlineRef.current = (performance && performance.now ? performance.now() : Date.now()) + remainMsRef.current;
       tickRafRef.current = requestAnimationFrame(tick);
     }
   };
@@ -730,10 +590,8 @@ vibe([40, 40]);
     // Paskutinis žingsnis yra rest_after
     if (isTerminal && isRestAfter) {
       if (duration > 0) {
-        // leisti suveikti poilsio laikui ir tada pereiti į summary
         startTimedStep(duration);
       } else {
-        // nėra trukmės – iškart į summary
         setSecondsLeft(0);
         setWaitingForUser(false);
         setTimeout(() => setPhase("summary"), 0);
@@ -741,7 +599,6 @@ vibe([40, 40]);
       return;
     }
 
-    // Įprasta eiga: timed -> timeris; reps -> „Atlikta“
     if (duration > 0) {
       startTimedStep(duration);
     } else {
@@ -751,16 +608,10 @@ vibe([40, 40]);
   }, [phase, step, currentExerciseIndex, currentStepIndex, isTerminal, isRestAfter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // automatinė pauzė atidarius nustatymus ar išeities patvirtinimą
-  useEffect(() => {
-    if (showSettings) pauseTimer();
-  }, [showSettings]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (showConfirmExit) pauseTimer();
-  }, [showConfirmExit]);
+  useEffect(() => { if (showSettings) pauseTimer(); }, [showSettings]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (showConfirmExit) pauseTimer(); }, [showConfirmExit]);
 
-  useEffect(() => {
-    setStepFinished(false);
-  }, [currentStepIndex, currentExerciseIndex]);
+  useEffect(() => { setStepFinished(false); }, [currentStepIndex, currentExerciseIndex]);
 
   useEffect(() => {
     return () => {
@@ -778,7 +629,6 @@ vibe([40, 40]);
   }, [phase, day, exercise, step]);
 
   // Navigation
-  
   function commitGetReady() {
     const raw = (getReadySecondsStr ?? "").toString().trim();
     const v = parseInt(raw, 10);
@@ -786,7 +636,7 @@ vibe([40, 40]);
     if (clamped !== getReadySeconds) setGetReadySeconds(clamped);
     setGetReadySecondsStr(String(clamped));
   }
-function handleManualContinue() {
+  function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
@@ -807,7 +657,6 @@ function handleManualContinue() {
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
         startTimedStep(gr);
-
       } else {
         setSecondsLeft(0);
         setWaitingForUser(false);
@@ -867,14 +716,11 @@ function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
     if (step && exercise && currentStepIndex + 1 < exercise.steps.length) {
-      // dar yra žingsnių tame pačiame pratime
       setCurrentStepIndex((prev) => prev + 1);
     } else if (day && currentExerciseIndex + 1 < day.exercises.length) {
-      // žingsnių nebėra, bet yra kitas pratimas
       setCurrentExerciseIndex((prev) => prev + 1);
       setCurrentStepIndex(0);
     } else {
-      // nebėra nei žingsnių, nei pratimų — einame į apibendrinimą
       setPhase("summary");
     }
   }
@@ -897,9 +743,7 @@ function handleManualContinue() {
         <Settings className="w-5 h-5" />
       </button>
       <button
-        onClick={() => {
-          if (!inputActive) setShowConfirmExit(true);
-        }}
+        onClick={() => { if (!inputActive) setShowConfirmExit(true); }}
         className={`p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow ${inputActive ? "pointer-events-none opacity-50" : ""}`}
         aria-label={t("close", { defaultValue: "Close" })}
         title={t("close", { defaultValue: "Close" })}
@@ -914,9 +758,7 @@ function handleManualContinue() {
       <HeaderBar />
       <div
         ref={scrollRef}
-        onScroll={(e) => {
-          lastYRef.current = e.currentTarget.scrollTop;
-        }}
+        onScroll={(e) => { lastYRef.current = e.currentTarget.scrollTop; }}
         className={`flex-1 overscroll-contain p-6 pt-8 ${isIOS && inputActive ? "overflow-hidden" : "overflow-auto"}`}
         style={isIOS && inputActive ? { WebkitOverflowScrolling: "auto" } : { WebkitOverflowScrolling: "touch" }}
       >
@@ -1033,7 +875,7 @@ function handleManualContinue() {
           </div>
         </div>
       )}
-{/* Confirm Exit modal */}
+      {/* Confirm Exit modal */}
       {showConfirmExit && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 max-h-[85vh] overflow-y-auto">
@@ -1093,17 +935,20 @@ function handleManualContinue() {
 
   // ---- Get Ready ----
   if (phase === "get_ready") {
-const firstEx = day?.exercises?.[0] || null;
+    const firstEx = day?.exercises?.[0] || null;
     let firstSt = null;
     let totalSets = 0;
     if (firstEx?.steps && Array.isArray(firstEx.steps)) {
       totalSets = firstEx.steps.filter((s) => s.type === "exercise").length || 0;
       firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
     }
-    const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
-    const upNextLabel = t("player.upNext", { defaultValue: "Up next:" });
 
-    function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
+    function restartGetReady() {
+      transitionLockRef.current = false;
+      const gr = Number(getReadySeconds) || 0;
+      stopAllScheduled();
+      startTimedStep(gr > 0 ? gr : 0);
+    }
 
     return (
       <Shell
@@ -1127,7 +972,6 @@ const firstEx = day?.exercises?.[0] || null;
         }
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
-          {/* GET_READY_HEADING */}
           <h2 className="text-2xl font-extrabold mb-2 text-yellow-500">
             {t("common.getReadyTitle", { defaultValue: i18n.language?.startsWith("lt") ? "Pasiruoškite treniruotei" : "Get ready" })}
           </h2>
@@ -1190,18 +1034,18 @@ const firstEx = day?.exercises?.[0] || null;
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
-</>
+          </>
         }
       >
         <div className="max-w-2xl mx-auto text-center mt-6">
           <h2 className={`text-2xl font-extrabold mb-2 ${isRestPhase ? restLabelClass : "text-gray-900"}`}>
             {isRestPhase ? restLabel : (exercise?.name || exerciseLabel)}
-
-          {/* Description under title (toggleable) */}
-          {!isRestPhase && descriptionsEnabled && exercise?.description && (
-            <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2"><Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" /><span className="font-normal">{exercise.description}</span></div>
-          )}
-
+            {!isRestPhase && descriptionsEnabled && exercise?.description && (
+              <div className="text-sm text-gray-500 italic mb-4 flex items-start gap-2">
+                <Info className="w-4 h-4 mt-0.5 text-gray-500" aria-hidden="true" />
+                <span className="font-normal">{exercise.description}</span>
+              </div>
+            )}
           </h2>
 
           {!isRestPhase && step?.type === "exercise" && (
@@ -1209,8 +1053,6 @@ const firstEx = day?.exercises?.[0] || null;
               {setWord} {seriesIdx}/{seriesTotal}
             </p>
           )}
-
-          
 
           {getTimedSeconds(step) > 0 && (
             <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
@@ -1245,11 +1087,8 @@ const firstEx = day?.exercises?.[0] || null;
                     const secs = getTimedSeconds(nextExerciseInfo.st);
                     const timedText = secs > 0 ? `${secs} ${secShort}` : "";
                     const effort = repsText || timedText;
-                    return effort ? (
-                      <p className="text-sm text-gray-900 mt-1">{effort}</p>
-                    ) : null;
+                    return effort ? (<p className="text-sm text-gray-900 mt-1">{effort}</p>) : null;
                   })()}
-
                   {nextExerciseInfo.setNo != null && (
                     <p className="text-sm text-gray-800 mt-1">
                       {setWord} {nextExerciseInfo.setNo}/{nextExerciseInfo.totalSets}
@@ -1290,10 +1129,7 @@ const firstEx = day?.exercises?.[0] || null;
                 type="button"
                 data-finish-btn="1"
                 tabIndex={-1}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
+                onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
                 className={`bg-green-600 text-white px-6 py-3 rounded-lg font-semibold ${submitting ? "opacity-70 cursor-wait" : "hover:bg-green-700"}`}
                 onClick={async () => {
                   if (submitting) return;
@@ -1301,11 +1137,7 @@ const firstEx = day?.exercises?.[0] || null;
                   setSubmitting(true);
                   try {
                     setInputActive(false);
-                    if (isIOS) {
-                      try {
-                        unlockBodyScroll();
-                      } catch {}
-                    }
+                    if (isIOS) { try { unlockBodyScroll(); } catch {} }
                     const rsp = await fetch("/api/complete-plan", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
@@ -1315,12 +1147,8 @@ const firstEx = day?.exercises?.[0] || null;
                     setSubmitted(true);
                     requestAnimationFrame(() => restoreScroll(y));
                     setTimeout(() => {
-                      try {
-                        onClose?.();
-                      } catch {}
-                      try {
-                        if (!onClose && router) router.push("/workouts");
-                      } catch {}
+                      try { onClose?.(); } catch {}
+                      try { if (!onClose && router) router.push("/workouts"); } catch {}
                     }, 3000);
                   } catch (e) {
                     // optionally show toast
@@ -1394,11 +1222,7 @@ const firstEx = day?.exercises?.[0] || null;
           <textarea
             ref={textareaRef}
             onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              const y = lastYRef.current;
-              requestAnimationFrame(() => restoreScroll(y));
-            }}
+            onMouseDown={(e) => { e.stopPropagation(); const y = lastYRef.current; requestAnimationFrame(() => restoreScroll(y)); }}
             placeholder={commentPlaceholder}
             defaultValue={commentRef.current}
             onChange={(e) => {
