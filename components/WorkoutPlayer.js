@@ -83,6 +83,8 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
 
   // Settings (persisted)
   const [showSettings, setShowSettings] = useState(false);
+  const autoPausedBySettingsRef = useRef(false);
+  const prevShowSettingsRef = useRef(false);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [fxEnabled, setFxEnabled] = useState(true);
   const [fxTrack, setFxTrack] = useState("beep");
@@ -600,6 +602,13 @@ const stepTokenRef = useRef(0);
       localStorage.setItem("bs_voice_enabled", String(voiceEnabled));
     } catch {}
   }, [voiceEnabled]);
+
+  // Keep audio pipeline alive when toggling audio settings mid-step
+  useEffect(() => {
+    try { audioRef.current?.wa?.ctx?.resume?.(); } catch {}
+    try { if (isIOS) primeIOSAudio(); } catch {}
+  }, [fxEnabled, fxTrack, voiceEnabled]);
+
   useEffect(() => {
     try {
       localStorage.setItem("bs_descriptions_enabled", String(descriptionsEnabled));
@@ -790,11 +799,33 @@ vibe([40, 40]);
 
   // automatinė pauzė atidarius nustatymus ar išeities patvirtinimą
   useEffect(() => {
-    if (showSettings) pauseTimer();
+    if (showSettings) {
+      autoPausedBySettingsRef.current = true;
+      pauseTimer();
+    }
   }, [showSettings]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (showConfirmExit) pauseTimer();
   }, [showConfirmExit]);
+
+
+  // Auto-resume audio/timer after closing Settings (only if we paused due to Settings)
+  useEffect(() => {
+    const wasOpen = prevShowSettingsRef.current;
+    if (wasOpen && !showSettings) {
+      try { audioRef.current?.wa?.ctx?.resume?.(); } catch {}
+      try { primeIOSAudio(); } catch {}
+      if (autoPausedBySettingsRef.current) {
+        autoPausedBySettingsRef.current = false;
+        // Reset last spoken to allow immediate countdown announcements if applicable
+        try { lastSpokenRef.current = null; } catch {}
+        // Resume timer if it was running before Settings
+        try { resumeTimer(); } catch {}
+      }
+    }
+    prevShowSettingsRef.current = showSettings;
+  }, [showSettings]);
+
 
   useEffect(() => {
     setStepFinished(false);
