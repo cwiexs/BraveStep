@@ -11,19 +11,20 @@ const DEBUG = (typeof window !== "undefined") && (() => {
     if (localStorage.getItem("debug") === "1") return true;
     if (window.__PLAYER_DEBUG_ON__ === true) return true;      // per Console
   } catch (_) {}
+  return false;
 })();
 
 // Boot log (visada, kad pamatytume ar modulis kraunasi)
-try { console.log("[PLAYER] DEBUG_PATCH_LOADED", { DEBUG }); } catch (e) {}
+try { console.log("[PLAYER] DEBUG_PATCH_LOADED", { DEBUG }); } catch {}
 
 if (typeof window !== "undefined") {
-  try { window.__PLAYER_DEBUG_ON__ = DEBUG; } catch (e) {}
+  try { window.__PLAYER_DEBUG_ON__ = DEBUG; } catch {}
   window.__PLAYER_DEBUG_ENABLE__ = () => {
-    try { localStorage.setItem("player_debug", "1"); } catch (e) {}
+    try { localStorage.setItem("player_debug", "1"); } catch {}
     location.reload();
   };
   window.__PLAYER_DEBUG_DISABLE__ = () => {
-    try { localStorage.removeItem("player_debug"); localStorage.removeItem("debug"); } catch (e) {}
+    try { localStorage.removeItem("player_debug"); localStorage.removeItem("debug"); } catch {}
     location.reload();
   };
 }
@@ -48,7 +49,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       document.body.style.top = `-${pageYRef.current}px`;
       document.body.style.overscrollBehavior = "contain";
       document.documentElement.style.overscrollBehavior = "contain";
-    } catch (e) {}
+    } catch {}
   };
   const unlockBodyScroll = () => {
     try {
@@ -59,16 +60,18 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       document.body.style.overscrollBehavior = "";
       document.documentElement.style.overscrollBehavior = "";
       window.scrollTo(0, y);
-    } catch (e) {}
+    } catch {}
   };
 
   // ---- State ----
   const [currentDay] = useState(0);
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  const [phase, setPhase] = useState("intro"); const phaseRef = useRef(phase);
+  const [phase, setPhase] = useState("intro");
+  // Keep the latest phase in a ref to avoid stale-closure bugs in async timers
+  const phaseRef = useRef("intro");
   useEffect(() => { phaseRef.current = phase; }, [phase]);
-// intro | exercise | summary
+ // intro | exercise | summary
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -86,7 +89,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
 
   /* ios default voice off */
-  useEffect(() => { if (isIOS) try { setVoiceEnabled(false); } catch (e) {} }, []);
+  useEffect(() => { if (isIOS) try { setVoiceEnabled(false); } catch {} }, []);
   const [descriptionsEnabled, setDescriptionsEnabled] = useState(true);
   const [getReadySeconds, setGetReadySeconds] = useState(10);
   const [getReadySecondsStr, setGetReadySecondsStr] = useState("10");
@@ -132,7 +135,7 @@ const stepTokenRef = useRef(0);
   useEffect(() => {
     try {
       commentRef.current = "";
-    } catch (e) {}
+    } catch {}
   }, []);
 
   useLayoutEffect(() => {
@@ -141,7 +144,7 @@ const stepTokenRef = useRef(0);
         const el = textareaRef.current;
         const { start, end } = caretRef.current || {};
         if (start != null && end != null) el.setSelectionRange(start, end);
-      } catch (e) {}
+      } catch {}
     }
   }, [inputActive]);
 
@@ -151,16 +154,6 @@ const stepTokenRef = useRef(0);
     wa: { ctx: null, ready: false, buffers: new Map(), scheduled: [] },
   });
   const lastSpokenRef = useRef(null);
-
-  // One-time gesture unlock
-  useEffect(() => {
-    const onTap = () => { try { primeAudio(); } catch (e) {} };
-    if (typeof window !== "undefined") {
-      window.addEventListener("pointerdown", onTap, { once: true });
-      window.addEventListener("touchend", onTap, { once: true });
-    }
-    return () => {};
-  }, []);
 
   // Derived
   const day = workoutData?.days?.[currentDay];
@@ -175,26 +168,26 @@ const stepTokenRef = useRef(0);
   const isRestAfter = step?.type === "rest_after";
 
   // i18n labels
-  const restLabel = t("player.rest", { defaultValue: "Poilsis" });
-  const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
-  const setWord = t("player.setWord", { defaultValue: "Serija" });
+  const restLabel = t("player.rest", { defaultValue: "Rest" });
+  const upNextLabel = t("player.upNext", { defaultValue: "Up next:" });
+  const setWord = t("player.setWord", { defaultValue: "Set" });
   const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
-  const startWorkoutLabel = t("player.startWorkout", { defaultValue: "Pradėti treniruotę" });
-  const doneLabel = t("player.done", { defaultValue: "Atlikta" });
-  const prevLabel = t("player.prev", { defaultValue: "Atgal" });
-  const nextLabel = t("player.next", { defaultValue: "Toliau" });
-  const pausePlayLabel = t("player.pausePlay", { defaultValue: "Pauzė / Tęsti" });
-  const restartStepLabel = t("player.restartStep", { defaultValue: "Perkrauti žingsnį" });
-  const endSessionLabel = t("player.endSession", { defaultValue: "Baigti sesiją" });
-  const pausedLabel = t("player.paused", { defaultValue: "Pauzė" });
-  const workoutCompletedLabel = t("player.workoutCompleted", { defaultValue: "Treniruotė užbaigta!" });
-  const thanksForWorkingOut = t("player.thanksForWorkingOut", { defaultValue: "Ačiū už treniruotę!" });
-  const howWasDifficulty = t("player.howWasDifficulty", { defaultValue: "Kaip vertini sunkumą?" });
-  const commentPlaceholder = t("player.commentPlaceholder", { defaultValue: "Komentaras (nebūtina)..." });
-  const finishWorkout = t("player.finishWorkout", { defaultValue: "Užbaigti ir išsiųsti įvertinimą" });
-  const thanksForFeedback = t("player.thanksForFeedback", { defaultValue: "Ačiū už grįžtamąjį ryšį!" });
-  const exerciseLabel = t("player.exercise", { defaultValue: "Pratimas" });
-  const motivationTitle = t("player.motivationTitle", { defaultValue: "Motyvacija" });
+  const startWorkoutLabel = t("player.startWorkout", { defaultValue: "Start workout" });
+  const doneLabel = t("player.done", { defaultValue: "Done" });
+  const prevLabel = t("player.prev", { defaultValue: "Back" });
+  const nextLabel = t("player.next", { defaultValue: "Next" });
+  const pausePlayLabel = t("player.pausePlay", { defaultValue: "Pause / Play" });
+  const restartStepLabel = t("player.restartStep", { defaultValue: "Restart step" });
+  const endSessionLabel = t("player.endSession", { defaultValue: "End session" });
+  const pausedLabel = t("player.paused", { defaultValue: "Paused" });
+  const workoutCompletedLabel = t("player.workoutCompleted", { defaultValue: "Workout completed!" });
+  const thanksForWorkingOut = t("player.thanksForWorkingOut", { defaultValue: "Thanks for working out!" });
+  const howWasDifficulty = t("player.howWasDifficulty", { defaultValue: "How would you rate the difficulty?" });
+  const commentPlaceholder = t("player.commentPlaceholder", { defaultValue: "Comment (optional)..." });
+  const finishWorkout = t("player.finishWorkout", { defaultValue: "Finish workout" });
+  const thanksForFeedback = t("player.thanksForFeedback", { defaultValue: "Thanks for your feedback!" });
+  const exerciseLabel = t("player.exercise", { defaultValue: "Exercise" });
+  const motivationTitle = t("player.motivationTitle", { defaultValue: "Motivation" });
 
   // ---- Utils ----
   function findFirstExerciseIndex(ex) {
@@ -277,8 +270,7 @@ const stepTokenRef = useRef(0);
   }
 
   // --------- AUDIO (WebAudio + fallback) ----------
-  // --------- AUDIO (WebAudio + fallback) ----------
-  function ensureWAContext() {
+  async function ensureWAContext() {
     if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
     const Ctx = window.AudioContext || window.webkitAudioContext;
     if (!Ctx) return null;
@@ -297,29 +289,31 @@ const stepTokenRef = useRef(0);
       const buf = await ctx.decodeAudioData(arr);
       audioRef.current.wa.buffers.set(name, buf);
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   }
 
   function playWABuffer(name, when = 0) {
+    // Disable WebAudio on iOS to avoid post-gesture mutes
+    if (isIOS) return false;
     try {
       const { ctx, buffers, scheduled } = audioRef.current.wa;
       if (!ctx) return false;
-      if (ctx.state === "suspended") { try { ctx.resume(); } catch (e) {} }
       const buf = buffers.get(name);
       if (!buf) return false;
-      const srcNode = ctx.createBufferSource();
-      srcNode.buffer = buf;
-      srcNode.connect(ctx.destination);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
       const startAt = ctx.currentTime + Math.max(0, when);
-      srcNode.start(startAt);
-      scheduled.push({ source: srcNode, when: startAt });
-      srcNode.onended = () => {
-        const i = scheduled.findIndex((s) => s.source === srcNode);
+      src.start(startAt);
+      scheduled.push({ source: src, when: startAt });
+      src.onended = () => {
+        const i = scheduled.findIndex((s) => s.source === src);
         if (i >= 0) scheduled.splice(i, 1);
       };
-    } catch (e) {
+      return true;
+    } catch {
       return false;
     }
   }
@@ -329,16 +323,14 @@ const stepTokenRef = useRef(0);
     scheduled.forEach((s) => {
       try {
         s.source.stop(0);
-      } catch (e) {}
+      } catch {}
     });
     audioRef.current.wa.scheduled = [];
   }
 
-
-
   function ensureHTMLAudioLoaded() {
     if (audioRef.current.html.loaded) return;
-    const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch (e) {}
+    const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch{}
     const silence = new Audio("/silence.mp3");
     const nums = {
       1: new Audio("/1.mp3"),
@@ -352,9 +344,9 @@ const stepTokenRef = useRef(0);
       Object.values(nums).forEach((a) => {
         try {
           a.load();
-        } catch (e) {}
+        } catch {}
       });
-    } catch (e) {}
+    } catch {}
     audioRef.current.html = { loaded: true, beep, silence, nums };
   }
 
@@ -366,25 +358,26 @@ const stepTokenRef = useRef(0);
         beep.currentTime = 0;
         beep.volume = 0.75;
         beep.play();
-      } catch (e) {}
+      } catch {}
+      return true;
     }
     if (["1", "2", "3", "4", "5"].includes(name)) {
       const a = nums[Number(name)];
       try {
         a.currentTime = 0;
         a.play();
-      } catch (e) {}
+      } catch {}
+      return true;
     }
+    return false;
   }
 
-  function primeAudio() {
-  const ctx = ensureWAContext();
-  try {
-    if (ctx && ctx.state === "suspended" && typeof ctx.resume === "function") ctx.resume();
-  } catch (e) {}
+  function primeIOSAudio() {
+    const ctx = ensureWAContext();
+    try {
+      try { ctx?.resume?.(); } catch {}
+    } catch {}
 
-  // Preload WA buffers (best-effort)
-  try {
     Promise.all([
       loadWABuffer("beep", "/beep.wav"),
       loadWABuffer("1", "/1.mp3"),
@@ -392,33 +385,32 @@ const stepTokenRef = useRef(0);
       loadWABuffer("3", "/3.mp3"),
       loadWABuffer("4", "/4.mp3"),
       loadWABuffer("5", "/5.mp3"),
-    ]).catch((e) => {});
-  } catch (e) {}
+    ]);
 
-  // Warm up HTML audio (iOS autoplay policy)
-  try {
     ensureHTMLAudioLoaded();
-    const s = audioRef.current.html.silence;
-    s.volume = 0.01;
-    s.currentTime = 0;
-    const p = s.play();
-    if (p && p.catch) { p.catch((e) => {}); }
-    setTimeout(() => {
-      try {
-        s.pause();
-        s.currentTime = 0;
-      } catch (e) {}
-    }, 120);
-  } catch (e) {}
-}
+    try {
+      const s = audioRef.current.html.silence;
+      s.volume = 0.01;
+      s.currentTime = 0;
+      try { s.play().catch(() => {}); } catch {}
+      setTimeout(() => {
+        try {
+          s.pause();
+          s.currentTime = 0;
+        } catch {}
+      }, 120);
+    } catch {}
+  }
 
   function ping() {
+    if (isIOS) { if (fxEnabled) playHTML("beep"); return; }
     if (!fxEnabled) return;
     const waOk = playWABuffer("beep", 0);
     if (!waOk) playHTML("beep");
   }
 
   function speakNumber(n) {
+    if (isIOS) { if (!playHTML(String(n))) ping(); return; }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -430,15 +422,15 @@ const stepTokenRef = useRef(0);
         u.rate = 1.05;
         window.speechSynthesis.cancel();
         window.speechSynthesis.speak(u);
-      } catch (e) {}
+      } catch {}
     } else {
       ping();
     }
   }
 
   function stopAllScheduled() {
-    try { stopAllScheduledAudio(); } catch (e) {}
-    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch (e) {}
+    try { stopAllScheduledAudio(); } catch {}
+    try { (scheduledTimeoutsRef.current || []).forEach((id) => clearTimeout(id)); } catch {}
     scheduledTimeoutsRef.current = [];
   }
 
@@ -448,7 +440,7 @@ const stepTokenRef = useRef(0);
       if (typeof navigator !== "undefined" && "vibrate" in navigator) {
         navigator.vibrate(pattern);
       }
-    } catch (e) {}
+    } catch {}
   }
 
   const nextExerciseInfo = useMemo(() => {
@@ -477,7 +469,7 @@ const stepTokenRef = useRef(0);
   // WakeLock
   useEffect(() => {
     if ("wakeLock" in navigator) {
-      navigator.wakeLock.request("screen").then((lock) => (wakeLockRef.current = lock)).catch((e) => {});
+      navigator.wakeLock.request("screen").then((lock) => (wakeLockRef.current = lock)).catch(() => {});
     }
     return () => {
       if (wakeLockRef.current) wakeLockRef.current.release();
@@ -500,42 +492,42 @@ const stepTokenRef = useRef(0);
       if (de != null) setDescriptionsEnabled(de === "true");
       const gr = localStorage.getItem("bs_getready_seconds");
       if (gr != null) { const n = parseInt(gr, 10); if (Number.isFinite(n)) setGetReadySeconds(Math.max(0, Math.min(120, n))); }
-    } catch (e) {}
+    } catch {}
   }, []);
   useEffect(() => {
     try {
       localStorage.setItem("bs_vibration_enabled", String(vibrationEnabled));
-    } catch (e) {}
+    } catch {}
   }, [vibrationEnabled]);
   useEffect(() => {
     try {
       localStorage.setItem("bs_fx_enabled", String(fxEnabled));
-    } catch (e) {}
+    } catch {}
   }, [fxEnabled]);
   useEffect(() => {
     try {
       localStorage.setItem("bs_fx_track", fxTrack);
-    } catch (e) {}
+    } catch {}
   }, [fxTrack]);
   useEffect(() => {
     try {
       localStorage.setItem("bs_voice_enabled", String(voiceEnabled));
-    } catch (e) {}
+    } catch {}
   }, [voiceEnabled]);
   useEffect(() => {
     try {
       localStorage.setItem("bs_descriptions_enabled", String(descriptionsEnabled));
-    } catch (e) {}
+    } catch {}
   }, [descriptionsEnabled]);
 
-  useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch (e) {} }, [getReadySeconds]);
+  useEffect(() => { try { localStorage.setItem("bs_getready_seconds", String(getReadySeconds)); } catch {} }, [getReadySeconds]);
 
   // After switching from get_ready to exercise, ensure timer initializes
   useEffect(() => {
     if (phase === "exercise") {
       // kick the timer setup effect by nudging step state if needed
       setTimeout(() => {
-        try { setCurrentStepIndex((v) => v); } catch (e) {}
+        try { setCurrentStepIndex((v) => v); } catch {}
       }, 0);
     }
   }, [phase]);
@@ -574,10 +566,15 @@ const stepTokenRef = useRef(0);
         }
       }
 
-      if (msLeft <= 0) { cancelRaf(); if (transitionLockRef.current) { return; } transitionLockRef.current = true;
+      if (msLeft <= 0) {
+        
+        try { dbg("tick:deadline-reached", { phase: phaseRef.current, msLeft, secs }); } catch {}
+if (transitionLockRef.current) { cancelRaf(); return; }
+        transitionLockRef.current = true;
+        cancelRaf();
         lastSpokenRef.current = null;
 
-        if (phase === "get_ready") {
+        if (phaseRef.current === "get_ready") {
           try {
             const firstEx = day?.exercises?.[0];
             if (firstEx) {
@@ -585,7 +582,7 @@ const stepTokenRef = useRef(0);
               setCurrentExerciseIndex(0);
               setCurrentStepIndex(idx);
             }
-          } catch (e) {}
+          } catch {}
           setPhase("exercise");
           return;
         }
@@ -621,7 +618,10 @@ const stepTokenRef = useRef(0);
     setSecondsLeft(durationSec);
 
     
-    try {
+    
+    try { dbg("startTimedStep", { durationSec, phase: phaseRef.current, token: __token }); } catch {}
+
+try {
       if (durationSec > 0) {
         const wd = setTimeout(() => {
           try {
@@ -634,12 +634,12 @@ const stepTokenRef = useRef(0);
             transitionLockRef.current = true;
             cancelRaf();
             // Leiskime eiti ta pačia logika kaip rAF pabaigoje
-            try { handlePhaseComplete(); } catch (e) {}
-          } catch (e) {}
+            try { handlePhaseComplete(); } catch {}
+          } catch {}
         }, Math.max(0, Math.round(durationSec * 1000) + 350));
         scheduledTimeoutsRef.current.push(wd);
       }
-    } catch (e) {}
+    } catch {}
 vibe([40, 40]);
     ping();
 
@@ -742,7 +742,7 @@ function handleManualContinue() {
     cancelRaf();
     stopAllScheduled();
     if (phase === "intro") {
-      primeAudio();
+      primeIOSAudio();
       // Preselect first exercise step
       try {
         const firstEx = day?.exercises?.[0];
@@ -754,7 +754,7 @@ function handleManualContinue() {
           setCurrentExerciseIndex(0);
           setCurrentStepIndex(0);
         }
-      } catch (e) {}
+      } catch {}
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
@@ -774,7 +774,8 @@ function handleManualContinue() {
   }
 
   function handlePhaseComplete() {
-    if (phase === "get_ready") {
+    const __phaseNow = phaseRef.current;
+    if (__phaseNow === "get_ready") {
       try {
         const firstEx = day?.exercises?.[0];
         if (firstEx) {
@@ -782,7 +783,7 @@ function handleManualContinue() {
           setCurrentExerciseIndex(0);
           setCurrentStepIndex(idx);
         }
-      } catch (e) {}
+      } catch {}
       setPhase("exercise");
       return;
     }
@@ -842,8 +843,8 @@ function handleManualContinue() {
       <button
         onClick={() => setShowSettings(true)}
         className="p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow"
-        aria-label={t("common.settings", { defaultValue: "Nustatymai" })}
-        title={t("common.settings", { defaultValue: "Nustatymai" })}
+        aria-label={t("player.settings.title", { defaultValue: "Settings" })}
+        title={t("player.settings.title", { defaultValue: "Settings" })}
       >
         <Settings className="w-5 h-5" />
       </button>
@@ -852,8 +853,8 @@ function handleManualContinue() {
           if (!inputActive) setShowConfirmExit(true);
         }}
         className={`p-2 rounded-full bg-gray-100 hover:bg-gray-200 shadow ${inputActive ? "pointer-events-none opacity-50" : ""}`}
-        aria-label={t("common.close", { defaultValue: "Uždaryti" })}
-        title={t("common.close", { defaultValue: "Uždaryti" })}
+        aria-label={t("close", { defaultValue: "Close" })}
+        title={t("close", { defaultValue: "Close" })}
       >
         <Power className="w-5 h-5" />
       </button>
@@ -879,7 +880,7 @@ function handleManualContinue() {
       {showSettings && (
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-xl p-6 max-h-[85vh] overflow-y-auto overflow-x-hidden">
-            <h3 className="text-xl font-bold mb-6">{t("common.settings", { defaultValue: "Nustatymai" })}</h3>
+            <h3 className="text-xl font-bold mb-6">{t("player.settings.title", { defaultValue: "Settings" })}</h3>
 
             {/* Get ready seconds */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
@@ -906,19 +907,19 @@ function handleManualContinue() {
             {/* Vibracija */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="min-w-[220px]">
-                <p className="font-medium">{t("player.vibration", { defaultValue: "Vibracija" })}</p>
-                <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibruoti kaitaliojant pratimą / poilsį." })}</p>
+                <p className="font-medium">{t("player.vibration", { defaultValue: "Vibration" })}</p>
+                <p className="text-sm text-gray-500">{t("player.vibrationDesc", { defaultValue: "Vibrate when switching exercise/rest." })}</p>
               </div>
               <button
                 onClick={() => setVibrationEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${vibrationEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
-                {vibrationEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+                {vibrationEnabled ? t("on", { defaultValue: "On" }) : t("off", { defaultValue: "Off" })}
               </button>
             </div>
             {!vibrationSupported && (
               <div className="text-xs text-amber-600 mb-5">
-                {t("player.vibrationNotSupported", { defaultValue: "Šiame įrenginyje naršyklė vibracijos nepalaiko." })}
+                {t("player.vibrationNotSupported", { defaultValue: "This browser or device does not support vibration." })}
               </div>
             )}
 
@@ -926,24 +927,24 @@ function handleManualContinue() {
             <div className="mb-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="min-w-[220px]">
-                  <p className="font-medium">{t("player.fx", { defaultValue: "Perjungimo garsas" })}</p>
-                  <p className="text-sm text-gray-500">{t("player.fxDesc", { defaultValue: "Skambėti keičiantis pratimą / poilsį." })}</p>
+                  <p className="font-medium">{t("player.settings.soundFx", { defaultValue: "Sound FX" })}</p>
+                  <p className="text-sm text-gray-500">{t("player.fxDesc", { defaultValue: "Play a short sound when the phase changes." })}</p>
                 </div>
                 <button
                   onClick={() => setFxEnabled((v) => !v)}
                   className={`px-3 py-1 rounded-full text-sm font-semibold ${fxEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
                 >
-                  {fxEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+                  {fxEnabled ? t("on", { defaultValue: "On" }) : t("off", { defaultValue: "Off" })}
                 </button>
               </div>
               <div className="mt-3 flex items-center flex-wrap gap-2">
-                <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Takelis:" })}</label>
+                <label className="text-sm mr-2">{t("player.fxTrack", { defaultValue: "Track:" })}</label>
                 <select value={fxTrack} onChange={(e) => setFxTrack(e.target.value)} className="border rounded px-2 py-1 text-sm">
                   <option value="beep">beep.wav</option>
                   <option value="silence">silence.mp3</option>
                 </select>
                 <button onClick={() => { ping(); }} className="px-3 py-1 text-sm rounded bg-gray-100 hover:bg-gray-200">
-                  {t("player.testFx", { defaultValue: "Išbandyti" })}
+                  {t("player.testFx", { defaultValue: "Test" })}
                 </button>
               </div>
             </div>
@@ -951,34 +952,34 @@ function handleManualContinue() {
             {/* Balso skaičiavimas (5..1) */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="min-w-[220px]">
-                <p className="font-medium">{t("player.voice", { defaultValue: "Balso skaičiavimas" })}</p>
-                <p className="text-sm text-gray-500">{t("player.voiceDescShort", { defaultValue: "Skaičiuoti 5,4,3,2,1 paskutinėmis sekundėmis." })}</p>
+                <p className="font-medium">{t("player.settings.voiceCountdown", { defaultValue: "Voice countdown" })}</p>
+                <p className="text-sm text-gray-500">{t("player.settings.voiceDescShort", { defaultValue: "Count down 5,4,3,2,1 in the final seconds." })}</p>
               </div>
               <button
                 onClick={() => setVoiceEnabled((v) => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${voiceEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
-                {voiceEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+                {voiceEnabled ? t("on", { defaultValue: "On" }) : t("off", { defaultValue: "Off" })}
               </button>
             </div>
 
             {/* Pratimų aprašymai */}
             <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
               <div className="min-w-[220px]">
-                <p className="font-medium">{t("player.descriptions", { defaultValue: "Pratimų aprašymai" })}</p>
-                <p className="text-sm text-gray-500">{t("player.descriptionsDescShort", { defaultValue: "Rodyti aprašymą po pavadinimu." })}</p>
+                <p className="font-medium">{t("player.descriptions", { defaultValue: "Exercise descriptions" })}</p>
+                <p className="text-sm text-gray-500">{t("player.descriptionsDescShort", { defaultValue: "Show description below the title." })}</p>
               </div>
               <button
                 onClick={() => setDescriptionsEnabled(v => !v)}
                 className={`px-3 py-1 rounded-full text-sm font-semibold ${descriptionsEnabled ? "bg-green-600 text-white" : "bg-gray-200"}`}
               >
-                {descriptionsEnabled ? t("common.on", { defaultValue: "Įjungta" }) : t("common.off", { defaultValue: "Išjungta" })}
+                {descriptionsEnabled ? t("on", { defaultValue: "On" }) : t("off", { defaultValue: "Off" })}
               </button>
             </div>
 
             <div className="flex justify-end gap-2">
               <button onClick={() => { commitGetReady(); setShowSettings(false); }} className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
-                {t("common.close", { defaultValue: "Uždaryti" })}
+                {t("close", { defaultValue: "Close" })}
               </button>
             </div>
           </div>
@@ -989,11 +990,11 @@ function handleManualContinue() {
         <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-5 max-h-[85vh] overflow-y-auto">
             <h3 className="text-xl font-bold mb-3">
-              {t("player.confirmExitTitle", { defaultValue: "Išeiti iš treniruotės?" })}
+              {t("player.confirmExitTitle", { defaultValue: "Exit workout?" })}
             </h3>
             <p className="text-sm text-gray-700 mb-5">
               {t("player.confirmExitBody", {
-                defaultValue: "Jei išeisite dabar, ši sesija nebus užskaityta kaip atlikta."
+                defaultValue: "If you exit now, this session won't be marked as completed."
               })}
             </p>
             <div className="flex items-center justify-end gap-2">
@@ -1001,17 +1002,17 @@ function handleManualContinue() {
                 onClick={() => setShowConfirmExit(false)}
                 className="px-4 py-2 rounded bg-gray-100 hover:bg-gray-200"
               >
-                {t("common.cancel", { defaultValue: "Atšaukti" })}
+                {t("player.common.cancel", { defaultValue: "Cancel" })}
               </button>
               <button
                 onClick={() => {
-                  try { cancelRaf(); stopAllScheduled(); } catch (e) {}
+                  try { cancelRaf(); stopAllScheduled(); } catch {}
                   setShowConfirmExit(false);
                   onClose?.();
                 }}
                 className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
               >
-                {t("player.confirmExitCta", { defaultValue: "Išeiti" })}
+                {t("player.confirmExitCta", { defaultValue: "Exit" })}
               </button>
             </div>
           </div>
@@ -1052,7 +1053,7 @@ const firstEx = day?.exercises?.[0] || null;
       firstSt = firstEx.steps.find((s) => s.type === "exercise") || null;
     }
     const secShort = t("player.secShort", { defaultValue: i18n.language?.startsWith("lt") ? "sek" : "sec" });
-    const upNextLabel = t("player.upNext", { defaultValue: "Kitas:" });
+    const upNextLabel = t("player.upNext", { defaultValue: "Up next:" });
 
     function restartGetReady() { transitionLockRef.current = false; const gr = Number(getReadySeconds) || 0; stopAllScheduled(); startTimedStep(gr > 0 ? gr : 0); }
 
@@ -1070,7 +1071,7 @@ const firstEx = day?.exercises?.[0] || null;
               <button onClick={restartGetReady} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
                 <RotateCcw className="w-6 h-6 text-gray-800" />
               </button>
-              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch (e) {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+              <button onClick={() => { setStepFinished(true); try { const firstEx = day?.exercises?.[0]; if (firstEx) { const idx = findFirstExerciseIndex(firstEx); setCurrentExerciseIndex(0); setCurrentStepIndex(idx); } } catch {} setPhase("exercise"); }} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
                 <SkipForward className="w-6 h-6 text-gray-800" />
               </button>
             </div>
@@ -1225,11 +1226,11 @@ const firstEx = day?.exercises?.[0] || null;
   // ---- Summary ----
   if (phase === "summary") {
     const options = [
-      { value: 1, label: "😣", text: t("player.rateTooHard", { defaultValue: "Per sunku" }) },
-      { value: 2, label: "😟", text: t("player.rateAHard", { defaultValue: "Šiek tiek sunku" }) },
-      { value: 3, label: "😌", text: t("player.ratePerfect", { defaultValue: "Tobulai" }) },
-      { value: 4, label: "🙂", text: t("player.rateAEasy", { defaultValue: "Šiek tiek lengva" }) },
-      { value: 5, label: "😄", text: t("player.rateTooEasy", { defaultValue: "Per lengva" }) },
+      { value: 1, label: "😣", text: t("player.rateTooHard", { defaultValue: "Too hard" }) },
+      { value: 2, label: "😟", text: t("player.rateAHard", { defaultValue: "A bit hard" }) },
+      { value: 3, label: "😌", text: t("player.ratePerfect", { defaultValue: "Just right" }) },
+      { value: 4, label: "🙂", text: t("player.rateAEasy", { defaultValue: "A bit easy" }) },
+      { value: 5, label: "😄", text: t("player.rateTooEasy", { defaultValue: "Too easy" }) },
     ];
 
     return (
@@ -1255,7 +1256,7 @@ const firstEx = day?.exercises?.[0] || null;
                     if (isIOS) {
                       try {
                         unlockBodyScroll();
-                      } catch (e) {}
+                      } catch {}
                     }
                     const rsp = await fetch("/api/complete-plan", {
                       method: "POST",
@@ -1268,10 +1269,10 @@ const firstEx = day?.exercises?.[0] || null;
                     setTimeout(() => {
                       try {
                         onClose?.();
-                      } catch (e) {}
+                      } catch {}
                       try {
                         if (!onClose && router) router.push("/workouts");
-                      } catch (e) {}
+                      } catch {}
                     }, 3000);
                   } catch (e) {
                     // optionally show toast
@@ -1366,7 +1367,7 @@ const firstEx = day?.exercises?.[0] || null;
                       const c = caretRef.current || {};
                       if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end);
                     }
-                  } catch (e) {}
+                  } catch {}
                 }
                 restoreScroll(y);
               });
@@ -1377,7 +1378,7 @@ const firstEx = day?.exercises?.[0] || null;
               try {
                 const to = e.relatedTarget;
                 if (to && to.getAttribute && to.getAttribute("data-finish-btn") === "1") return;
-              } catch (e) {}
+              } catch {}
               setInputActive(false);
             }}
             onKeyDown={(e) => e.stopPropagation()}
@@ -1393,7 +1394,7 @@ const firstEx = day?.exercises?.[0] || null;
                       const c = caretRef.current || {};
                       if (c.start != null && c.end != null) ta.setSelectionRange(c.start, c.end);
                     }
-                  } catch (e) {}
+                  } catch {}
                 }
                 restoreScroll(y);
               });
