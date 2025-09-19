@@ -154,6 +154,7 @@ const stepTokenRef = useRef(0);
     wa: { ctx: null, ready: false, buffers: new Map(), scheduled: [] },
   });
   const lastSpokenRef = useRef(null);
+  const countdownScheduledRef = useRef(false);
 
   // Derived
   const day = workoutData?.days?.[currentDay];
@@ -270,16 +271,6 @@ const stepTokenRef = useRef(0);
   }
 
   // --------- AUDIO (WebAudio + fallback) ----------
-  function getOrCreateWAContextSync() {
-    try {
-      if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
-      const Ctx = window.AudioContext || window.webkitAudioContext;
-      if (!Ctx) return null;
-      const ctx = new Ctx();
-      audioRef.current.wa.ctx = ctx;
-      return ctx;
-    } catch { return null; }
-  }
   async function ensureWAContext() {
     if (audioRef.current.wa.ctx) return audioRef.current.wa.ctx;
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -342,7 +333,6 @@ const stepTokenRef = useRef(0);
     if (audioRef.current.html.loaded) return;
     const beep = new Audio("/beep.wav"); try{beep.preload="auto";}catch{}
     const silence = new Audio("/silence.mp3");
-    let silenceAlt = null; try { silenceAlt = new Audio("/silance.mp3"); } catch {}
     const nums = {
       1: new Audio("/1.mp3"),
       2: new Audio("/2.mp3"),
@@ -358,7 +348,7 @@ const stepTokenRef = useRef(0);
         } catch {}
       });
     } catch {}
-    audioRef.current.html = { loaded: true, beep, silence, silenceAlt, nums };
+    audioRef.current.html = { loaded: true, beep, silence, nums };
   }
 
   function playHTML(name) {
@@ -381,38 +371,46 @@ const stepTokenRef = useRef(0);
       return true;
     }
     return false;
+  
+  function stopHTMLNumbers() {
+    try {
+      const html = audioRef.current.html || {};
+      const nums = html.nums || {};
+      [1,2,3,4,5].forEach((k) => {
+        try { const a = nums[k]; if (!a) return; a.pause(); a.currentTime = 0; } catch {}
+      });
+    } catch {}
   }
+}
 
   function primeIOSAudio() {
-    // Create/Resume WebAudio synchronously within user gesture
-    const ctx = getOrCreateWAContextSync();
-    try { ctx?.resume?.(); } catch {}
+    const ctx = ensureWAContext();
     try {
-      // silent WA tick (oscillator) to mark audio as user-activated
-      if (ctx) {
-        const g = ctx.createGain(); g.gain.value = 0.00001;
-        const o = ctx.createOscillator(); o.connect(g).connect(ctx.destination);
-        o.start(0);
-        try { o.stop(ctx.currentTime + 0.05); } catch {}
-      }
+      try { ctx?.resume?.(); } catch {}
     } catch {}
 
-    // Prepare HTMLAudio and attempt immediate silent play (no await)
+    Promise.all([
+      loadWABuffer("beep", "/beep.wav"),
+      loadWABuffer("1", "/1.mp3"),
+      loadWABuffer("2", "/2.mp3"),
+      loadWABuffer("3", "/3.mp3"),
+      loadWABuffer("4", "/4.mp3"),
+      loadWABuffer("5", "/5.mp3"),
+    ]);
+
     ensureHTMLAudioLoaded();
     try {
-      const h = audioRef.current.html;
-      const tryPlay = (el) => { try { if (!el) return; el.volume = 0.01; el.currentTime = 0; const p = el.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); setTimeout(()=>{ try { el.pause(); el.currentTime = 0; } catch {} }, 150); } catch {} };
-      tryPlay(h.silence);
-      if (h.silenceAlt) tryPlay(h.silenceAlt);
+      const s = audioRef.current.html.silence;
+      s.volume = 0.01;
+      s.currentTime = 0;
+      try { s.play().catch(() => {}); } catch {}
+      setTimeout(() => {
+        try {
+          s.pause();
+          s.currentTime = 0;
+        } catch {}
+      }, 120);
     } catch {}
-
-    // Fire-and-forget preloads (no await so we stay in gesture)
-    try { loadWABuffer("beep", "/beep.wav"); } catch {}
-    try { loadWABuffer("1", "/1.mp3"); } catch {}
-    try { loadWABuffer("2", "/2.mp3"); } catch {}
-    try { loadWABuffer("3", "/3.mp3"); } catch {}
-    try { loadWABuffer("4", "/4.mp3"); } catch {}
-    try { loadWABuffer("5", "/5.mp3"); } catch {}
   }
 
   function ping() {
@@ -423,7 +421,8 @@ const stepTokenRef = useRef(0);
   }
 
   function speakNumber(n) {
-    if (isIOS) { if (!playHTML(String(n))) ping(); return; }
+    if (isIOS) {
+      try { stopHTMLNumbers(); } catch {} if (!playHTML(String(n))) ping(); return; }
     const ok = playWABuffer(String(n), 0);
     if (ok) return;
     const ok2 = playHTML(String(n));
@@ -573,7 +572,7 @@ const stepTokenRef = useRef(0);
       setSecondsLeft((prev) => (prev !== secs ? secs : prev));
 
       if (!paused && voiceEnabled && secs > 0 && secs <= 5) {
-        if (lastSpokenRef.current !== secs) {
+        if (!countdownScheduledRef.current && lastSpokenRef.current !== secs) {
           speakNumber(secs);
           lastSpokenRef.current = secs;
         }
@@ -609,9 +608,42 @@ if (transitionLockRef.current) { cancelRaf(); return; }
     }
     tickRafRef.current = requestAnimationFrame(tick);
   };
+  function scheduleCountdown(durationSec, token) {
+    countdownScheduledRef.current = false;
+    try {
+      if (!voiceEnabled) return;
+      if (!durationSec || durationSec <= 0) return;
+      if (!deadlineRef.current) return;
+      const now = (performance && performance.now) ? performance.now() : Date.now();
+      const dl = deadlineRef.current;
+      let scheduled = false;
+      for (let n = 5; n >= 1; n--) {
+        if (n > durationSec) continue; // step shorter than 5s
+        const whenMs = dl - n*1000; // exact boundary for 'n'
+        const delay = Math.max(0, Math.round(whenMs - now - 60)); // fire ~60ms early to avoid boundary jitter
+        if (whenMs - now < -300) continue; // already long past, skip
+        try {
+          const id = setTimeout(() => {
+            try {
+              if (token != null && token !== stepTokenRef.current) return; // step changed
+              if (paused) return; // don't speak when paused
+              lastSpokenRef.current = n;
+              speakNumber(n);
+            } catch {}
+          }, delay);
+          scheduledTimeoutsRef.current.push(id);
+          scheduled = true;
+        } catch {}
+      }
+      countdownScheduledRef.current = scheduled;
+    } catch {}
+  }
+
 
   const startTimedStep = (durationSec) => {
-    transitionLockRef.current = false;
+        stepTokenRef.current = (stepTokenRef.current || 0) + 1;
+    const token = stepTokenRef.current;
+transitionLockRef.current = false;
     stepTokenRef.current = (stepTokenRef.current || 0) + 1;
     const __token = stepTokenRef.current;
     cancelRaf();
@@ -657,6 +689,9 @@ vibe([40, 40]);
     ping();
 
     tickRafRef.current = requestAnimationFrame(tick);
+
+    // schedule robust 5..1 using timeouts (catch up if rAF janks)
+    try { scheduleCountdown(durationSec, __token); } catch {}
   };
 
   const pauseTimer = () => {
