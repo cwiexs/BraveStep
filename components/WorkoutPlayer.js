@@ -319,8 +319,15 @@ const stepTokenRef = useRef(0);
       };
       return true;
     } catch (e) { return false; }
+  }
+      return true;
+    } catch (e) { return false; }
   };
-
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   function stopAllScheduledAudio() {
     const { scheduled } = audioRef.current.wa;
@@ -568,13 +575,10 @@ const stepTokenRef = useRef(0);
         }
       }
 
-      if (msLeft <= 0) { cancelRaf();
-        if (transitionLockRef.current) { cancelRaf(); return; }
-        transitionLockRef.current = true;
-        cancelRaf();
+      if (msLeft <= 0) { cancelRaf(); if (transitionLockRef.current) { return; } transitionLockRef.current = true;
         lastSpokenRef.current = null;
 
-        if (phaseRef.current === "get_ready") {
+        if (phase === "get_ready") {
           try {
             const firstEx = day?.exercises?.[0];
             if (firstEx) {
@@ -755,7 +759,7 @@ function handleManualContinue() {
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
-        startTimedStep(gr);
+        startTimedStep(gr); try { ping(); } catch (e) {}
 
       } else {
         setSecondsLeft(0);
