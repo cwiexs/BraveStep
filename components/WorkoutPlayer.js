@@ -479,13 +479,86 @@ const stepTokenRef = useRef(0);
     return null;
   }, [day, currentExerciseIndex, currentStepIndex]);
 
-  // WakeLock
-  useEffect(() => {
-    if ("wakeLock" in navigator) {
-      navigator.wakeLock.request("screen").then((lock) => (wakeLockRef.current = lock)).catch(() => {});
+  // --- Robust Screen Wake Lock + iOS fallback (keeps screen awake even when Settings modal is open) ---
+  const wakeWantedRef = useRef(true);
+  const keepAwakeAudioRef = useRef(null);
+
+  async function requestWakeLockSafe() {
+    if (typeof navigator === "undefined" || !("wakeLock" in navigator)) return;
+    try {
+      const lock = await navigator.wakeLock.request("screen");
+      wakeLockRef.current = lock;
+      try {
+        lock.addEventListener("release", () => {
+          try { dbg("wakeLock: released"); } catch {}
+          wakeLockRef.current = null;
+          // Re-acquire if page is visible and we still want it
+          if (wakeWantedRef.current && typeof document !== "undefined" && document.visibilityState === "visible") {
+            requestWakeLockSafe().catch(() => {});
+          }
+        });
+      } catch {}
+      try { dbg("wakeLock: acquired"); } catch {}
+    } catch (e) {
+      try { dbg("wakeLock: request failed", e?.message || e); } catch {}
     }
+  }
+
+  function startNoSleepFallback() {
+    // iOS Safari doesn't support WakeLock; loop a silent audio to prevent auto-lock
+    if (keepAwakeAudioRef.current) return;
+    try {
+      const a = new Audio("/silence.mp3");
+      a.loop = true;
+      a.volume = 0.0001; // effectively silent
+      a.play().catch(() => {});
+      keepAwakeAudioRef.current = a;
+      try { dbg("nosleep: silent audio started"); } catch {}
+    } catch {}
+  }
+  function stopNoSleepFallback() {
+    try {
+      const a = keepAwakeAudioRef.current;
+      if (a) { a.pause(); a.currentTime = 0; }
+      keepAwakeAudioRef.current = null;
+      try { dbg("nosleep: silent audio stopped"); } catch {}
+    } catch {}
+  }
+
+  useEffect(() => {
+    wakeWantedRef.current = true;
+
+    if ("wakeLock" in navigator) {
+      requestWakeLockSafe();
+    } else if (isIOS) {
+      // Kick off iOS fallback only after a user gesture (we also call again from handleManualContinue)
+      // Here we start optimistically; if it fails due to autoplay policy, we try again later.
+      startNoSleepFallback();
+    }
+
+    const onVis = () => {
+      try {
+        if (document.visibilityState === "visible" && wakeWantedRef.current) {
+          if ("wakeLock" in navigator) {
+            if (!wakeLockRef.current) requestWakeLockSafe();
+          } else if (isIOS && !keepAwakeAudioRef.current) {
+            startNoSleepFallback();
+          }
+        }
+      } catch {}
+    };
+
+    document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("focus", onVis);
+    window.addEventListener("orientationchange", onVis);
+
     return () => {
-      if (wakeLockRef.current) wakeLockRef.current.release();
+      wakeWantedRef.current = false;
+      try { document.removeEventListener("visibilitychange", onVis); } catch {}
+      try { window.removeEventListener("focus", onVis); } catch {}
+      try { window.removeEventListener("orientationchange", onVis); } catch {}
+      try { wakeLockRef.current?.release(); } catch {}
+      stopNoSleepFallback();
     };
   }, []);
 
@@ -756,6 +829,8 @@ function handleManualContinue() {
     stopAllScheduled();
     if (phase === "intro") {
       primeIOSAudio();
+      // Ensure iOS fallback keeps screen awake too
+      try { if (!('wakeLock' in navigator) && isIOS) startNoSleepFallback(); } catch {}
       // Preselect first exercise step
       try {
         const firstEx = day?.exercises?.[0];
