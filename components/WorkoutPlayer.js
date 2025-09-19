@@ -206,7 +206,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
       if (typeof s !== "string") continue;
       const low = s.toLowerCase();
       const looksLikeReps = low.includes("kart") || low.includes("rep") || low.includes("x");
-      if (!looksations) continue;
+      if (!looksLikeReps) continue;
 
       let v = NaN;
       const idxX = low.indexOf("x");
@@ -1011,6 +1011,39 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   if (phase === "exercise") {
     const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
     const seriesTotal = exercise?.steps?.filter((s) => s.type === "exercise").length || 0;
+    const seriesIdx = step?.type === "exercise" ? step?.set : null;
+
+    // Compute info about the next upcoming exercise step (for Rest 'Up next' card)
+    const nextExerciseInfo = (() => {
+      try {
+        if (!day || !day.exercises || !Array.isArray(day.exercises)) return null;
+        // 1) Search within current exercise after currentStepIndex
+        const ex = day.exercises[currentExerciseIndex];
+        if (ex && Array.isArray(ex.steps)) {
+          for (let i = currentStepIndex + 1; i < ex.steps.length; i++) {
+            const s = ex.steps[i];
+            if (s && s.type === "exercise") {
+              const totalSets = ex.steps.filter((st) => st.type === "exercise").length || 0;
+              const setNo = s.set ?? (1 + ex.steps.slice(0, i).filter((st) => st.type === "exercise").length);
+              return { ex, st: s, totalSets, setNo };
+            }
+          }
+        }
+        // 2) Otherwise, look into following exercises for the first 'exercise' step
+        for (let e = currentExerciseIndex + 1; e < day.exercises.length; e++) {
+          const ex2 = day.exercises[e];
+          if (!ex2 || !Array.isArray(ex2.steps)) continue;
+          const s2 = ex2.steps.find((st) => st && st.type === "exercise");
+          if (s2) {
+            const totalSets2 = ex2.steps.filter((st) => st.type === "exercise").length || 0;
+            const setNo2 = s2.set ?? 1;
+            return { ex: ex2, st: s2, totalSets: totalSets2, setNo: setNo2 };
+          }
+        }
+      } catch {}
+      return null;
+    })();
+
     const seriesIdx = step?.type === "exercise" ? step?.set : null;
 
     const timerColorClass = isRestPhase ? "text-yellow-500" : "text-green-600";
