@@ -409,6 +409,14 @@ const stepTokenRef = useRef(0);
     } catch {}
 
     // Fire-and-forget preloads (no await so we stay in gesture)
+  // Resume audio pipeline on-demand (WebAudio, iOS prime, TTS)
+  function resumeAudioPipeline() {
+    try { audioRef.current?.wa?.ctx?.resume?.(); } catch {}
+    try { if (isIOS) primeIOSAudio(); } catch {}
+    try { if (voiceEnabled && typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.resume(); } catch {}
+    try { ensureHTMLAudioLoaded(); } catch {}
+  }
+
     try { loadWABuffer("beep", "/beep.wav"); } catch {}
     try { loadWABuffer("1", "/1.mp3"); } catch {}
     try { loadWABuffer("2", "/2.mp3"); } catch {}
@@ -605,8 +613,7 @@ const stepTokenRef = useRef(0);
 
   // Keep audio pipeline alive when toggling audio settings mid-step
   useEffect(() => {
-    try { audioRef.current?.wa?.ctx?.resume?.(); } catch {}
-    try { if (isIOS) primeIOSAudio(); } catch {}
+    try { resumeAudioPipeline(); } catch {}
   }, [fxEnabled, fxTrack, voiceEnabled]);
 
   useEffect(() => {
@@ -813,14 +820,16 @@ vibe([40, 40]);
   useEffect(() => {
     const wasOpen = prevShowSettingsRef.current;
     if (wasOpen && !showSettings) {
-      try { audioRef.current?.wa?.ctx?.resume?.(); } catch {}
-      try { primeIOSAudio(); } catch {}
+      try { resumeAudioPipeline(); } catch {}
       if (autoPausedBySettingsRef.current) {
         autoPausedBySettingsRef.current = false;
         // Reset last spoken to allow immediate countdown announcements if applicable
         try { lastSpokenRef.current = null; } catch {}
         // Resume timer if it was running before Settings
         try { resumeTimer(); } catch {}
+        // Give immediate audible feedback if applicable
+        try { if (fxEnabled) ping(); } catch {}
+        try { const s = secondsLeft || 0; if (voiceEnabled && s > 0 && s <= 5) speakNumber(s); } catch {}
       }
     }
     prevShowSettingsRef.current = showSettings;
