@@ -53,6 +53,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
   const [stepFinished, setStepFinished] = useState(false);
+  const [preActive, setPreActive] = useState(false); // pre-workout countdown
 
   const [rating, setRating] = useState(3);
   const [submitted, setSubmitted] = useState(false);
@@ -209,7 +210,12 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   // Show reps text as it is in AI text, if available
-  function getRepsText(st) {
+  
+function preReadySec() {
+  return 15; // hardcoded pre-workout seconds
+}
+
+function getRepsText(st) {
     const n = getReps(st);
     if (n == null) return "";
 
@@ -502,6 +508,41 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
+  
+  // Pre-workout countdown which runs before the very first step
+  const startPreCountdown = (preSec, nextDurationSec) => {
+    try { cancelRaf(); stopAllScheduled(); } catch {}
+    setPreActive(true);
+    lastSpokenRef.current = null;
+    setPaused(false);
+    setWaitingForUser(false);
+    setSecondsLeft(Math.max(0, Math.round(preSec)));
+
+    for (let i = preSec; i >= 1; i--) {
+      const id = setTimeout(() => {
+        try {
+          setSecondsLeft(i);
+          if (voiceEnabled && i <= 5) speakNumber(i);
+        } catch {}
+      }, (preSec - i) * 1000);
+      timeoutsRef.current.push(id);
+    }
+
+    const fin = setTimeout(() => {
+      try {
+        setPreActive(false);
+        ping();
+        if (nextDurationSec && nextDurationSec > 0) {
+          startTimedStep(nextDurationSec);
+        } else {
+          setSecondsLeft(0);
+          setWaitingForUser(true);
+        }
+      } catch {}
+    }, Math.max(0, Math.round(preSec * 1000)));
+    timeoutsRef.current.push(fin);
+  };
+
   const startTimedStep = (durationSec) => {
     cancelRaf();
     stopAllScheduled();
@@ -548,6 +589,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     cancelRaf();
     stopAllScheduled();
     deadlineRef.current = null;
+
+    // Hold while pre-countdown is active
+    if (preActive) { return; }
 
     if (phase !== "exercise" || !step) {
       setSecondsLeft(0);
@@ -621,6 +665,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (phase === "intro") {
       primeIOSAudio();
       setPhase("exercise");
+      try { const dur = getTimedSeconds(step); const pre = preReadySec(); if (pre > 0) { startPreCountdown(pre, dur); return; } } catch {}
     } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
@@ -874,7 +919,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     const seriesTotal = exercise?.steps?.filter((s) => s.type === "exercise").length || 0;
     const seriesIdx = step?.type === "exercise" ? step?.set : null;
 
-    // Pre-workout overlay UI
+    // Show pre-workout overlay while pre countdown is running
     if (preActive) {
       const timerColorClass = "text-blue-600";
       return (
