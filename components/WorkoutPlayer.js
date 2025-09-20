@@ -53,6 +53,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
   const [stepFinished, setStepFinished] = useState(false);
+  const [preActive, setPreActive] = useState(false); // pre-workout countdown
 
   const [rating, setRating] = useState(3);
   const [submitted, setSubmitted] = useState(false);
@@ -211,12 +212,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   // Show reps text as it is in AI text, if available
   
 function preReadySec() {
-  try {
-    if (typeof window === "undefined") return 0;
-    const raw = localStorage.getItem("bs_get_ready_sec") ?? localStorage.getItem("bs_preworkout_sec");
-    const v = Number(raw);
-    return Number.isFinite(v) && v > 0 ? Math.round(v) : 0;
-  } catch { return 0; }
+  return 15; // hardcoded pre-workout countdown in seconds
 }
 
 function getRepsText(st) {
@@ -512,6 +508,43 @@ function getRepsText(st) {
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
+  
+  // --- Pre-workout countdown (hardcoded 15s) ---
+  const startPreCountdown = (preSec, nextDurationSec) => {
+    try { cancelRaf(); stopAllScheduled(); } catch {}
+    setPreActive(true);
+    lastSpokenRef.current = null;
+    setPaused(false);
+    setWaitingForUser(false);
+    setSecondsLeft(Math.max(0, Math.round(preSec)));
+
+    // Schedule per-second updates & voice
+    for (let i = preSec; i >= 1; i--) {
+      const id = setTimeout(() => {
+        try {
+          setSecondsLeft(i);
+          if (voiceEnabled && i <= 5) speakNumber(i);
+        } catch {}
+      }, (preSec - i) * 1000);
+      timeoutsRef.current.push(id);
+    }
+
+    // When countdown ends → start real step
+    const fin = setTimeout(() => {
+      try {
+        setPreActive(false);
+        ping();
+        if (nextDurationSec && nextDurationSec > 0) {
+          startTimedStep(nextDurationSec);
+        } else {
+          setSecondsLeft(0);
+          setWaitingForUser(true);
+        }
+      } catch {}
+    }, Math.max(0, Math.round(preSec * 1000)));
+    timeoutsRef.current.push(fin);
+  };
+
   const startTimedStep = (durationSec) => {
     cancelRaf();
     stopAllScheduled();
@@ -558,6 +591,9 @@ function getRepsText(st) {
     cancelRaf();
     stopAllScheduled();
     deadlineRef.current = null;
+
+    // hold while pre-countdown is active
+    if (preActive) { return; }
 
     if (phase !== "exercise" || !step) {
       setSecondsLeft(0);
@@ -631,11 +667,7 @@ function getRepsText(st) {
     if (phase === "intro") {
       primeIOSAudio();
       setPhase("exercise");
-      const pre = preReadySec();
-      try {
-        const dur = getTimedSeconds(step);
-        if (pre > 0) { startPreCountdown(pre, dur); return; }
-      } catch {}
+      try { const dur = getTimedSeconds(step); const pre = preReadySec(); if (pre > 0) { startPreCountdown(pre, dur); return; } } catch {}
     } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
