@@ -574,9 +574,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     // Įprasta eiga: timed -> timeris; reps -> „Atlikta“
     
     if (duration > 0) {
-      if (currentExerciseIndex === 0 && currentStepIndex === 0 && settings.getReadyDurationSec > 0) {
+      if (currentExerciseIndex === 0 && currentStepIndex === 0 && getReadyDurationSec > 0) {
         setPhase("get-ready");
-        startTimedStep(settings.getReadyDurationSec);
+        startTimedStep(getReadyDurationSec);
       } else {
         startTimedStep(duration);
       }
