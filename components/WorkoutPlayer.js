@@ -59,6 +59,16 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [submitting, setSubmitting] = useState(false);
 
   // Settings (persisted)
+  // Safe "Get Ready" duration (from localStorage or 0 if missing)
+  const getReadyDurationSec = (() => {
+    try {
+      if (typeof window === "undefined") return 0;
+      const raw = localStorage.getItem("bs_get_ready_sec") ?? localStorage.getItem("bs_preworkout_sec");
+      const v = Number(raw);
+      return Number.isFinite(v) && v > 0 ? Math.round(v) : 0;
+    } catch { return 0; }
+  })();
+
   const [showSettings, setShowSettings] = useState(false);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [fxEnabled, setFxEnabled] = useState(true);
