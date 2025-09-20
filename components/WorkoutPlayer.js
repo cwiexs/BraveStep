@@ -33,6 +33,21 @@ if (typeof window !== "undefined") {
 const dbg = (...args) => { if (DEBUG) console.log("[PLAYER]", ...args); };
 
 
+
+function scheduleFinalCountdown(durationSec) {
+  if (!voiceEnabled || durationSec < 5) return;
+  for (let i = 5; i >= 1; i--) {
+    if (i >= durationSec) continue;
+    const timeout = setTimeout(() => {
+      try {
+        speakNumber(i);
+      } catch {}
+    }, (durationSec - i) * 1000);
+    scheduledTimeoutsRef.current.push(timeout);
+  }
+}
+
+
 export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const { t, i18n } = useTranslation("common");
   const router = (typeof window !== "undefined" ? useRouter() : null);
@@ -714,6 +729,7 @@ function scheduleFinalCountdown(durationSec) {
 
 // Modify inside startTimedStep:
 const startTimedStep = (durationSec) => {
+  scheduleFinalCountdown(durationSec);  // ⏱️ Added countdown scheduler
   transitionLockRef.current = false;
   stepTokenRef.current = (stepTokenRef.current || 0) + 1;
   const __token = stepTokenRef.current;
