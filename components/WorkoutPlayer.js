@@ -53,22 +53,13 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
   const [stepFinished, setStepFinished] = useState(false);
+  const [preActive, setPreActive] = useState(false); // pre-workout countdown active
 
   const [rating, setRating] = useState(3);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Settings (persisted)
-  // Safe "Get Ready" duration (from localStorage or 0 if missing)
-  const getReadyDurationSec = (() => {
-    try {
-      if (typeof window === "undefined") return 0;
-      const raw = localStorage.getItem("bs_get_ready_sec") ?? localStorage.getItem("bs_preworkout_sec");
-      const v = Number(raw);
-      return Number.isFinite(v) && v > 0 ? Math.round(v) : 0;
-    } catch { return 0; }
-  })();
-
   const [showSettings, setShowSettings] = useState(false);
   const [vibrationEnabled, setVibrationEnabled] = useState(true);
   const [fxEnabled, setFxEnabled] = useState(true);
@@ -512,6 +503,45 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
+  
+  // Pre-workout countdown that runs before the very first step, then starts the real timer
+  const startPreCountdown = (preSec, nextDurationSec) => {
+    try { cancelRaf(); stopAllScheduled(); } catch {}
+    setPreActive(true);
+    lastSpokenRef.current = null;
+    setPaused(false);
+    setWaitingForUser(false);
+    setSecondsLeft(Math.max(0, Math.round(preSec)));
+
+    // Schedule per-second ticks for voice + UI
+    for (let i = preSec; i >= 1; i--) {
+      const id = setTimeout(() => {
+        try {
+          setSecondsLeft(i);
+          if (voiceEnabled && i <= 5) speakNumber(i);
+        } catch {}
+      }, (preSec - i) * 1000);
+      timeoutsRef.current.push(id);
+    }
+
+    // When pre countdown finishes -> start the real timer
+    const fin = setTimeout(() => {
+      try {
+        setPreActive(false);
+        // safety beep
+        ping();
+        if (nextDurationSec && nextDurationSec > 0) {
+          startTimedStep(nextDurationSec);
+        } else {
+          // fallback: if no duration, wait-for-user state (for reps-only first step)
+          setSecondsLeft(0);
+          setWaitingForUser(true);
+        }
+      } catch {}
+    }, Math.max(0, Math.round(preSec * 1000)));
+    timeoutsRef.current.push(fin);
+  };
+
   const startTimedStep = (durationSec) => {
     cancelRaf();
     stopAllScheduled();
@@ -558,6 +588,9 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     cancelRaf();
     stopAllScheduled();
     deadlineRef.current = null;
+
+    // Block main timer while pre-countdown is active
+    if (preActive) { setSecondsLeft(prev => prev); return; }
 
     if (phase !== "exercise" || !step) {
       setSecondsLeft(0);
@@ -631,6 +664,11 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     if (phase === "intro") {
       primeIOSAudio();
       setPhase("exercise");
+      const pre = getReadyDurationSec || 0;
+      try {
+        const dur = getTimedSeconds(step);
+        if (pre > 0) { startPreCountdown(pre, dur); }
+      } catch {}
     } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
