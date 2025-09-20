@@ -572,12 +572,19 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
     }
 
     // Įprasta eiga: timed -> timeris; reps -> „Atlikta“
+    
     if (duration > 0) {
-      startTimedStep(duration);
+      if (currentExerciseIndex === 0 && currentStepIndex === 0 && getReadyDurationSec > 0) {
+        setPhase("get-ready");
+        startTimedStep(getReadyDurationSec);
+      } else {
+        startTimedStep(duration);
+      }
     } else {
       setSecondsLeft(0);
       setWaitingForUser(step?.type === "exercise");
     }
+
   }, [phase, step, currentExerciseIndex, currentStepIndex, isTerminal, isRestAfter]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // automatinė pauzė atidarius nustatymus ar išeities patvirtinimą
