@@ -366,88 +366,63 @@ const stepTokenRef = useRef(0);
   function playHTML(name) {
     ensureHTMLAudioLoaded();
     const { beep, nums } = audioRef.current.html;
-
-    const safePlay = (audio) => {
-        try {
-            if (!audio) return false;
-            audio.pause(); // reset before reuse
-            audio.currentTime = 0;
-            if (audio.readyState >= 2) {
-                const playPromise = audio.play();
-                if (playPromise && typeof playPromise.catch === 'function') {
-                    playPromise.catch((e) => {
-                        if (DEBUG) console.warn("[AUDIO] play() failed:", e.message || e);
-                    });
-                }
-                return true;
-            } else {
-                if (DEBUG) console.warn("[AUDIO] not ready:", name);
-                return false;
-            }
-        } catch (err) {
-            if (DEBUG) console.warn("[AUDIO] error:", err.message || err);
-            return false;
-        }
-    };
-
     if (name === "beep") {
-        return safePlay(beep);
+      try {
+        beep.currentTime = 0;
+        beep.volume = 0.75;
+        beep.play();
+      } catch {}
+      return true;
     }
-
     if (["1", "2", "3", "4", "5"].includes(name)) {
-        return safePlay(nums[Number(name)]);
+      const a = nums[Number(name)];
+      try {
+        a.currentTime = 0;
+        a.play();
+      } catch {}
+      return true;
     }
-
     return false;
-}
+  }
 
   function primeIOSAudio() {
+    // Create/Resume WebAudio synchronously within user gesture
     const ctx = getOrCreateWAContextSync();
     try { ctx?.resume?.(); } catch {}
-
     try {
-        if (ctx) {
-            const g = ctx.createGain(); g.gain.value = 0.00001;
-            const o = ctx.createOscillator(); o.connect(g).connect(ctx.destination);
-            o.start(0);
-            try { o.stop(ctx.currentTime + 0.05); } catch {}
-        }
+      // silent WA tick (oscillator) to mark audio as user-activated
+      if (ctx) {
+        const g = ctx.createGain(); g.gain.value = 0.00001;
+        const o = ctx.createOscillator(); o.connect(g).connect(ctx.destination);
+        o.start(0);
+        try { o.stop(ctx.currentTime + 0.05); } catch {}
+      }
     } catch {}
 
+    // Prepare HTMLAudio and attempt immediate silent play (no await)
     ensureHTMLAudioLoaded();
-
     try {
-        const h = audioRef.current.html;
-        const tryPlay = (el) => {
-            try {
-                if (!el) return;
-                el.volume = 0.001;
-                el.currentTime = 0;
-                const p = el.play();
-                if (p && typeof p.catch === 'function') p.catch(()=>{});
-                setTimeout(() => {
-                    try { el.pause(); el.currentTime = 0; } catch {}
-                }, 150);
-            } catch {}
-        };
-
-        // Prewarm beep and countdown numbers
-        tryPlay(h.silence);
-        if (h.silenceAlt) tryPlay(h.silenceAlt);
-        tryPlay(h.beep);
-        for (let i = 1; i <= 5; i++) {
-            tryPlay(h.nums[i]);
-        }
+      const h = audioRef.current.html;
+      const tryPlay = (el) => { try { if (!el) return; el.volume = 0.01; el.currentTime = 0; const p = el.play(); if (p && typeof p.catch === 'function') p.catch(()=>{}); setTimeout(()=>{ try { el.pause(); el.currentTime = 0; } catch {} }, 150); } catch {} };
+      tryPlay(h.silence);
+      if (h.silenceAlt) tryPlay(h.silenceAlt);
     } catch {}
+
+    // Fire-and-forget preloads (no await so we stay in gesture)
+  // Resume audio pipeline on-demand (WebAudio, iOS prime, TTS)
+  function resumeAudioPipeline() {
+    try { audioRef.current?.wa?.ctx?.resume?.(); } catch {}
+    try { if (isIOS) primeIOSAudio(); } catch {}
+    try { if (voiceEnabled && typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.resume(); } catch {}
+    try { ensureHTMLAudioLoaded(); } catch {}
+  }
 
     try { loadWABuffer("beep", "/beep.wav"); } catch {}
-    for (let i = 1; i <= 5; i++) {
-        try { loadWABuffer(String(i), `/${i}.mp3`); } catch {}
-    }
-
-    // Reset lastSpokenRef so countdown starts correctly after priming
-    lastSpokenRef.current = null;
-} catch {}
+    try { loadWABuffer("1", "/1.mp3"); } catch {}
+    try { loadWABuffer("2", "/2.mp3"); } catch {}
+    try { loadWABuffer("3", "/3.mp3"); } catch {}
+    try { loadWABuffer("4", "/4.mp3"); } catch {}
+    try { loadWABuffer("5", "/5.mp3"); } catch {}
   }
 
   function ping() {
@@ -908,7 +883,6 @@ function handleManualContinue() {
           setCurrentStepIndex(0);
         }
       } catch {}
-      primeIOSAudio();
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
