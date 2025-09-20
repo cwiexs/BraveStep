@@ -366,24 +366,40 @@ const stepTokenRef = useRef(0);
   function playHTML(name) {
     ensureHTMLAudioLoaded();
     const { beep, nums } = audioRef.current.html;
+
+    const safePlay = (audio) => {
+        try {
+            if (!audio) return false;
+            audio.pause(); // reset before reuse
+            audio.currentTime = 0;
+            if (audio.readyState >= 2) {
+                const playPromise = audio.play();
+                if (playPromise && typeof playPromise.catch === 'function') {
+                    playPromise.catch((e) => {
+                        if (DEBUG) console.warn("[AUDIO] play() failed:", e.message || e);
+                    });
+                }
+                return true;
+            } else {
+                if (DEBUG) console.warn("[AUDIO] not ready:", name);
+                return false;
+            }
+        } catch (err) {
+            if (DEBUG) console.warn("[AUDIO] error:", err.message || err);
+            return false;
+        }
+    };
+
     if (name === "beep") {
-      try {
-        beep.currentTime = 0;
-        beep.volume = 0.75;
-        beep.play();
-      } catch {}
-      return true;
+        return safePlay(beep);
     }
+
     if (["1", "2", "3", "4", "5"].includes(name)) {
-      const a = nums[Number(name)];
-      try {
-        a.currentTime = 0;
-        a.play();
-      } catch {}
-      return true;
+        return safePlay(nums[Number(name)]);
     }
+
     return false;
-  }
+}
 
   function primeIOSAudio() {
     // Create/Resume WebAudio synchronously within user gesture
@@ -883,6 +899,7 @@ function handleManualContinue() {
           setCurrentStepIndex(0);
         }
       } catch {}
+      primeIOSAudio();
       setPhase("get_ready");
       const gr = Number(getReadySeconds) || 0;
       if (gr > 0) {
