@@ -53,7 +53,6 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   const [waitingForUser, setWaitingForUser] = useState(false);
   const [paused, setPaused] = useState(false);
   const [stepFinished, setStepFinished] = useState(false);
-  const [preActive, setPreActive] = useState(false); // pre-workout countdown
 
   const [rating, setRating] = useState(3);
   const [submitted, setSubmitted] = useState(false);
@@ -210,12 +209,7 @@ export default function WorkoutPlayer({ workoutData, planId, onClose }) {
   }
 
   // Show reps text as it is in AI text, if available
-  
-function preReadySec() {
-  return 15; // hardcoded pre-workout countdown in seconds
-}
-
-function getRepsText(st) {
+  function getRepsText(st) {
     const n = getReps(st);
     if (n == null) return "";
 
@@ -508,43 +502,6 @@ function getRepsText(st) {
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
-  
-  // --- Pre-workout countdown (hardcoded 15s) ---
-  const startPreCountdown = (preSec, nextDurationSec) => {
-    try { cancelRaf(); stopAllScheduled(); } catch {}
-    setPreActive(true);
-    lastSpokenRef.current = null;
-    setPaused(false);
-    setWaitingForUser(false);
-    setSecondsLeft(Math.max(0, Math.round(preSec)));
-
-    // Schedule per-second updates & voice
-    for (let i = preSec; i >= 1; i--) {
-      const id = setTimeout(() => {
-        try {
-          setSecondsLeft(i);
-          if (voiceEnabled && i <= 5) speakNumber(i);
-        } catch {}
-      }, (preSec - i) * 1000);
-      timeoutsRef.current.push(id);
-    }
-
-    // When countdown ends → start real step
-    const fin = setTimeout(() => {
-      try {
-        setPreActive(false);
-        ping();
-        if (nextDurationSec && nextDurationSec > 0) {
-          startTimedStep(nextDurationSec);
-        } else {
-          setSecondsLeft(0);
-          setWaitingForUser(true);
-        }
-      } catch {}
-    }, Math.max(0, Math.round(preSec * 1000)));
-    timeoutsRef.current.push(fin);
-  };
-
   const startTimedStep = (durationSec) => {
     cancelRaf();
     stopAllScheduled();
@@ -592,9 +549,6 @@ function getRepsText(st) {
     stopAllScheduled();
     deadlineRef.current = null;
 
-    // hold while pre-countdown is active
-    if (preActive) { return; }
-
     if (phase !== "exercise" || !step) {
       setSecondsLeft(0);
       setWaitingForUser(false);
@@ -620,9 +574,9 @@ function getRepsText(st) {
     // Įprasta eiga: timed -> timeris; reps -> „Atlikta“
     
     if (duration > 0) {
-      if (currentExerciseIndex === 0 && currentStepIndex === 0 && preReadySec() > 0) {
+      if (currentExerciseIndex === 0 && currentStepIndex === 0 && getReadyDurationSec > 0) {
         setPhase("get-ready");
-        startTimedStep(preReadySec());
+        startTimedStep(getReadyDurationSec);
       } else {
         startTimedStep(duration);
       }
@@ -667,7 +621,6 @@ function getRepsText(st) {
     if (phase === "intro") {
       primeIOSAudio();
       setPhase("exercise");
-      try { const dur = getTimedSeconds(step); const pre = preReadySec(); if (pre > 0) { startPreCountdown(pre, dur); return; } } catch {}
     } else if (phase === "exercise") {
       setStepFinished(true);
       handlePhaseComplete();
@@ -920,6 +873,40 @@ function getRepsText(st) {
     const isRestPhase = step?.type === "rest" || (step?.type === "rest_after" && !(isTerminal && isRestAfter));
     const seriesTotal = exercise?.steps?.filter((s) => s.type === "exercise").length || 0;
     const seriesIdx = step?.type === "exercise" ? step?.set : null;
+
+    // Pre-workout overlay UI
+    if (preActive) {
+      const timerColorClass = "text-blue-600";
+      return (
+        <Shell
+          footer={
+            <>
+              <div className="flex items-center justify-center gap-4">
+                <button onClick={goToPrevious} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={prevLabel}>
+                  <SkipBack className="w-6 h-6 text-gray-800" />
+                </button>
+                <button onClick={() => (paused ? resumeTimer() : pauseTimer())} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={pausePlayLabel}>
+                  {paused ? <Play className="w-6 h-6 text-gray-800" /> : <Pause className="w-6 h-6 text-gray-800" />}
+                </button>
+                <button onClick={restartCurrentStep} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={restartStepLabel}>
+                  <RotateCcw className="w-6 h-6 text-gray-800" />
+                </button>
+                <button onClick={goToNext} className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm" aria-label={nextLabel}>
+                  <SkipForward className="w-6 h-6 text-gray-800" />
+                </button>
+              </div>
+            </>
+          }
+        >
+          <div className="max-w-2xl mx-auto text-center mt-6">
+            <h2 className="text-2xl font-extrabold mb-2 text-blue-700">Get Ready</h2>
+            <p className={`text-6xl font-extrabold ${timerColorClass} mt-6`}>
+              {secondsLeft > 0 ? `${secondsLeft} ${secShort}` : `0 ${secShort}`}
+            </p>
+          </div>
+        </Shell>
+      );
+    }
 
     const timerColorClass = isRestPhase ? "text-yellow-500" : "text-green-600";
     const restLabelClass = "text-yellow-500";
