@@ -699,54 +699,69 @@ if (transitionLockRef.current) { cancelRaf(); return; }
     tickRafRef.current = requestAnimationFrame(tick);
   };
 
-  const startTimedStep = (durationSec) => {
-    transitionLockRef.current = false;
-    stepTokenRef.current = (stepTokenRef.current || 0) + 1;
-    const __token = stepTokenRef.current;
-    cancelRaf();
-    stopAllScheduled();
-    lastSpokenRef.current = null;
+function scheduleFinalCountdown(durationSec) {
+  if (!voiceEnabled || durationSec < 5) return;
+  for (let i = 5; i >= 1; i--) {
+    if (i >= durationSec) continue; // skip if countdown starts after total duration
+    const timeout = setTimeout(() => {
+      try {
+        speakNumber(i);
+      } catch {}
+    }, (durationSec - i) * 1000);
+    scheduledTimeoutsRef.current.push(timeout);
+  }
+}
 
-    if (!durationSec || durationSec <= 0) {
-      setSecondsLeft(0);
-      setWaitingForUser(true);
-      return;
+// Modify inside startTimedStep:
+const startTimedStep = (durationSec) => {
+  transitionLockRef.current = false;
+  stepTokenRef.current = (stepTokenRef.current || 0) + 1;
+  const __token = stepTokenRef.current;
+  cancelRaf();
+  stopAllScheduled();
+  lastSpokenRef.current = null;
+
+  if (!durationSec || durationSec <= 0) {
+    setSecondsLeft(0);
+    setWaitingForUser(true);
+    return;
+  }
+
+  setWaitingForUser(false);
+  setPaused(false);
+
+  const nowMs = performance.now();
+  deadlineRef.current = nowMs + durationSec * 1000;
+  setSecondsLeft(durationSec);
+
+  try { dbg("startTimedStep", { durationSec, phase: phaseRef.current, token: __token }); } catch {}
+
+  try {
+    if (durationSec > 0) {
+      const wd = setTimeout(() => {
+        try {
+          if (__token !== stepTokenRef.current) return;
+          const dl = deadlineRef.current;
+          if (!dl) return;
+          const now = performance.now ? performance.now() : Date.now();
+          if (now < dl - 10) return; // dar ne laikas
+          if (transitionLockRef.current) return;
+          transitionLockRef.current = true;
+          cancelRaf();
+          try { handlePhaseComplete(); } catch {}
+        } catch {}
+      }, Math.max(0, Math.round(durationSec * 1000) + 350));
+      scheduledTimeoutsRef.current.push(wd);
     }
-    setWaitingForUser(false);
-    setPaused(false);
+  } catch {}
 
-    const nowMs = performance.now();
-    deadlineRef.current = nowMs + durationSec * 1000;
-    setSecondsLeft(durationSec);
+  vibe([40, 40]);
+  ping();
 
-    
-    
-    try { dbg("startTimedStep", { durationSec, phase: phaseRef.current, token: __token }); } catch {}
+  scheduleFinalCountdown(durationSec);
 
-try {
-      if (durationSec > 0) {
-        const wd = setTimeout(() => {
-          try {
-            if (__token !== stepTokenRef.current) return;
-            const dl = deadlineRef.current;
-            if (!dl) return;
-            const now = performance.now ? performance.now() : Date.now();
-            if (now < dl - 10) return; // dar ne laikas
-            if (transitionLockRef.current) return;
-            transitionLockRef.current = true;
-            cancelRaf();
-            // Leiskime eiti ta pačia logika kaip rAF pabaigoje
-            try { handlePhaseComplete(); } catch {}
-          } catch {}
-        }, Math.max(0, Math.round(durationSec * 1000) + 350));
-        scheduledTimeoutsRef.current.push(wd);
-      }
-    } catch {}
-vibe([40, 40]);
-    ping();
-
-    tickRafRef.current = requestAnimationFrame(tick);
-  };
+  tickRafRef.current = requestAnimationFrame(tick);
+};
 
   const pauseTimer = () => {
     if (paused) return;
