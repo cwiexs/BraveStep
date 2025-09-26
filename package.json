@@ -6,8 +6,6 @@
     "build": "prisma generate && prisma migrate deploy && next build",
     "start": "next start",
     "postinstall": "npx prisma generate"
-
-
   },
   "dependencies": {
     "@auth/pg-adapter": "^1.9.1",
@@ -16,6 +14,7 @@
     "autoprefixer": "^10.1.1",
     "bcryptjs": "^2.4.3",
     "i18next": "^22.5.1",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.525.0",
     "next": "13.4.4",
     "next-auth": "^4.22.1",
@@ -39,5 +38,4 @@
     "prisma": "^6.10.1",
     "typescript": "^5.8.3"
   }
-  
 }
